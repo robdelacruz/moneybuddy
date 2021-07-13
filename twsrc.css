@@ -4,3 +4,20 @@
 
 @tailwind utilities;
 
+.bg-page {@apply bg-gray-900;}
+
+.fg-dim {@apply text-gray-500;}
+.fg-normal {@apply text-gray-200;}
+.bg-normal {@apply bg-gray-800;}
+
+.fg-reverse {@apply text-gray-800;}
+.bg-reverse {@apply bg-gray-200;}
+.highlight {@apply fg-reverse bg-reverse;}
+
+.border-normal {@apply border-gray-500;}
+.border-cell {@apply border-gray-700;}
+
+
+.cell-date {flex-basis: 10rem;}
+.cell-desc {flex-basis: 40rem;}
+.cell-amt {flex-basis: 12rem;}

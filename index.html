@@ -8,10 +8,10 @@
 <style>
 </style>
 </head>
-<body class="bg-gray-900 text-xs p-2">
+<body class="bg-page text-xs p-2">
 <div id="container">
 
-<div class="flex flex-row justify-between border-b border-gray-500 text-gray-200 pb-1 mb-2">
+<div class="flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
     <div>
         <h1 class="inline text-sm ml-1 mr-2"><a href="/">Accounts Buddy</a></h1>
         <a href="about.html" class="mr-2">About</a>
@@ -23,17 +23,79 @@
 </div>
 
 <div class="flex flex-row">
-    <div class="bg-gray-800 text-gray-200 mb-2 mr-2 py-2 px-4" style="width: 20rem;">
+    <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Accounts</h1>
         <ul>
-        <li class="p-1">BPI Checking</li>
-        <li class="p-1 bg-gray-200 text-gray-800">Security Savings PHP</li>
-        <li class="p-1">Security Savings USD</li>
-        <li class="p-1">Fidelity Individual Cash</li>
-        <li class="p-1">BPI Maxi</li>
+        <li class="flex flex-row justify-between p-1 border-b border-cell">
+            <p class="truncate cell-desc">BPI Checking</p>
+            <p class="fg-dim text-right cell-amt">123,456.78</p>
+        </li>
+        <li class="flex flex-row justify-between p-1 border-b border-cell highlight">
+            <p class="highlight truncate cell-desc">Security Savings PHP</p>
+            <p class="highlight text-right cell-amt">12,345.67</p>
+        </li>
+        <li class="flex flex-row justify-between p-1 border-b border-cell">
+            <p class="truncate cell-desc">Security Savings USD</p>
+            <p class="fg-dim text-right cell-amt">12,345.67</p>
+        </li>
+        <li class="flex flex-row justify-between p-1 border-b border-cell">
+            <p class="truncate cell-desc">Fidelity Individual Cash</p>
+            <p class="fg-dim text-right cell-amt">12,345.67</p>
+        </li>
+        <li class="flex flex-row justify-between p-1 border-b border-cell">
+            <p class="truncate cell-desc">BPI Maxi</p>
+            <p class="fg-dim text-right cell-amt">12,345.67</p>
+        </li>
         </ul>
     </div>
-    <div class="bg-gray-800 text-gray-200 mb-2 py-2 px-4" style="width: 20rem;">
+    <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
+        <h1 class="text-sm font-bold mb-2">Transactions</h1>
+        <ul>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">pay meralco</p>
+            <p class="fg-dim text-right cell-amt"></p>
+            <p class="fg-dim text-right cell-amt">(3,997.47)</p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">pay manila water</p>
+            <p class="fg-dim text-right cell-amt"></p>
+            <p class="fg-dim text-right cell-amt">(543.21)</p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">deposit bicutan rent</p>
+            <p class="fg-dim text-right cell-amt">9,000.00</p>
+            <p class="fg-dim text-right cell-amt"></p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">payment to contractor for cook top and light fixtures</p>
+            <p class="fg-dim text-right cell-amt"></p>
+            <p class="fg-dim text-right cell-amt">(7,890.12)</p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell highlight">
+            <p class="highlight cell-date">2021-07-14</p>
+            <p class="highlight truncate cell-desc">commission to dao for parking</p>
+            <p class="highlight text-right cell-amt"></p>
+            <p class="highlight text-right cell-amt">(5,000.00)</p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">dividend</p>
+            <p class="fg-dim text-right cell-amt">501.25</p>
+            <p class="fg-dim text-right cell-amt"></p>
+        </li>
+        <li class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="fg-dim cell-date">2021-07-14</p>
+            <p class="truncate cell-desc">final payment to contractor</p>
+            <p class="fg-dim text-right cell-amt"></p>
+            <p class="fg-dim text-right cell-amt">(30,500.50)</p>
+        </li>
+        </ul>
+    </div>
+    <div class="bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
         <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis consequat est eget est accumsan, eu iaculis tellus fermentum. Nunc pharetra ante feugiat maximus dapibus. Sed dui sapien, hendrerit vel viverra ut, maximus vitae risus. Nunc scelerisque bibendum magna, a faucibus nunc. Suspendisse sapien eros, tincidunt ac ultrices at, hendrerit ac purus. Aliquam erat volutpat. Suspendisse aliquam accumsan ornare. Sed ac leo vitae enim fringilla tristique at sit amet odio. Nunc vel sollicitudin est, vitae commodo purus. Nunc sit amet tellus tincidunt, ultrices quam a, cursus mi. Maecenas sollicitudin vehicula arcu, ut eleifend purus luctus vel. Integer scelerisque mi quis tincidunt laoreet. Fusce dapibus vulputate arcu, eu sollicitudin orci efficitur vel.</p>
         <p class="mb-4">Sed lacinia ligula a quam vehicula porttitor. Ut sollicitudin ante mi, convallis rhoncus dolor egestas non. Phasellus non leo volutpat, consectetur tortor ac, cursus leo. Duis quis tortor quis odio consequat consectetur eget vestibulum tellus. Etiam vel lacus neque. Pellentesque sagittis sodales scelerisque. Nam tristique feugiat enim eu fringilla. Proin lorem quam, ornare sit amet lectus in, aliquam volutpat mauris. Curabitur sed libero turpis. Proin vitae sagittis ex. Morbi semper turpis nisl, sed fermentum dolor pellentesque et.</p>
