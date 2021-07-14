@@ -4,7 +4,7 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-JSFILES = index.js Index.svelte
+JSFILES = index.js Index.svelte EventBox.svelte
 
 all: static/style.css static/bundle.js
 
