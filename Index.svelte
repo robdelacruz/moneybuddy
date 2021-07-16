@@ -1,18 +1,37 @@
-<script>
-import EventBox from "./EventBox.svelte";
+<div class="flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
+    <div>
+        <h1 class="inline text-sm ml-1 mr-2"><a href="/">Accounts Buddy</a></h1>
+        <a href="about.html" class="mr-2">About</a>
+    </div>
+    <div>
+        <a class="inline mr-1" href="/">robdelacruz</a>
+        <a class="inline mr-1" href="/">Logout</a>
+    </div>
+</div>
 
-export let name;
-let eventbox;
+<div class="flex flex-row">
+    <Accounts bind:this={accounts} />
+    <Transactions bind:this={transactions} />
+
+    <div class="bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
+        <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
+        <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis consequat est eget est accumsan, eu iaculis tellus fermentum. Nunc pharetra ante feugiat maximus dapibus. Sed dui sapien, hendrerit vel viverra ut, maximus vitae risus. Nunc scelerisque bibendum magna, a faucibus nunc. Suspendisse sapien eros, tincidunt ac ultrices at, hendrerit ac purus. Aliquam erat volutpat. Suspendisse aliquam accumsan ornare. Sed ac leo vitae enim fringilla tristique at sit amet odio. Nunc vel sollicitudin est, vitae commodo purus. Nunc sit amet tellus tincidunt, ultrices quam a, cursus mi. Maecenas sollicitudin vehicula arcu, ut eleifend purus luctus vel. Integer scelerisque mi quis tincidunt laoreet. Fusce dapibus vulputate arcu, eu sollicitudin orci efficitur vel.</p>
+        <p class="mb-4">Sed lacinia ligula a quam vehicula porttitor. Ut sollicitudin ante mi, convallis rhoncus dolor egestas non. Phasellus non leo volutpat, consectetur tortor ac, cursus leo. Duis quis tortor quis odio consequat consectetur eget vestibulum tellus. Etiam vel lacus neque. Pellentesque sagittis sodales scelerisque. Nam tristique feugiat enim eu fringilla. Proin lorem quam, ornare sit amet lectus in, aliquam volutpat mauris. Curabitur sed libero turpis. Proin vitae sagittis ex. Morbi semper turpis nisl, sed fermentum dolor pellentesque et.</p>
+    </div>
+</div>
+
+<script>
+import Accounts from "./Accounts.svelte";
+import Transactions from "./Transactions.svelte";
+
+let accounts;
+let transactions;
 
 document.addEventListener("keydown", function(e) {
     if (e.key >= 'a' && e.key <= 'e') {
         console.log(`e.key: '${e.key}', e.code: '${e.code}'`);
     }
-    eventbox.setEvent(e);
 });
 </script>
 
-<p class="hello">Hello {name}</p>
-
-<EventBox bind:this={eventbox} />
 

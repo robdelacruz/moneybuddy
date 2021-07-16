@@ -17,6 +17,9 @@
 .border-normal {@apply border-gray-500;}
 .border-cell {@apply border-gray-700;}
 
+.dim {@apply opacity-50;}
+.focus {@apply opacity-100 border-2 border-normal;}
+
 
 .cell-date {flex-basis: 10rem;}
 .cell-desc {flex-basis: 40rem;}

@@ -4,9 +4,12 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-JSFILES = index.js Index.svelte EventBox.svelte
+JSFILES = index.js Index.svelte Accounts.svelte Transactions.svelte
 
-all: static/style.css static/bundle.js
+SRCS = t.go web.go
+SRCS2 = db.go dbaccount.go dbcurrency.go
+
+all: t static/style.css static/bundle.js
 
 dep:
 	sudo apt update
@@ -14,6 +17,8 @@ dep:
 	curl -sL https://deb.nodesource.com/setup_13.x | sudo bash -
 	sudo apt install nodejs
 	sudo npm --force install -g npx
+	go get -u github.com/mattn/go-sqlite3
+	go get -u golang.org/x/crypto/bcrypt
 
 webtools:
 	npm install --save-dev tailwindcss
@@ -32,8 +37,11 @@ static/style.css: twsrc.css
 static/bundle.js: $(JSFILES)
 	npx rollup -c
 
+t: $(SRCS) $(SRCS2)
+	go build -o t $(SRCS) $(SRCS2) $(SRCS3)
+
 clean:
-	rm -rf static/*.js static/*.css static/*.map
+	rm -rf t static/*.js static/*.css static/*.map
 
 serve:
 	python -m SimpleHTTPServer
