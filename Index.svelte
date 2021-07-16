@@ -28,9 +28,10 @@ let accounts;
 let transactions;
 
 document.addEventListener("keydown", function(e) {
-    if (e.key >= 'a' && e.key <= 'e') {
-        console.log(`e.key: '${e.key}', e.code: '${e.code}'`);
-    }
+//    if (e.key >= 'a' && e.key <= 'e') {
+//        console.log(`e.key: '${e.key}', e.code: '${e.code}'`);
+//    }
+    accounts.onEvent(e);
 });
 </script>
 

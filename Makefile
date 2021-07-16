@@ -4,9 +4,10 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-JSFILES = index.js Index.svelte Accounts.svelte Transactions.svelte
+JSFILES = index.js helpers.js
+JSFILES2 = Index.svelte Accounts.svelte Transactions.svelte
 
-SRCS = t.go web.go
+SRCS = t.go util.go web.go
 SRCS2 = db.go dbaccount.go dbcurrency.go
 
 all: t static/style.css static/bundle.js
@@ -34,7 +35,7 @@ static/style.css: twsrc.css
 	#npx postcss twsrc.o > static/style.css
 	npx tailwind -i twsrc.css -o static/style.css 1>/dev/null
 
-static/bundle.js: $(JSFILES)
+static/bundle.js: $(JSFILES) $(JSFILES2)
 	npx rollup -c
 
 t: $(SRCS) $(SRCS2)

@@ -2,12 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -16,6 +19,8 @@ var _log *log.Logger
 var _termW, _termH int
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	err := run(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -73,6 +78,7 @@ func run(args []string) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
+	http.HandleFunc("/api/accounts", accountsHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -115,7 +121,7 @@ func createTables(newfile string) {
 	}
 
 	ss := []string{
-		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, name TEXT, usdrate REAL);",
+		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT, usdrate REAL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT, name TEXT, accounttype INTEGER, currency_id INTEGER);",
 		"CREATE TABLE trans (trans_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER, date TEXT, ref TEXT, desc TEXT, amt REAL);",
 	}
@@ -144,71 +150,28 @@ func createTables(newfile string) {
 
 func initTestData(db *sql.DB) {
 	c1 := Currency{
-		Name:    "USD",
-		Usdrate: 1.0,
+		Currency: "USD",
+		Usdrate:  1.0,
 	}
 	c2 := Currency{
-		Name:    "PHP",
-		Usdrate: 48.0,
+		Currency: "PHP",
+		Usdrate:  48.0,
 	}
-	usdid, err := createCurrency(db, &c1)
+	_, err := createCurrency(db, &c1)
 	if err != nil {
 		panic(err)
 	}
-	phpid, err := createCurrency(db, &c2)
+	_, err = createCurrency(db, &c2)
 	if err != nil {
 		panic(err)
 	}
 
-	a1 := Account{
-		Code:        "bpichecking",
-		Name:        "BPI Checking",
-		AccountType: BankAccount,
-		Currencyid:  phpid,
-	}
-	a2 := Account{
-		Code:        "secsavingsphp",
-		Name:        "Security Savings PHP",
-		AccountType: BankAccount,
-		Currencyid:  phpid,
-	}
-	a3 := Account{
-		Code:        "secsavingsusd",
-		Name:        "Security Savings USD",
-		AccountType: BankAccount,
-		Currencyid:  usdid,
-	}
-	a4 := Account{
-		Code:        "fidcash",
-		Name:        "Fidelity Individual Cash",
-		AccountType: BankAccount,
-		Currencyid:  usdid,
-	}
-	a5 := Account{
-		Code:        "bpimaxi",
-		Name:        "BPI Maxi",
-		AccountType: BankAccount,
-		Currencyid:  phpid,
-	}
-	_, err = createAccount(db, &a1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = createAccount(db, &a2)
-	if err != nil {
-		panic(err)
-	}
-	_, err = createAccount(db, &a3)
-	if err != nil {
-		panic(err)
-	}
-	_, err = createAccount(db, &a4)
-	if err != nil {
-		panic(err)
-	}
-	_, err = createAccount(db, &a5)
-	if err != nil {
-		panic(err)
+	naccounts := 5 + rand.Intn(6)
+	for i := 0; i < naccounts; i++ {
+		_, err := createRandomAccount(db)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -271,6 +234,14 @@ func makeFprintf(w io.Writer) func(format string, a ...interface{}) (n int, err 
 	}
 }
 
+func jsonstr(v interface{}) string {
+	bs, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return ""
+	}
+	return string(bs)
+}
+
 func indexHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
@@ -280,5 +251,21 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 
 		printContainerClose(P)
 		printHtmlClose(P)
+	}
+}
+
+func accountsHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var aa []*Account
+		var err error
+
+		aa, err = findAllAccounts(db)
+		if err != nil {
+			handleErr(w, err, "apientriesHandler")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(aa))
 	}
 }
