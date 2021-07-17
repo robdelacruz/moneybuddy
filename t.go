@@ -79,6 +79,7 @@ func run(args []string) error {
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
 	http.HandleFunc("/api/accounts", accountsHandler(db))
+	http.HandleFunc("/api/account", accountHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -166,7 +167,7 @@ func initTestData(db *sql.DB) {
 		panic(err)
 	}
 
-	naccounts := 5 + rand.Intn(6)
+	naccounts := 5 + rand.Intn(25)
 	for i := 0; i < naccounts; i++ {
 		_, err := createRandomAccount(db)
 		if err != nil {
@@ -256,10 +257,7 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 
 func accountsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var aa []*Account
-		var err error
-
-		aa, err = findAllAccounts(db)
+		aa, err := findAllAccounts(db)
 		if err != nil {
 			handleErr(w, err, "apientriesHandler")
 		}
@@ -267,5 +265,28 @@ func accountsHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
 		P("%s", jsonstr(aa))
+	}
+}
+
+func accountHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		qaccountid := idtoi(r.FormValue("accountid"))
+		if qaccountid == 0 {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+		a, err := findAccount(db, qaccountid)
+		if err != nil {
+			handleErr(w, err, "accountHandler")
+			return
+		}
+		if a == nil {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(a))
 	}
 }

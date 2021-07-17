@@ -10,8 +10,8 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={accounts} />
-    <Transactions bind:this={transactions} />
+    <Accounts bind:this={accounts} on:select={accounts_select} />
+    <Transactions bind:this={transactions} accountid={ui.activeAccountid} />
 
     <div class="bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -27,12 +27,20 @@ import Transactions from "./Transactions.svelte";
 let accounts;
 let transactions;
 
+let ui = {};
+ui.activeAccountid = 0;
+
 document.addEventListener("keydown", function(e) {
-//    if (e.key >= 'a' && e.key <= 'e') {
-//        console.log(`e.key: '${e.key}', e.code: '${e.code}'`);
-//    }
+    e.preventDefault();
     accounts.onEvent(e);
+//    transactions.onEvent(e);
 });
+
+function accounts_select(e) {
+    let account = e.detail;
+    ui.activeAccountid = account.accountid;
+}
+
 </script>
 
 

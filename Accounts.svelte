@@ -59,24 +59,24 @@ async function init(userid) {
         aa[i].fmtbalance = formatter.format(aa[i].balance);
     }
     ui.accounts = aa;
+    ui.isel = 0;
 
-    if (aa.length > 0) {
-        ui.isel = 0;
+    if (ui.accounts.length > 0) {
+        dispatch("select", ui.accounts[ui.isel]);
     }
 }
 
-function dispatchAction(action, entryid) {
-    dispatch("action", {
-        action: action,
-        itemid: entryid,
-    });
-}
-
 export function onEvent(e) {
+    if (ui.accounts.length == 0) {
+        return;
+    }
+
     if (e.key == "ArrowUp") {
         ui.isel--;
     } else if (e.key == "ArrowDown") {
         ui.isel++;
+    } else {
+        return;
     }
 
     if (ui.isel < 0) {
@@ -85,6 +85,8 @@ export function onEvent(e) {
     if (ui.isel > ui.accounts.length-1) {
         ui.isel = ui.accounts.length-1;
     }
+
+    dispatch("select", ui.accounts[ui.isel]);
 }
 
 </script>

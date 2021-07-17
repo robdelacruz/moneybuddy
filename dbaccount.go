@@ -16,13 +16,14 @@ const (
 )
 
 type Account struct {
-	Accountid   int64       `json:"accountid"`
-	Code        string      `json:"code"`
-	Name        string      `json:"name"`
-	AccountType AccountType `json:"accounttype"`
-	Currencyid  int64       `json:"currencyid"`
-	Currency    string      `json:"currency"`
-	Balance     float64     `json:"balance"`
+	Accountid    int64          `json:"accountid"`
+	Code         string         `json:"code"`
+	Name         string         `json:"name"`
+	AccountType  AccountType    `json:"accounttype"`
+	Currencyid   int64          `json:"currencyid"`
+	Currency     string         `json:"currency"`
+	Balance      float64        `json:"balance"`
+	Transactions []*Transaction `json:"transactions"`
 }
 
 func createAccount(db *sql.DB, a *Account) (int64, error) {
@@ -66,6 +67,12 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 		return nil, err
 	}
 	a.Balance = balAccount(db, a.Accountid)
+
+	tt, err := findAllAccountTransactions(db, accountid)
+	if err != nil {
+		return nil, err
+	}
+	a.Transactions = tt
 	return &a, nil
 }
 func findAccounts(db *sql.DB, swhere string) ([]*Account, error) {
@@ -114,5 +121,19 @@ func createRandomAccount(db *sql.DB) (int64, error) {
 		AccountType: BankAccount,
 		Currencyid:  1,
 	}
-	return createAccount(db, &a)
+	accountid, err := createAccount(db, &a)
+	if err != nil {
+		return 0, err
+	}
+
+	// Generate transactions for this account.
+	ntrans := 5 + rand.Intn(150)
+	for i := 0; i < ntrans; i++ {
+		_, err := createRandomTransaction(db, accountid)
+		if err != nil {
+			break
+		}
+	}
+
+	return accountid, nil
 }

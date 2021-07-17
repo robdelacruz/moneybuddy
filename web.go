@@ -1,8 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"html"
 	"io"
+	"log"
+	"net/http"
+	"net/url"
 )
 
 type PrintFunc func(format string, a ...interface{}) (n int, err error)
@@ -12,6 +17,60 @@ func makePrintFunc(w io.Writer) func(format string, a ...interface{}) (n int, er
 	return func(format string, a ...interface{}) (n int, err error) {
 		return fmt.Fprintf(w, format, a...)
 	}
+}
+
+func qunescape(s string) string {
+	us, err := url.QueryUnescape(s)
+	if err != nil {
+		us = s
+	}
+	return us
+}
+func qescape(s string) string {
+	return url.QueryEscape(s)
+}
+func pathescape(s string) string {
+	return url.PathEscape(s)
+}
+func pathunescape(s string) string {
+	us, err := url.PathUnescape(s)
+	if err != nil {
+		us = s
+	}
+	return us
+}
+func escape(s string) string {
+	return html.EscapeString(s)
+}
+func unescape(s string) string {
+	return html.UnescapeString(s)
+}
+
+func handleErr(w http.ResponseWriter, err error, sfunc string) {
+	log.Printf("%s: server error (%s)\n", sfunc, err)
+	http.Error(w, fmt.Sprintf("%s", err), 500)
+}
+func handleDbErr(w http.ResponseWriter, err error, sfunc string) bool {
+	if err == sql.ErrNoRows {
+		http.Error(w, "Not found.", 404)
+		return true
+	}
+	if err != nil {
+		log.Printf("%s: database error (%s)\n", sfunc, err)
+		http.Error(w, "Server database error.", 500)
+		return true
+	}
+	return false
+}
+func handleTxErr(tx *sql.Tx, err error) bool {
+	if err != nil {
+		tx.Rollback()
+		return true
+	}
+	return false
+}
+func logErr(sfunc string, err error) {
+	log.Printf("%s error (%s)\n", sfunc, err)
 }
 
 //*** HTML template functions ***
