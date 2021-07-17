@@ -10,8 +10,8 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={accounts} on:select={accounts_select} widgetstate={ui.accountsstate} />
-    <Transactions bind:this={transactions} on:select={transactions_select} accountid={ui.activeAccountid} widgetstate={ui.transactionsstate} />
+    <Accounts bind:this={waccounts} on:select={accounts_select} widgetstate={ui.accountsstate} accounts={model.accounts}/>
+    <Transactions bind:this={wtransactions} on:select={transactions_select} account={ui.activeAccount} widgetstate={ui.transactionsstate} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -21,34 +21,108 @@
 </div>
 
 <script>
+import {onMount, createEventDispatcher} from "svelte";
+let dispatch = createEventDispatcher();
+import {find, submit} from "./helpers.js";
 import Accounts from "./Accounts.svelte";
 import Transactions from "./Transactions.svelte";
 
-let accounts;
-let transactions;
+let svcurl = "/api";
+let waccounts;
+let wtransactions;
+
+let model = {};
+model.accounts = [];
 
 let ui = {};
-ui.activeAccountid = 0;
-ui.activeTransactionid = 0;
+ui.activeAccount = null;
+ui.activeTransaction = null;
 ui.accountsstate = "";
 ui.transactionsstate = "";
+
+$: init();
+async function init() {
+    let [aa, err] = await loadAccounts();
+    model.accounts = aa;
+}
 
 document.addEventListener("keydown", function(e) {
 //    accounts.onEvent(e);
 //    transactions.onEvent(e);
 });
 
-function accounts_select(e) {
+async function loadAccounts() {
+    let sreq = `${svcurl}/accounts`;
+    let [aa, err] = await find(sreq);
+    if (err != null) {
+        console.error(err);
+        return [aa, err];
+    }
+    if (aa == null) {
+        aa = [];
+        return [aa, null];
+    }
+
+    for (let i=0; i < aa.length; i++) {
+        let formatter = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: aa[i].currency,
+            minimumFractionDigits: 2
+        });
+        aa[i].fmtbalance = formatter.format(aa[i].balance);
+    }
+    return [aa, null];
+}
+
+async function loadTransactions(account) {
+    if (account == null) {
+        return [null, null];
+    }
+
+    let sreq = `${svcurl}/account?accountid=${account.accountid}`;
+    let [a, err] = await find(sreq);
+    if (err != null) {
+        console.error(err);
+        return err;
+    }
+    if (a == null) {
+        return null;
+    }
+
+    let formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: a.currency,
+        minimumFractionDigits: 2
+    });
+
+    for (let i=0; i < a.transactions.length; i++) {
+        let t = a.transactions[i];
+        if (t.amt > 0) {
+            a.transactions[i].fmtamt = formatter.format(t.amt);
+        } else {
+            // Show negative amt as "(123.45)"
+            a.transactions[i].fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
+        }
+    }
+
+    account.transactions = a.transactions;
+    return null;
+}
+
+async function accounts_select(e) {
     let account = e.detail;
-    ui.activeAccountid = account.accountid;
+    await loadTransactions(account);
+    ui.activeAccount = account;
+    wtransactions.reset();
+
     ui.accountsstate = "";
     ui.transactionsstate = "dim";
 }
 
 function transactions_select(e) {
     let transaction = e.detail;
-    ui.activeTransactionid = transaction.transactionid;
-    console.log(ui.activeTransactionid);
+    ui.activeTransaction = transaction;
+
     ui.accountsstate = "dim";
     ui.transactionsstate = "";
 }

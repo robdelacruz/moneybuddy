@@ -1,18 +1,11 @@
 <div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
     <h1 class="text-sm font-bold mb-2">Accounts</h1>
-{#each ui.accounts as account, i}
+{#each accounts as account, i}
     <a href="/" on:click|preventDefault="{e => onselaccount(account, i)}">
-    {#if ui.isel == i}
-        <div class="flex flex-row justify-between p-1 border-b border-cell highlight">
+        <div class:highlight="{ui.isel == i}" class="flex flex-row justify-between p-1 border-b border-cell">
             <p class="truncate cell-desc">{account.name}</p>
             <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
         </div>
-    {:else}
-        <div class="flex flex-row justify-between p-1 border-b border-cell">
-            <p class="truncate cell-desc">{account.name}</p>
-            <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
-        </div>
-    {/if}
     </a>
 {/each}
 </div>
@@ -21,51 +14,16 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
-import {currentSession} from "./helpers.js";
-let session = currentSession();
-
-export let userid = 0;
-if (userid == 0) {
-    userid = session.userid;
-}
 
 export let widgetstate = "";
+export let accounts = [];
 
 let svcurl = "/api";
 let ui = {};
-ui.accounts = [];
 ui.isel = -1;
-ui.status = "";
-
-init(userid);
-
-async function init(userid) {
-    ui.status = "";
-
-    let sreq = `${svcurl}/accounts?userid=${userid}`;
-    let [aa, err] = await find(sreq);
-    if (err != null) {
-        console.error(err);
-        ui.status = "Server error while fetching accounts";
-    }
-    if (aa == null) {
-        aa = [];
-    }
-
-    for (let i=0; i < aa.length; i++) {
-        let formatter = new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: aa[i].currency,
-            minimumFractionDigits: 2
-        });
-        aa[i].fmtbalance = formatter.format(aa[i].balance);
-    }
-    ui.accounts = aa;
-    ui.isel = -1;
-}
 
 export function onEvent(e) {
-    if (ui.accounts.length == 0) {
+    if (accounts.length == 0) {
         return;
     }
 
@@ -80,11 +38,11 @@ export function onEvent(e) {
     if (ui.isel < 0) {
         ui.isel = 0;
     }
-    if (ui.isel > ui.accounts.length-1) {
-        ui.isel = ui.accounts.length-1;
+    if (ui.isel > accounts.length-1) {
+        ui.isel = accounts.length-1;
     }
 
-    dispatch("select", ui.accounts[ui.isel]);
+    dispatch("select", accounts[ui.isel]);
 }
 
 function onselaccount(account, i) {
