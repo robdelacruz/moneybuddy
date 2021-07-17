@@ -1,20 +1,20 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
+<div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
     <h1 class="text-sm font-bold mb-2">Accounts</h1>
-    <ul>
 {#each ui.accounts as account, i}
+    <a href="/" on:click|preventDefault="{e => onselaccount(account, i)}">
     {#if ui.isel == i}
-    <li class="flex flex-row justify-between p-1 border-b border-cell highlight">
-        <p class="truncate cell-desc">{account.name}</p>
-        <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
-    </li>
+        <div class="flex flex-row justify-between p-1 border-b border-cell highlight">
+            <p class="truncate cell-desc">{account.name}</p>
+            <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
+        </div>
     {:else}
-    <li class="flex flex-row justify-between p-1 border-b border-cell">
-        <p class="truncate cell-desc">{account.name}</p>
-        <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
-    </li>
+        <div class="flex flex-row justify-between p-1 border-b border-cell">
+            <p class="truncate cell-desc">{account.name}</p>
+            <p class="fg-dim text-right cell-amt">{account.fmtbalance}</p>
+        </div>
     {/if}
+    </a>
 {/each}
-    </ul>
 </div>
 
 <script>
@@ -29,10 +29,12 @@ if (userid == 0) {
     userid = session.userid;
 }
 
+export let widgetstate = "";
+
 let svcurl = "/api";
 let ui = {};
 ui.accounts = [];
-ui.isel = 0;
+ui.isel = -1;
 ui.status = "";
 
 init(userid);
@@ -59,11 +61,7 @@ async function init(userid) {
         aa[i].fmtbalance = formatter.format(aa[i].balance);
     }
     ui.accounts = aa;
-    ui.isel = 0;
-
-    if (ui.accounts.length > 0) {
-        dispatch("select", ui.accounts[ui.isel]);
-    }
+    ui.isel = -1;
 }
 
 export function onEvent(e) {
@@ -87,6 +85,11 @@ export function onEvent(e) {
     }
 
     dispatch("select", ui.accounts[ui.isel]);
+}
+
+function onselaccount(account, i) {
+    ui.isel = i;
+    dispatch("select", account);
 }
 
 </script>

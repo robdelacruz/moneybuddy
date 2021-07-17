@@ -1,39 +1,39 @@
-<div class="focus bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
-    <h1 class="text-sm font-bold mb-2">Transactions</h1>
+<div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
 {#if accountid == 0}
     <p class="fg-dim">Select Account</p>
 {:else if ui.account == null}
     <p class="fg-dim">Account not found</p>
 {:else}
-    <ul>
+    <h1 class="text-sm font-bold mb-2">{ui.account.name}: Transactions</h1>
     {#each ui.account.transactions as t, i}
+    <a href="/" on:click|preventDefault="{e => onseltransaction(t, i)}">
         {#if ui.isel == i}
-        <li class="flex flex-row flex-start p-1 border-b border-cell highlight">
-            <p class="highlight cell-date">{t.date.substring(0, 10)}</p>
-            <p class="highlight truncate cell-desc">{t.desc}</p>
-            {#if t.amt >= 0}
-            <p class="highlight text-right cell-amt">{t.fmtamt}</p>
-            <p class="highlight text-right cell-amt"></p>
-            {:else}
-            <p class="highlight text-right cell-amt"></p>
-            <p class="highlight text-right cell-amt">{t.fmtamt}</p>
-            {/if}
-        </li>
+            <div class="flex flex-row flex-start p-1 border-b border-cell highlight">
+                <p class="highlight cell-date">{t.date.substring(0, 10)}</p>
+                <p class="highlight truncate cell-desc">{t.desc}</p>
+                {#if t.amt >= 0}
+                <p class="highlight text-right cell-amt">{t.fmtamt}</p>
+                <p class="highlight text-right cell-amt"></p>
+                {:else}
+                <p class="highlight text-right cell-amt"></p>
+                <p class="highlight text-right cell-amt">{t.fmtamt}</p>
+                {/if}
+            </div>
         {:else}
-        <li class="flex flex-row flex-start p-1 border-b border-cell">
-            <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
-            <p class="truncate cell-desc">{t.desc}</p>
-            {#if t.amt >= 0}
-            <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
-            <p class="fg-dim text-right cell-amt"></p>
-            {:else}
-            <p class="fg-dim text-right cell-amt"></p>
-            <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
-            {/if}
-        </li>
+            <div class="flex flex-row flex-start p-1 border-b border-cell">
+                <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
+                <p class="truncate cell-desc">{t.desc}</p>
+                {#if t.amt >= 0}
+                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt"></p>
+                {:else}
+                <p class="fg-dim text-right cell-amt"></p>
+                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
+                {/if}
+            </div>
         {/if}
+    </a>
     {/each}
-    </ul>
 {/if}
 </div>
 
@@ -42,12 +42,13 @@ import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
 
+export let widgetstate = "";
 export let accountid = 0;
 
 let svcurl = "/api";
 let ui = {};
 ui.account = null;
-ui.isel = 0;
+ui.isel = -1;
 ui.status = "";
 
 $: init(accountid);
@@ -89,7 +90,7 @@ async function init(accountid) {
         }
     }
     ui.account = a;
-    ui.isel = 0;
+    ui.isel = -1;
 }
 
 function dispatchAction(action, entryid) {
@@ -116,6 +117,11 @@ export function onEvent(e) {
     if (ui.isel > ui.account.transactions.length-1) {
         ui.isel = ui.account.transactions.length-1;
     }
+}
+
+function onseltransaction(transaction, i) {
+    ui.isel = i;
+    dispatch("select", transaction);
 }
 
 </script>
