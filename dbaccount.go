@@ -71,7 +71,7 @@ WHERE account_id = ?`
 		return nil, err
 	}
 
-	tt, err := findAllAccountTxns(db, accountid)
+	tt, err := findAllTxnsOfAccount(db, accountid)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,25 @@ WHERE %s`, swhere)
 	}
 	return aa, nil
 }
+func findAccountsTxns(db *sql.DB, swhere string) ([]*Account, error) {
+	aa, err := findAccounts(db, swhere)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range aa {
+		tt, err := findAllTxnsOfAccount(db, a.Accountid)
+		if err != nil {
+			return nil, err
+		}
+		a.Txns = tt
+	}
+	return aa, nil
+}
 func findAllAccounts(db *sql.DB) ([]*Account, error) {
 	return findAccounts(db, "1=1 ORDER BY name")
+}
+func findAllAccountsTxns(db *sql.DB) ([]*Account, error) {
+	return findAccountsTxns(db, "1=1 ORDER BY name")
 }
 
 func balAccount(db *sql.DB, accountid int64) float64 {

@@ -24,10 +24,10 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
+import * as data from "./data.js";
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
 
-let svcurl = "/api";
 let waccounts;
 let wtxns;
 
@@ -42,7 +42,7 @@ ui.txnsstate = "";
 
 $: init();
 async function init() {
-    let [aa, err] = await loadAccounts();
+    let [aa, err] = await data.loadAccountsTxns();
     model.accounts = aa;
 }
 
@@ -51,67 +51,14 @@ document.addEventListener("keydown", function(e) {
 //    txns.onEvent(e);
 });
 
-async function loadAccounts() {
-    let sreq = `${svcurl}/accounts`;
-    let [aa, err] = await find(sreq);
-    if (err != null) {
-        console.error(err);
-        return [aa, err];
-    }
-    if (aa == null) {
-        aa = [];
-        return [aa, null];
-    }
-
-    for (let i=0; i < aa.length; i++) {
-        let formatter = new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: aa[i].currency,
-            minimumFractionDigits: 2
-        });
-        aa[i].fmtbalance = formatter.format(aa[i].balance);
-    }
-    return [aa, null];
-}
-
-async function loadTxns(account) {
-    if (account == null) {
-        return [null, null];
-    }
-
-    let sreq = `${svcurl}/account?accountid=${account.accountid}`;
-    let [a, err] = await find(sreq);
-    if (err != null) {
-        console.error(err);
-        return err;
-    }
-    if (a == null) {
-        return null;
-    }
-
-    let formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: a.currency,
-        minimumFractionDigits: 2
-    });
-
-    for (let i=0; i < a.txns.length; i++) {
-        let t = a.txns[i];
-        if (t.amt > 0) {
-            a.txns[i].fmtamt = formatter.format(t.amt);
-        } else {
-            // Show negative amt as "(123.45)"
-            a.txns[i].fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
-        }
-    }
-
-    account.txns = a.txns;
-    return null;
-}
-
 async function accounts_select(e) {
+    let err;
+
     let account = e.detail;
-    await loadTxns(account);
+    [account, err] = await data.loadAccount(account.accountid);
+    if (err != null) {
+        console.error(err);
+    }
     ui.activeAccount = account;
     wtxns.reset();
 

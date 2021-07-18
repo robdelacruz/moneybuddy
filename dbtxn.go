@@ -73,7 +73,7 @@ func findTxns(db *sql.DB, swhere string) ([]*Txn, error) {
 	}
 	return tt, nil
 }
-func findAccountTxns(db *sql.DB, accountid int64, swhere string) ([]*Txn, error) {
+func findTxnsOfAccount(db *sql.DB, accountid int64, swhere string) ([]*Txn, error) {
 	s := fmt.Sprintf("SELECT txn_id, account_id, date, ref, desc, amt FROM txn WHERE account_id = ? AND %s", swhere)
 	rows, err := db.Query(s, accountid)
 	if err != nil {
@@ -88,8 +88,8 @@ func findAccountTxns(db *sql.DB, accountid int64, swhere string) ([]*Txn, error)
 	return tt, nil
 }
 
-func findAllAccountTxns(db *sql.DB, accountid int64) ([]*Txn, error) {
-	return findAccountTxns(db, accountid, "1=1 ORDER BY date DESC")
+func findAllTxnsOfAccount(db *sql.DB, accountid int64) ([]*Txn, error) {
+	return findTxnsOfAccount(db, accountid, "1=1 ORDER BY date DESC")
 }
 
 func createRandomWords(words []string) string {

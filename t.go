@@ -79,6 +79,7 @@ func run(args []string) error {
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
 	http.HandleFunc("/api/accounts", accountsHandler(db))
+	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
 
 	port := "8000"
@@ -261,7 +262,20 @@ func accountsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		aa, err := findAllAccounts(db)
 		if err != nil {
-			handleErr(w, err, "apientriesHandler")
+			handleErr(w, err, "accountsHandler")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(aa))
+	}
+}
+
+func accountstxnsHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		aa, err := findAllAccountsTxns(db)
+		if err != nil {
+			handleErr(w, err, "accountstxnsHandler")
 		}
 
 		w.Header().Set("Content-Type", "application/json")
