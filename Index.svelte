@@ -11,7 +11,7 @@
 
 <div class="flex flex-row">
     <Accounts bind:this={waccounts} on:select={accounts_select} widgetstate={ui.accountsstate} accounts={model.accounts}/>
-    <Transactions bind:this={wtransactions} on:select={transactions_select} account={ui.activeAccount} widgetstate={ui.transactionsstate} />
+    <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} widgetstate={ui.txnsstate} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -25,20 +25,20 @@ import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
 import Accounts from "./Accounts.svelte";
-import Transactions from "./Transactions.svelte";
+import Txns from "./Txns.svelte";
 
 let svcurl = "/api";
 let waccounts;
-let wtransactions;
+let wtxns;
 
 let model = {};
 model.accounts = [];
 
 let ui = {};
 ui.activeAccount = null;
-ui.activeTransaction = null;
+ui.activeTxn = null;
 ui.accountsstate = "";
-ui.transactionsstate = "";
+ui.txnsstate = "";
 
 $: init();
 async function init() {
@@ -48,7 +48,7 @@ async function init() {
 
 document.addEventListener("keydown", function(e) {
 //    accounts.onEvent(e);
-//    transactions.onEvent(e);
+//    txns.onEvent(e);
 });
 
 async function loadAccounts() {
@@ -74,7 +74,7 @@ async function loadAccounts() {
     return [aa, null];
 }
 
-async function loadTransactions(account) {
+async function loadTxns(account) {
     if (account == null) {
         return [null, null];
     }
@@ -95,36 +95,36 @@ async function loadTransactions(account) {
         minimumFractionDigits: 2
     });
 
-    for (let i=0; i < a.transactions.length; i++) {
-        let t = a.transactions[i];
+    for (let i=0; i < a.txns.length; i++) {
+        let t = a.txns[i];
         if (t.amt > 0) {
-            a.transactions[i].fmtamt = formatter.format(t.amt);
+            a.txns[i].fmtamt = formatter.format(t.amt);
         } else {
             // Show negative amt as "(123.45)"
-            a.transactions[i].fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
+            a.txns[i].fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
         }
     }
 
-    account.transactions = a.transactions;
+    account.txns = a.txns;
     return null;
 }
 
 async function accounts_select(e) {
     let account = e.detail;
-    await loadTransactions(account);
+    await loadTxns(account);
     ui.activeAccount = account;
-    wtransactions.reset();
+    wtxns.reset();
 
     ui.accountsstate = "";
-    ui.transactionsstate = "dim";
+    ui.txnsstate = "dim";
 }
 
-function transactions_select(e) {
-    let transaction = e.detail;
-    ui.activeTransaction = transaction;
+function txns_select(e) {
+    let txn = e.detail;
+    ui.activeTxn = txn;
 
     ui.accountsstate = "dim";
-    ui.transactionsstate = "";
+    ui.txnsstate = "";
 }
 
 </script>

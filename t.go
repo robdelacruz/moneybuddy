@@ -124,7 +124,7 @@ func createTables(newfile string) {
 	ss := []string{
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT, usdrate REAL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT, name TEXT, accounttype INTEGER, currency_id INTEGER);",
-		"CREATE TABLE trans (trans_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER, date TEXT, ref TEXT, desc TEXT, amt REAL);",
+		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER, date TEXT, ref TEXT, desc TEXT, amt REAL);",
 	}
 
 	tx, err := db.Begin()
@@ -146,7 +146,9 @@ func createTables(newfile string) {
 		os.Exit(1)
 	}
 
+	fmt.Printf("Creating test data... ")
 	initTestData(db)
+	fmt.Printf("Done\n")
 }
 
 func initTestData(db *sql.DB) {

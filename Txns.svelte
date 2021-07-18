@@ -1,10 +1,10 @@
 <div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
-{#if account == null || account.transactions == null}
+{#if account == null || account.txns == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <h1 class="text-sm font-bold mb-2">{account.name}: Transactions</h1>
-    {#each account.transactions as t, i}
-    <a href="/" on:click|preventDefault="{e => onseltransaction(t, i)}">
+    {#each account.txns as t, i}
+    <a href="/" on:click|preventDefault="{e => onseltxn(t, i)}">
         {#if ui.isel == i}
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight">
                 <p class="highlight cell-date">{t.date.substring(0, 10)}</p>
@@ -59,7 +59,7 @@ export function reset() {
 }
 
 export function onEvent(e) {
-    if (ui.account == null || ui.account.transactions.length == 0) {
+    if (ui.account == null || ui.account.txns.length == 0) {
         return;
     }
 
@@ -72,14 +72,14 @@ export function onEvent(e) {
     if (ui.isel < 0) {
         ui.isel = 0;
     }
-    if (ui.isel > account.transactions.length-1) {
-        ui.isel = account.transactions.length-1;
+    if (ui.isel > account.txns.length-1) {
+        ui.isel = account.txns.length-1;
     }
 }
 
-function onseltransaction(transaction, i) {
+function onseltxn(txn, i) {
     ui.isel = i;
-    dispatch("select", transaction);
+    dispatch("select", txn);
 }
 
 </script>

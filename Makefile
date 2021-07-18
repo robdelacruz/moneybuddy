@@ -5,10 +5,10 @@
 # 'make serve' to start dev webserver
 
 JSFILES = index.js helpers.js
-JSFILES2 = Index.svelte Accounts.svelte Transactions.svelte
+JSFILES2 = Index.svelte Accounts.svelte Txns.svelte
 
 SRCS = t.go util.go web.go
-SRCS2 = db.go dbcurrency.go dbaccount.go dbtrans.go
+SRCS2 = db.go dbcurrency.go dbaccount.go dbtxn.go
 
 all: t static/style.css static/bundle.js
 
