@@ -121,7 +121,7 @@ func createRandomTxns(db *sql.DB, accountid int64, ntxns int) error {
 			Date:      isodate(randdate(2000, 2021)),
 			Ref:       "",
 			Desc:      createRandomWords(words),
-			Amt:       rand.NormFloat64(),
+			Amt:       rand.NormFloat64()*50000 + 30000,
 		}
 		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
 		if err != nil {

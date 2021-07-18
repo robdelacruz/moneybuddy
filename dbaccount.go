@@ -56,17 +56,20 @@ func delAccount(db *sql.DB, accountid int64) error {
 }
 
 func findAccount(db *sql.DB, accountid int64) (*Account, error) {
-	s := "SELECT account_id, code, name, accounttype, a.currency_id, cur.currency FROM account a LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id WHERE account_id = ?"
+	s := `SELECT account_id, code, name, accounttype, a.currency_id, cur.currency, 
+(SELECT SUM(amt) FROM txn WHERE txn.account_id = a.account_id) AS bal
+FROM account a 
+LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
+WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
-	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency)
+	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	a.Balance = balAccount(db, a.Accountid)
 
 	tt, err := findAllAccountTxns(db, accountid)
 	if err != nil {
@@ -76,7 +79,12 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 	return &a, nil
 }
 func findAccounts(db *sql.DB, swhere string) ([]*Account, error) {
-	s := fmt.Sprintf("SELECT account_id, code, name, accounttype, a.currency_id, cur.currency FROM account a LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id WHERE %s", swhere)
+	s := fmt.Sprintf(`
+SELECT account_id, code, name, accounttype, a.currency_id, cur.currency, 
+(SELECT SUM(amt) FROM txn WHERE txn.account_id = a.account_id) AS bal
+FROM account a 
+LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
+WHERE %s`, swhere)
 	rows, err := db.Query(s)
 	if err != nil {
 		return nil, err
@@ -84,8 +92,7 @@ func findAccounts(db *sql.DB, swhere string) ([]*Account, error) {
 	aa := []*Account{}
 	for rows.Next() {
 		var a Account
-		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency)
-		a.Balance = balAccount(db, a.Accountid)
+		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency, &a.Balance)
 		aa = append(aa, &a)
 	}
 	return aa, nil
@@ -95,7 +102,7 @@ func findAllAccounts(db *sql.DB) ([]*Account, error) {
 }
 
 func balAccount(db *sql.DB, accountid int64) float64 {
-	s := "SELECT IFNULL(SUM(amt), 0.0) FROM trans WHERE account_id = ?"
+	s := "SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE account_id = ?"
 	row := db.QueryRow(s, accountid)
 	var bal float64
 	err := row.Scan(&bal)
