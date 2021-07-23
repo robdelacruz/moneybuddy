@@ -10,7 +10,7 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} widgetstate={ui.accountsstate} accounts={model.accounts}/>
+    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit} widgetstate={ui.accountsstate} accounts={model.accounts}/>
     <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} widgetstate={ui.txnsstate} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
@@ -37,8 +37,8 @@ model.accounts = [];
 let ui = {};
 ui.activeAccount = null;
 ui.activeTxn = null;
-ui.accountsstate = "";
-ui.txnsstate = "";
+ui.accountsstate = "dim";
+ui.txnsstate = "dim";
 
 $: init();
 async function init() {
@@ -46,24 +46,42 @@ async function init() {
     model.accounts = aa;
 }
 
+function resetAccounts() {
+    ui.activeAccount = null;
+    ui.accountsstate = "dim";
+    waccounts.reset();
+}
+function resetTxns() {
+    ui.activeTxn = null;
+    ui.txnsstate = "dim";
+    wtxns.reset();
+}
+
 document.addEventListener("keydown", function(e) {
-//    accounts.onEvent(e);
-//    txns.onEvent(e);
+    console.log(e.key);
+    if (e.key == "Escape") {
+        if (ui.txnsstate != "dim") {
+            resetTxns();
+            ui.accountsstate = "";
+        } else if (ui.accountsstate != "dim") {
+            resetAccounts();
+            resetTxns();
+        }
+
+        e.preventDefault();
+    }
 });
 
 async function accounts_select(e) {
     let err;
-
     let account = e.detail;
     [account, err] = await data.loadAccount(account.accountid);
     if (err != null) {
         console.error(err);
     }
     ui.activeAccount = account;
-    wtxns.reset();
-
     ui.accountsstate = "";
-    ui.txnsstate = "dim";
+    resetTxns();
 }
 
 function txns_select(e) {
@@ -72,6 +90,15 @@ function txns_select(e) {
 
     ui.accountsstate = "dim";
     ui.txnsstate = "";
+}
+
+async function accounts_edit(e) {
+    let err;
+    let account = e.detail;
+    [account, err] = await data.loadAccount(account.accountid);
+    if (err != null) {
+        console.error(err);
+    }
 }
 
 </script>

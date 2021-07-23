@@ -1,33 +1,37 @@
-<div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
+<div class:dim="{widgetstate == 'dim'}" class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 40rem;">
 {#if account == null || account.txns == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <h1 class="text-sm font-bold mb-2">{account.name}: Transactions</h1>
     {#each account.txns as t, i}
     <a href="/" on:click|preventDefault="{e => onseltxn(t, i)}">
-        {#if ui.isel == i}
+    {#if ui.selid == t.txnid}
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight">
                 <p class="highlight cell-date">{t.date.substring(0, 10)}</p>
                 <p class="highlight truncate cell-desc">{t.desc}</p>
                 {#if t.amt >= 0}
-                <p class="highlight text-right cell-amt">{t.fmtamt}</p>
-                <p class="highlight text-right cell-amt"></p>
+                <p class="highlight text-right cell-amt mr-1">{t.fmtamt}</p>
+                <p class="highlight text-right cell-amt mr-1"></p>
                 {:else}
-                <p class="highlight text-right cell-amt"></p>
-                <p class="highlight text-right cell-amt">{t.fmtamt}</p>
+                <p class="highlight text-right cell-amt mr-1"></p>
+                <p class="highlight text-right cell-amt mr-1">{t.fmtamt}</p>
                 {/if}
+                <a class="cell-icon pl-1 py-1" href="/" on:click|preventDefault="{e => onseledittxn(t)}">
+                    <svg class="w-2 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M12.3 3.7l4 4L4 20H0v-4L12.3 3.7zm1.4-1.4L16 0l4 4-2.3 2.3-4-4z"/></svg>
+                </a>
             </div>
         {:else}
             <div class="flex flex-row flex-start p-1 border-b border-cell">
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt >= 0}
-                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
-                <p class="fg-dim text-right cell-amt"></p>
+                <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt mr-1"></p>
                 {:else}
-                <p class="fg-dim text-right cell-amt"></p>
-                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt mr-1"></p>
+                <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
                 {/if}
+                <p class="cell-icon pl-1 py-1"></p>
             </div>
         {/if}
     </a>
@@ -45,41 +49,22 @@ export let account = null;
 
 let svcurl = "/api";
 let ui = {};
-ui.isel = -1;
-
-function dispatchAction(action, entryid) {
-    dispatch("action", {
-        action: action,
-        itemid: entryid,
-    });
-}
+ui.selid = 0;
 
 export function reset() {
-    ui.isel = -1;
+    ui.selid = 0;
 }
 
 export function onEvent(e) {
-    if (ui.account == null || ui.account.txns.length == 0) {
-        return;
-    }
-
-    if (e.key == "ArrowUp") {
-        ui.isel--;
-    } else if (e.key == "ArrowDown") {
-        ui.isel++;
-    }
-
-    if (ui.isel < 0) {
-        ui.isel = 0;
-    }
-    if (ui.isel > account.txns.length-1) {
-        ui.isel = account.txns.length-1;
-    }
 }
 
-function onseltxn(txn, i) {
-    ui.isel = i;
+function onseltxn(txn) {
+    ui.selid = txn.txnid;
     dispatch("select", txn);
+}
+
+function onseledittxn(txn) {
+    console.log("onseledittxn");
 }
 
 </script>
