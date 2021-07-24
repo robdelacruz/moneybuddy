@@ -6,6 +6,7 @@
 <title>jstest</title>
 <link rel="stylesheet" type="text/css" href="style.css">
 <style>
+label {display: none;}
 </style>
 </head>
 <body class="bg-page text-xs p-2">
@@ -40,33 +41,27 @@
         <div>
 
     <form class="bg-normal fg-normal pt-4">
-        <div class="mb-1">
-            <label class="block" for="accountname">Account Name</label>
-            <input class="block border border-gray-500 bg-reverse fg-reverse py-0 px-2 w-full" name="accountname" id="accountname" type="text">
+        <div class="mb-2">
+            <input class="block bg-gray-700 fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Account Name">
         </div>
-        <div class="flex flex-row mb-1">
+        <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
-                <label class="" for="accounttype">Account Type</label>
-                <select class="py-0 px-2 bg-reverse fg-reverse w-full" id="accounttype" name="accounttype">
+                <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type">
                     <option value="bankaccount">Bank Account</option>
                     <option value="stock">Stock</option>
                 </select>
             </div>
             <div class="w-1/2">
-                <label class="" for="currency">Currency</label>
-                <select class="py-0 px-2 bg-reverse fg-reverse w-full" id="currency" name="currency">
+                <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="currency" name="currency">
                     <option value="usd">USD</option>
                     <option value="php">PHP</option>
                 </select>
             </div>
         </div>
-        <div class="mb-2">
-            <p class="font-bold">status text here</p>
-        </div>
         <div class="flex flex-row justify-start">
             <div>
-                <button class="inline mx-auto py-1 px-2 bg-reverse fg-reverse mr-1">Update</button>
-                <button class="inline mx-auto py-1 px-2 bg-reverse fg-reverse">Cancel</button>
+                <button class="mx-auto border border-normal py-1 px-2 bg-gray-700 mr-1">Update</button>
+                <button class="hidden mx-auto py-1 px-2 bg-gray-700">Cancel</button>
             </div>
         </div>
     </form>
