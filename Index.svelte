@@ -10,8 +10,8 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit} widgetstate={ui.accountsstate} accounts={model.accounts}/>
-    <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} widgetstate={ui.txnsstate} />
+    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit}  accounts={model.accounts}/>
+    <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -37,8 +37,8 @@ model.accounts = [];
 let ui = {};
 ui.activeAccount = null;
 ui.activeTxn = null;
-ui.accountsstate = "dim";
-ui.txnsstate = "dim";
+ui.accountsstate = "";
+ui.txnsstate = "";
 
 $: init();
 async function init() {
@@ -48,29 +48,15 @@ async function init() {
 
 function resetAccounts() {
     ui.activeAccount = null;
-    ui.accountsstate = "dim";
     waccounts.reset();
 }
 function resetTxns() {
     ui.activeTxn = null;
-    ui.txnsstate = "dim";
     wtxns.reset();
 }
 
-document.addEventListener("keydown", function(e) {
-    console.log(e.key);
-    if (e.key == "Escape") {
-        if (ui.txnsstate != "dim") {
-            resetTxns();
-            ui.accountsstate = "";
-        } else if (ui.accountsstate != "dim") {
-            resetAccounts();
-            resetTxns();
-        }
-
-        e.preventDefault();
-    }
-});
+//document.addEventListener("keydown", function(e) {
+//});
 
 async function accounts_select(e) {
     let err;
@@ -88,7 +74,6 @@ function txns_select(e) {
     let txn = e.detail;
     ui.activeTxn = txn;
 
-    ui.accountsstate = "dim";
     ui.txnsstate = "";
 }
 

@@ -38,33 +38,39 @@ label {display: none;}
             <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv</p>
             <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
         </a>
+        <div class="p-2 border-b border-cell">
+            <form class="">
+                <div class="mb-2">
+                    <input class="block bg-gray-700 fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" value="BPI Direct Abc Def">
+                </div>
+                <div class="flex flex-row mb-2">
+                    <div class="mr-2 w-1/2">
+                        <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type">
+                            <option value="bankaccount">Bank Account</option>
+                            <option value="stock">Stock</option>
+                        </select>
+                    </div>
+                    <div class="w-1/2">
+                        <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="currency" name="currency">
+                            <option value="usd">USD</option>
+                            <option value="php">PHP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-row justify-start">
+                    <div>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-green-700 mr-2">Update</button>
+                        <a class="mx-auto border-b border-normal pt-1">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
+            <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv</p>
+            <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
+        </a>
         <div>
 
-    <form class="bg-normal fg-normal pt-4">
-        <div class="mb-2">
-            <input class="block bg-gray-700 fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Account Name">
-        </div>
-        <div class="flex flex-row mb-2">
-            <div class="mr-2 w-1/2">
-                <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type">
-                    <option value="bankaccount">Bank Account</option>
-                    <option value="stock">Stock</option>
-                </select>
-            </div>
-            <div class="w-1/2">
-                <select class="py-1 px-2 bg-gray-700 fg-normal w-full" id="currency" name="currency">
-                    <option value="usd">USD</option>
-                    <option value="php">PHP</option>
-                </select>
-            </div>
-        </div>
-        <div class="flex flex-row justify-start">
-            <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-gray-700 mr-1">Update</button>
-                <button class="hidden mx-auto py-1 px-2 bg-gray-700">Cancel</button>
-            </div>
-        </div>
-    </form>
 
         </div>
     </div>
