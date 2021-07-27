@@ -30,6 +30,7 @@ export let accounts = [];
 let svcurl = "/api";
 let ui = {};
 ui.selid = 0;
+ui.editid = 0;
 ui.mode = "";
 
 export function reset() {

@@ -4,8 +4,12 @@
 {:else}
     <h1 class="text-sm font-bold mb-2">{account.name}: Transactions</h1>
     {#each account.txns as t, i}
-    <a href="/" on:click|preventDefault="{e => onseltxn(t, i)}">
-    {#if ui.selid == t.txnid}
+    {#if ui.editid == t.txnid}
+        <div class="p-2 border-b border-cell">
+            <TxnForm txn={t} on:update={txnform_update} on:cancel={txnform_cancel} />
+        </div>
+    {:else if ui.selid == t.txnid}
+        <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
@@ -17,7 +21,9 @@
                 <p class="text-right cell-amt mr-1">{t.fmtamt}</p>
                 {/if}
             </div>
+        </a>
         {:else}
+        <a href="/" on:click|preventDefault="{e => onseltxn(t)}">
             <div class="flex flex-row flex-start p-1 border-b border-cell">
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
@@ -29,8 +35,8 @@
                 <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
                 {/if}
             </div>
+        </a>
         {/if}
-    </a>
     {/each}
 {/if}
 </div>
@@ -39,12 +45,14 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
+import TxnForm from "./TxnForm.svelte";
 
 export let account = null;
 
 let svcurl = "/api";
 let ui = {};
 ui.selid = 0;
+ui.editid = 0;
 
 export function reset() {
     ui.selid = 0;
@@ -55,11 +63,26 @@ export function onEvent(e) {
 
 function onseltxn(txn) {
     ui.selid = txn.txnid;
+    ui.editid = 0;
     dispatch("select", txn);
 }
 
-function onseledittxn(txn) {
-    console.log("onseledittxn");
+function onedittxn(txn) {
+    ui.editid = txn.txnid;
+}
+
+function txnform_update(e) {
+    ui.editid = 0;
+
+    let updatedTxn = e.detail;
+    for (let i=0; i < txns.length; i++) {
+        if (txns[i].txnid == updatedTxn.txnid) {
+            txns[i] = updatedTxn;
+        }
+    }
+}
+function txnform_cancel(e) {
+    ui.editid = 0;
 }
 
 </script>
