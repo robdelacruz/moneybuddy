@@ -3,23 +3,23 @@
 {:else}
     <form class="">
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 mr-2" name="date" id="date" type="date" placeholder="" value={txn.date.substring(0,10)}>
-            <input class="bg-input fg-normal py-1 px-2 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" value={txn.desc}>
-        </div>
-        <div class="flex flex-row mb-2">
+            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" value={txn.desc}>
             {#if txn.amt >= 0}
-            <select class="py-1 px-2 bg-input fg-normal mr-2" id="amttype" name="amttype" placeholder="Deposit/Withdraw" value="deposit">
+            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="amttype" name="amttype" placeholder="Deposit/Withdraw" value="deposit">
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
             {:else}
-            <select class="py-1 px-2 bg-input fg-normal mr-2" id="amttype" name="amttype" placeholder="Deposit/Withdraw" value="withdraw">
+            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="amttype" name="amttype" placeholder="Deposit/Withdraw" value="withdraw">
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
             {/if}
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-2" name="amt" id="amt" type="number" placeholder="0.00" value={Math.abs(txn.amt)}>
-            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="ref" id="ref" type="text" placeholder="ref no" value={txn.ref}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" value={Math.abs(txn.amt)}>
+        </div>
+        <div class="flex flex-row mb-2">
+            <input class="bg-input fg-normal py-1 px-2 mr-1" name="date" id="date" type="date" placeholder="" value={txn.date.substring(0,10)}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="ref" id="ref" type="text" placeholder="ref no" value={txn.ref}>
         </div>
         <div class="flex flex-row justify-start">
             <div>
