@@ -10,7 +10,7 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit}  accounts={model.accounts}/>
+    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit}  accounts={model.accounts} currencies={model.currencies}/>
     <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
@@ -33,17 +33,20 @@ let wtxns;
 
 let model = {};
 model.accounts = [];
+model.currencies = [];
 
 let ui = {};
 ui.activeAccount = null;
 ui.activeTxn = null;
-ui.accountsstate = "";
-ui.txnsstate = "";
 
 $: init();
 async function init() {
     let [aa, err] = await data.loadAccountsTxns();
     model.accounts = aa;
+
+    let cc;
+    [cc, err] = await data.loadCurrencies();
+    model.currencies = cc;
 }
 
 function resetAccounts() {
@@ -66,15 +69,12 @@ async function accounts_select(e) {
         console.error(err);
     }
     ui.activeAccount = account;
-    ui.accountsstate = "";
     resetTxns();
 }
 
 function txns_select(e) {
     let txn = e.detail;
     ui.activeTxn = txn;
-
-    ui.txnsstate = "";
 }
 
 async function accounts_edit(e) {

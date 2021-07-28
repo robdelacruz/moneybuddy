@@ -3,7 +3,7 @@
     <p class="fg-dim">Select Account</p>
 {:else}
     <h1 class="text-sm font-bold mb-2">{account.name}: Transactions</h1>
-    {#each account.txns as t, i}
+    {#each account.txns as t (t.txnid)}
     {#if ui.editid == t.txnid}
         <div class="p-2 border-b border-cell">
             <TxnForm txn={t} on:submit={txnform_submit} on:cancel={txnform_cancel} />
@@ -45,6 +45,7 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit} from "./helpers.js";
+import * as data from "./data.js";
 import TxnForm from "./TxnForm.svelte";
 
 export let account = null;
@@ -79,11 +80,14 @@ function txnform_submit(e) {
     ui.editid = 0;
 
     let updatedTxn = e.detail;
+    updatedTxn.fmtamt = data.formattedAmt(updatedTxn.amt, account.currency);
+
     for (let i=0; i < account.txns.length; i++) {
         if (account.txns[i].txnid == updatedTxn.txnid) {
             account.txns[i] = updatedTxn;
         }
     }
+    account = account;
 }
 function txnform_cancel(e) {
     ui.editid = 0;

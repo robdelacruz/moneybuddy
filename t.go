@@ -79,6 +79,7 @@ func run(args []string) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
+	http.HandleFunc("/api/currencies", currenciesHandler(db))
 	http.HandleFunc("/api/accounts", accountsHandler(db))
 	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
@@ -260,6 +261,19 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+func currenciesHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cc, err := findAllCurrencies(db)
+		if err != nil {
+			handleErr(w, err, "currenciesHandler")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(cc))
+	}
+}
+
 func accountsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		aa, err := findAllAccounts(db)
@@ -348,6 +362,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT accountHandler")
 				return
 			}
+			//todo: reload account.currency
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)

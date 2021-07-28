@@ -42,6 +42,20 @@ export async function loadAccountsTxns() {
     return [aa, null];
 }
 
+export async function loadCurrencies() {
+    let sreq = `${svcurl}/currencies`;
+    let [cc, err] = await find(sreq);
+    if (err != null) {
+        return [null, err];
+    }
+    if (cc == null) {
+        cc = [];
+        return [cc, null];
+    }
+
+    return [cc, null];
+}
+
 function addFormattedAmts(tt, currency) {
     let formatter = new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -58,6 +72,20 @@ function addFormattedAmts(tt, currency) {
             t.fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
         }
     }
+}
+
+export function formattedAmt(amt, currency) {
+    let formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+        minimumFractionDigits: 2
+    });
+
+    // Show negative amt as "(123.45)"
+    if (amt < 0) {
+        return `(${formatter.format(Math.abs(amt))})`;
+    }
+    return formatter.format(amt);
 }
 
 // request account and its transactions
