@@ -6,7 +6,7 @@
     {#each account.txns as t, i}
     {#if ui.editid == t.txnid}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} on:update={txnform_update} on:cancel={txnform_cancel} />
+            <TxnForm txn={t} on:submit={txnform_submit} on:cancel={txnform_cancel} />
         </div>
     {:else if ui.selid == t.txnid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
@@ -62,22 +62,26 @@ export function onEvent(e) {
 }
 
 function onseltxn(txn) {
+    // If edit form is open, just cancel edit without selecting anything.
+    if (ui.editid != 0) {
+        ui.editid = 0;
+        return;
+    }
+
     ui.selid = txn.txnid;
-    ui.editid = 0;
     dispatch("select", txn);
 }
-
 function onedittxn(txn) {
     ui.editid = txn.txnid;
 }
 
-function txnform_update(e) {
+function txnform_submit(e) {
     ui.editid = 0;
 
     let updatedTxn = e.detail;
-    for (let i=0; i < txns.length; i++) {
-        if (txns[i].txnid == updatedTxn.txnid) {
-            txns[i] = updatedTxn;
+    for (let i=0; i < account.txns.length; i++) {
+        if (account.txns[i].txnid == updatedTxn.txnid) {
+            account.txns[i] = updatedTxn;
         }
     }
 }

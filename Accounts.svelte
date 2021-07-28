@@ -46,13 +46,17 @@ export function onEvent(e) {
 }
 
 function onselaccount(account) {
+    // If edit form is open, just cancel edit without selecting anything.
+    if (ui.editid != 0) {
+        ui.editid = 0;
+        return;
+    }
+
     ui.selid = account.accountid;
-    ui.editid = 0;
     dispatch("select", account);
 }
 function oneditaccount(account) {
     ui.editid = account.accountid;
-    dispatch("edit", account);
 }
 
 function accountform_update(e) {

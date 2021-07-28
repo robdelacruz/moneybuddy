@@ -62,7 +62,7 @@ function addFormattedAmts(tt, currency) {
 
 // request account and its transactions
 export async function loadAccount(accountid) {
-    let sreq = `${svcurl}/account?accountid=${accountid}`;
+    let sreq = `${svcurl}/account?id=${accountid}`;
     let [a, err] = await find(sreq);
     if (err != null) {
         return [null, err];

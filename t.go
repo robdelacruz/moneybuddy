@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -81,6 +82,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/accounts", accountsHandler(db))
 	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
+	http.HandleFunc("/api/txn", txnHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -286,23 +288,169 @@ func accountstxnsHandler(db *sql.DB) http.HandlerFunc {
 
 func accountHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qaccountid := idtoi(r.FormValue("accountid"))
-		if qaccountid == 0 {
-			http.Error(w, "Not found.", 404)
+		if r.Method == "GET" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			a, err := findAccount(db, qid)
+			if err != nil {
+				handleErr(w, err, "accountHandler")
+				return
+			}
+			if a == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(a))
 			return
-		}
-		a, err := findAccount(db, qaccountid)
-		if err != nil {
-			handleErr(w, err, "accountHandler")
+		} else if r.Method == "POST" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "POST accountHandler")
+				return
+			}
+			var a Account
+			err = json.Unmarshal(bs, &a)
+			if err != nil {
+				handleErr(w, err, "POST accountHandler")
+				return
+			}
+			newid, err := createAccount(db, &a)
+			if err != nil {
+				handleErr(w, err, "POST accountHandler")
+				return
+			}
+			a.Accountid = newid
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(a))
 			return
-		}
-		if a == nil {
-			http.Error(w, "Not found.", 404)
+		} else if r.Method == "PUT" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "PUT accountHandler")
+				return
+			}
+			var a Account
+			err = json.Unmarshal(bs, &a)
+			if err != nil {
+				handleErr(w, err, "PUT accountHandler")
+				return
+			}
+			err = editAccount(db, &a)
+			if err != nil {
+				handleErr(w, err, "PUT accountHandler")
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(a))
+			return
+		} else if r.Method == "DELETE" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			err := delAccount(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL accountHandler")
+				return
+			}
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-		P("%s", jsonstr(a))
+		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
+	}
+}
+func txnHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			t, err := findTxn(db, qid)
+			if err != nil {
+				handleErr(w, err, "GET txnHandler")
+				return
+			}
+			if t == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(t))
+			return
+		} else if r.Method == "POST" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "POST txnHandler")
+				return
+			}
+			var t Txn
+			err = json.Unmarshal(bs, &t)
+			if err != nil {
+				handleErr(w, err, "POST txnHandler")
+				return
+			}
+			newid, err := createTxn(db, &t)
+			if err != nil {
+				handleErr(w, err, "POST txnHandler")
+				return
+			}
+			t.Txnid = newid
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(t))
+			return
+		} else if r.Method == "PUT" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "PUT txnHandler")
+				return
+			}
+			var t Txn
+			err = json.Unmarshal(bs, &t)
+			if err != nil {
+				handleErr(w, err, "PUT txnHandler")
+				return
+			}
+			err = editTxn(db, &t)
+			if err != nil {
+				handleErr(w, err, "PUT txnHandler")
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(t))
+			return
+		} else if r.Method == "DELETE" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			err := delTxn(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL txnHandler")
+				return
+			}
+			return
+		}
+
+		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
 	}
 }
