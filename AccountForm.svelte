@@ -3,13 +3,13 @@
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" value={account.name}>
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={account.name}>
         </div>
         <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
                 <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={account.accounttype}>
-                    <option value="0">Bank Account</option>
-                    <option value="1">Stock</option>
+                    <option value={0}>Bank Account</option>
+                    <option value={1}>Stock</option>
                 </select>
             </div>
             <div class="w-1/2">

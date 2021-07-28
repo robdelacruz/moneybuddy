@@ -66,14 +66,13 @@ function accountform_submit(e) {
 
     let updatedAccount = e.detail;
     updatedAccount.fmtbalance = data.formattedAmt(updatedAccount.balance, updatedAccount.currency);
-    console.log(updatedAccount);
 
     for (let i=0; i < accounts.length; i++) {
         if (accounts[i].accountid == updatedAccount.accountid) {
             accounts[i] = updatedAccount;
         }
     }
-    accounts = accounts;
+    dispatch("submit", updatedAccount);
 }
 function accountform_cancel(e) {
     ui.editid = 0;

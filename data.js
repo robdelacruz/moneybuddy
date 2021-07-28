@@ -13,12 +13,8 @@ export async function loadAccountsReq(sreq) {
     }
 
     for (let i=0; i < aa.length; i++) {
-        let formatter = new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: aa[i].currency,
-            minimumFractionDigits: 2
-        });
-        aa[i].fmtbalance = formatter.format(aa[i].balance);
+        let a = aa[i];
+        addFormattedAmts(a);
     }
     return [aa, null];
 }
@@ -30,16 +26,7 @@ export async function loadAccounts() {
 
 export async function loadAccountsTxns() {
     let sreq = `${svcurl}/accountstxns`;
-    let [aa, err] = await loadAccountsReq(sreq);
-    if (err != null) {
-        return [null, err];
-    }
-
-    for (let i=0; i < aa.length; i++) {
-        let a = aa[i];
-        addFormattedAmts(a.txns, a.currency);
-    }
-    return [aa, null];
+    return loadAccountsReq(sreq);
 }
 
 export async function loadCurrencies() {
@@ -56,15 +43,33 @@ export async function loadCurrencies() {
     return [cc, null];
 }
 
-function addFormattedAmts(tt, currency) {
+// request account and its transactions
+export async function loadAccount(accountid) {
+    let sreq = `${svcurl}/account?id=${accountid}`;
+    let [a, err] = await find(sreq);
+    if (err != null) {
+        return [null, err];
+    }
+    if (a == null) {
+        return [null, null];
+    }
+
+    addFormattedAmts(a);
+    return [a, null];
+}
+
+// Set account.fmtbalance and account's txns'.fmtamt to currency amount format.
+export function addFormattedAmts(account) {
     let formatter = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: currency,
+        currency: account.currency,
         minimumFractionDigits: 2
     });
 
-    for (let i=0; i < tt.length; i++) {
-        let t = tt[i];
+    account.fmtbalance = formatter.format(account.balance);
+
+    for (let i=0; i < account.txns.length; i++) {
+        let t = account.txns[i];
         if (t.amt > 0) {
             t.fmtamt = formatter.format(t.amt);
         } else {
@@ -86,20 +91,5 @@ export function formattedAmt(amt, currency) {
         return `(${formatter.format(Math.abs(amt))})`;
     }
     return formatter.format(amt);
-}
-
-// request account and its transactions
-export async function loadAccount(accountid) {
-    let sreq = `${svcurl}/account?id=${accountid}`;
-    let [a, err] = await find(sreq);
-    if (err != null) {
-        return [null, err];
-    }
-    if (a == null) {
-        return [null, null];
-    }
-
-    addFormattedAmts(a.txns, a.currency);
-    return [a, null];
 }
 

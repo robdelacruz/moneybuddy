@@ -362,11 +362,15 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT accountHandler")
 				return
 			}
-			//todo: reload account.currency
+			savedAccount, err := findAccount(db, a.Accountid)
+			if err != nil {
+				handleErr(w, err, "PUT accountHandler")
+				return
+			}
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
-			P("%s", jsonstr(a))
+			P("%s", jsonstr(savedAccount))
 			return
 		} else if r.Method == "DELETE" {
 			qid := idtoi(r.FormValue("id"))

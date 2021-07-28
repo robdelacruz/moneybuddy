@@ -10,7 +10,7 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} on:edit={accounts_edit}  accounts={model.accounts} currencies={model.currencies}/>
+    <Accounts bind:this={waccounts} on:select={accounts_select} on:submit={accounts_submit}  accounts={model.accounts} currencies={model.currencies}/>
     <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
@@ -77,12 +77,13 @@ function txns_select(e) {
     ui.activeTxn = txn;
 }
 
-async function accounts_edit(e) {
+async function accounts_submit(e) {
     let err;
     let account = e.detail;
-    [account, err] = await data.loadAccount(account.accountid);
-    if (err != null) {
-        console.error(err);
+
+    if (ui.activeAccount != null && ui.activeAccount.accountid == account.accountid) {
+        data.addFormattedAmts(account)
+        ui.activeAccount = account;
     }
 }
 
