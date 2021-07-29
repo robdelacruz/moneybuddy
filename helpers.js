@@ -139,7 +139,7 @@ export async function del(sreq) {
 }
 
 export async function subscribe(sreq, fmt, respCB) {
-    let [msg, err] = await find(sreq, "text");
+    let [msg, err] = await find(sreq, fmt);
     if (respCB != null) {
         respCB(msg, err)
     }

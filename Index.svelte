@@ -23,7 +23,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit} from "./helpers.js";
+import {find, submit, subscribe} from "./helpers.js";
 import * as data from "./data.js";
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
@@ -47,6 +47,19 @@ async function init() {
     let cc;
     [cc, err] = await data.loadCurrencies();
     model.currencies = cc;
+
+    let sreq = "/api/subscriberoot";
+    await subscribe(sreq, "json", function(rootdata, err) {
+        if (err != null) {
+            console.log("Error receiving root data...");
+            console.error(err);
+        }
+        console.log("Received root data...");
+        console.log(rootdata);
+
+        model.accounts = rootdata.accounts;
+        model.currencies = rootdata.currencies;
+    });
 }
 
 function resetAccounts() {

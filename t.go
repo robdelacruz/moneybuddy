@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -84,6 +85,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
+	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -362,6 +364,14 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT accountHandler")
 				return
 			}
+
+			// Inform all data subscribers that a data change occured.
+			signalSubs(_subs, &_mu1)
+
+			// Close all subscribers.
+			closeSubs(_subs, &_mu1)
+			_subs = nil
+
 			savedAccount, err := findAccount(db, a.Accountid)
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
@@ -471,5 +481,55 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
+	}
+}
+
+type SignalChan chan struct{}
+
+var _subs []SignalChan
+var _mu1 sync.RWMutex
+
+func subscriberootHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sub := addSub(&_mu1)
+		<-sub
+
+		model, err := findModel(db)
+		if err != nil {
+			handleErr(w, err, "subscribemodelHandler")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(model))
+	}
+}
+
+func addSub(mu *sync.RWMutex) SignalChan {
+	mu.Lock()
+	defer mu.Unlock()
+
+	sub := make(SignalChan, 1)
+	_subs = append(_subs, sub)
+	return sub
+}
+
+func signalSubs(subs []SignalChan, mu *sync.RWMutex) {
+	fmt.Printf("signalSubs()\n")
+	mu.RLock()
+	defer mu.RUnlock()
+
+	for _, sub := range subs {
+		sub <- struct{}{}
+	}
+}
+
+func closeSubs(subs []SignalChan, mu *sync.RWMutex) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	for _, sub := range subs {
+		close(sub)
 	}
 }

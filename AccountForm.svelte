@@ -28,7 +28,7 @@
         </div>
         {#if ui.status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{ui.submitstatus}</p>
+            <p class="uppercase italic text-xs">{ui.status}</p>
         </div>
         {/if}
     </form>
@@ -64,7 +64,7 @@ async function onSubmit(e) {
     let [savedaccount, err] = await submit(sreq, method, account);
     if (err != null) {
         console.error(err);
-        ui.submitstatus = "server error submitting account";
+        ui.status = "server error submitting account";
         return;
     }
 
