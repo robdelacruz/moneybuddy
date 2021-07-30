@@ -51,7 +51,9 @@ async function init() {
     //$$: Complex code below - needs rework.
 
     // Subscribe to data changes and update accounts and txns.
-    let sreq = "/api/subscriberoot";
+    let qwho = getqs("who");
+    let sreq = `/api/subscriberoot?who=${qwho}`;
+    console.log(`Subscribing (${qwho})...`);
     await subscribe(sreq, "json", function(rootdata, err) {
         if (err != null) {
             console.log("Error receiving root data...");
@@ -82,6 +84,15 @@ async function init() {
             }
         }
     });
+}
+
+function getqs(q) {
+    let url = new URL(document.location.href);
+    let v = url.searchParams.get(q);
+    if (v == null) {
+        v = "";
+    }
+    return v;
 }
 
 function resetAccounts() {

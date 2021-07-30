@@ -86,6 +86,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
 	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
+	http.HandleFunc("/api/whos", whosHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -372,6 +373,8 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			closeSubs(_subs, &_mu1)
 			_subs = nil
 
+			_whos = nil
+
 			savedAccount, err := findAccount(db, a.Accountid)
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
@@ -495,9 +498,29 @@ type SignalChan chan struct{}
 
 var _subs []SignalChan
 var _mu1 sync.RWMutex
+var _whos []string
+
+func whosHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		P := makeFprintf(w)
+		P("num _subs: %d\n", len(_subs))
+		P("num _whos: %d\n", len(_whos))
+
+		for i := 0; i < len(_whos); i++ {
+			P("_whos[%d]: %s\n", i, _whos[i])
+		}
+	}
+}
 
 func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		qwho := r.FormValue("who")
+		if qwho == "" {
+			qwho = "(noname)"
+		}
+
+		_whos = append(_whos, qwho)
 		sub := addSub(&_mu1)
 		<-sub
 
