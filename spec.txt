@@ -1,0 +1,3 @@
+curl put test:
+curl -X PUT -H "Content-Type: application/json" -d '{"accountid": 1, "cde": "", "name": "xyz123", "accounttype": 0, "currencyid": 1}' http://localhost:8000/api/account
+
