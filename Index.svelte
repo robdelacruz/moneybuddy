@@ -48,17 +48,39 @@ async function init() {
     [cc, err] = await data.loadCurrencies();
     model.currencies = cc;
 
+    //$$: Complex code below - needs rework.
+
+    // Subscribe to data changes and update accounts and txns.
     let sreq = "/api/subscriberoot";
     await subscribe(sreq, "json", function(rootdata, err) {
         if (err != null) {
             console.log("Error receiving root data...");
             console.error(err);
+            return;
         }
+
         console.log("Received root data...");
         console.log(rootdata);
 
         model.accounts = rootdata.accounts;
         model.currencies = rootdata.currencies;
+
+        for (let i=0; i < model.accounts.length; i++) {
+            let a = model.accounts[i];
+            data.addFormattedAmts(a);
+        }
+
+        // Refresh active account in txns.
+        if (ui.activeAccount != null) {
+            let activeAccountId = ui.activeAccount.accountid;
+            for (let i=0; i < model.accounts.length; i++) {
+                let a = model.accounts[i];
+                if (a.accountid == activeAccountId) {
+                    ui.activeAccount = a;
+                    break;
+                }
+            }
+        }
     });
 }
 

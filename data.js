@@ -58,14 +58,30 @@ export async function loadAccount(accountid) {
     return [a, null];
 }
 
+function createFormatter(currency) {
+    if (currency == null || currency == "") {
+        currency = "USD";
+    }
+    let formatter;
+    try {
+        formatter = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: currency,
+            minimumFractionDigits: 2
+        });
+    } catch(e) {
+        formatter = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 2
+        });
+    }
+    return formatter;
+}
+
 // Set account.fmtbalance and account's txns'.fmtamt to currency amount format.
 export function addFormattedAmts(account) {
-    let formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: account.currency,
-        minimumFractionDigits: 2
-    });
-
+    let formatter = createFormatter(account.currency);
     account.fmtbalance = formatter.format(account.balance);
 
     for (let i=0; i < account.txns.length; i++) {
@@ -80,11 +96,7 @@ export function addFormattedAmts(account) {
 }
 
 export function formattedAmt(amt, currency) {
-    let formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency,
-        minimumFractionDigits: 2
-    });
+    let formatter = createFormatter(currency);
 
     // Show negative amt as "(123.45)"
     if (amt < 0) {

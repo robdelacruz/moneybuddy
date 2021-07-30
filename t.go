@@ -462,6 +462,13 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
+			// Inform all data subscribers that a data change occured.
+			signalSubs(_subs, &_mu1)
+
+			// Close all subscribers.
+			closeSubs(_subs, &_mu1)
+			_subs = nil
+
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
 			P("%s", jsonstr(t))

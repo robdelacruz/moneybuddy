@@ -56,7 +56,7 @@ func delAccount(db *sql.DB, accountid int64) error {
 }
 
 func findAccount(db *sql.DB, accountid int64) (*Account, error) {
-	s := `SELECT account_id, code, name, accounttype, a.currency_id, cur.currency, 
+	s := `SELECT account_id, code, name, accounttype, a.currency_id, IFNULL(cur.currency, ''), 
 (SELECT SUM(amt) FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
@@ -80,7 +80,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT account_id, code, name, accounttype, a.currency_id, cur.currency, 
+SELECT account_id, code, name, accounttype, a.currency_id, IFNULL(cur.currency, ''), 
 (SELECT SUM(amt) FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 

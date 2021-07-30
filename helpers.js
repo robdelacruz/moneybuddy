@@ -144,6 +144,14 @@ export async function subscribe(sreq, fmt, respCB) {
         respCB(msg, err)
     }
 
-    await subscribe(sreq, fmt, respCB);
+    let waitms = 0;
+    // If error, wait 5 secs before trying to reconnect.
+    if (err != null) {
+        waitms = 5000;
+    }
+
+    setTimeout(async function() {
+        await subscribe(sreq, fmt, respCB);
+    }, waitms);
 }
 
