@@ -8,7 +8,7 @@
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" bind:value={ui.txn.absamt}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" step="any" bind:value={ui.txn.absamt}>
         </div>
         <div class="flex flex-row mb-2">
             <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" placeholder="yyyy-mm-dd" bind:value={ui.txn.isodate}>
