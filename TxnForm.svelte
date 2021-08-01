@@ -1,23 +1,23 @@
-{#if txn == null}
+{#if ui.txn == null}
     <p class="fg-dim">Select Txn</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={txn.desc}>
-            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={txn.action}>
+            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={ui.txn.desc}>
+            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={ui.txn.action}>
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" bind:value={txn.absamt}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" bind:value={ui.txn.absamt}>
         </div>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" placeholder="yyyy-mm-dd" bind:value={txn.isodate}>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={txn.ref}>
-            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={txn.memo}>
+            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" placeholder="yyyy-mm-dd" bind:value={ui.txn.isodate}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.txn.ref}>
+            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.txn.memo}>
         </div>
         <div class="flex flex-row justify-start">
             <div>
-                {#if txn.txnid == 0}
+                {#if ui.txn.txnid == 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
                 {:else}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
@@ -45,19 +45,28 @@ let svcurl = "/api";
 let ui = {};
 ui.status = "";
 
+ui.txn = {};
+ui.txn.txnid = txn.txnid;
+ui.txn.accountid = txn.accountid;
+ui.txn.date = txn.date;
+ui.txn.ref = txn.ref;
+ui.txn.desc = txn.desc;
+ui.txn.amt = txn.amt;
+ui.txn.fmtamt = txn.fmtamt;
+
 onMount(function() {
-    if (txn == null) {
+    if (ui.txn == null) {
         return;
     }
 
-    if (txn.amt >= 0) {
-        txn.action = "deposit";
+    if (ui.txn.amt >= 0) {
+        ui.txn.action = "deposit";
     } else {
-        txn.action = "withdraw";
+        ui.txn.action = "withdraw";
     }
-    txn.absamt = Math.abs(txn.amt);
-    txn.isodate = txn.date.substring(0,10);
-    txn.memo = "";
+    ui.txn.absamt = Math.abs(ui.txn.amt);
+    ui.txn.isodate = ui.txn.date.substring(0,10);
+    ui.txn.memo = "";
 });
 
 document.addEventListener("keydown", function(e) {
@@ -69,18 +78,18 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     ui.status = "processing";
 
-    txn.amt = Math.abs(txn.absamt);
-    if (txn.action == "withdraw") {
-        txn.amt = -txn.amt;
+    ui.txn.amt = Math.abs(ui.txn.absamt);
+    if (ui.txn.action == "withdraw") {
+        ui.txn.amt = -txn.amt;
     }
-    txn.date = txn.isodate;
+    ui.txn.date = ui.txn.isodate;
 
     let sreq = `${svcurl}/txn`;
     let method = "PUT";
-    if (txn.txnid == 0) {
+    if (ui.txn.txnid == 0) {
         method = "POST";
     }
-    let [savedtxn, err] = await submit(sreq, method, txn);
+    let [savedtxn, err] = await submit(sreq, method, ui.txn);
     if (err != null) {
         console.error(err);
         ui.submitstatus = "server error submitting txn";
@@ -88,8 +97,8 @@ async function onSubmit(e) {
     }
 
     ui.status = "";
-    txn = savedtxn;
-    dispatch("submit", savedtxn);
+    ui.txn = savedtxn;
+    dispatch("submit", ui.txn);
 }
 
 function onCancel(e) {

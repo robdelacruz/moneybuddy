@@ -2,6 +2,20 @@ import {find, submit} from "./helpers.js";
 
 let svcurl = "/api";
 
+export async function loadRootdata() {
+    let sreq = `${svcurl}/rootdata`;
+    let [rootdata, err] = await find(sreq);
+    if (err != null) {
+        return [null, err];
+    }
+
+    for (let i=0; i < rootdata.accounts.length; i++) {
+        let a = rootdata.accounts[i];
+        addFormattedAmts(a);
+    }
+    return [rootdata, null];
+}
+
 export async function loadAccountsReq(sreq) {
     let [aa, err] = await find(sreq);
     if (err != null) {

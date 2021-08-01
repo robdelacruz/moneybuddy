@@ -1,22 +1,26 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
     <h1 class="text-sm font-bold mb-2">Accounts</h1>
-{#each accounts as account (account.accountid)}
-    {#if ui.editid == account.accountid}
-    <div class="p-2 border-b border-cell">
-        <AccountForm account={account} currencies={currencies} on:submit={accountform_submit} on:cancel={accountform_cancel} />
-    </div>
-    {:else if ui.selid == account.accountid}
-    <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(account)}">
-        <p class="truncate cell-desc mr-2">{account.name}</p>
-        <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
-    </a>
-    {:else}
-    <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(account)}">
-        <p class="truncate cell-desc mr-2">{account.name}</p>
-        <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
-    </a>
-    {/if}
-{/each}
+{#if root == null}
+    <p class="fg-dim">No data</p>
+{:else}
+    {#each root.accounts as account (account.accountid)}
+        {#if ui.editid == account.accountid}
+        <div class="p-2 border-b border-cell">
+            <AccountForm account={account} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+        </div>
+        {:else if ui.selid == account.accountid}
+        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(account)}">
+            <p class="truncate cell-desc mr-2">{account.name}</p>
+            <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
+        </a>
+        {:else}
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(account)}">
+            <p class="truncate cell-desc mr-2">{account.name}</p>
+            <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
+        </a>
+        {/if}
+    {/each}
+{/if}
 </div>
 
 <script>
@@ -26,8 +30,7 @@ import {find, submit} from "./helpers.js";
 import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
-export let accounts = [];
-export let currencies = [];
+export let root = null;
 
 let svcurl = "/api";
 let ui = {};
@@ -61,20 +64,7 @@ function oneditaccount(account) {
     ui.editid = account.accountid;
 }
 
-function accountform_submit(e) {
-    ui.editid = 0;
-
-    let updatedAccount = e.detail;
-    updatedAccount.fmtbalance = data.formattedAmt(updatedAccount.balance, updatedAccount.currency);
-
-    for (let i=0; i < accounts.length; i++) {
-        if (accounts[i].accountid == updatedAccount.accountid) {
-            accounts[i] = updatedAccount;
-        }
-    }
-    dispatch("submit", updatedAccount);
-}
-function accountform_cancel(e) {
+function accountform_done(e) {
     ui.editid = 0;
 }
 

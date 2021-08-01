@@ -10,8 +10,8 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} on:submit={accounts_submit}  accounts={model.accounts} currencies={model.currencies}/>
-    <Txns bind:this={wtxns} on:select={txns_select} account={ui.activeAccount} />
+    <Accounts bind:this={waccounts} on:select={accounts_select} root={root}/>
+    <Txns bind:this={wtxns} account={ui.activeAccount} />
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -31,22 +31,16 @@ import Txns from "./Txns.svelte";
 let waccounts;
 let wtxns;
 
-let model = {};
-model.accounts = [];
-model.currencies = [];
+let root = null;
 
 let ui = {};
+ui.activeAccountid = 0;
 ui.activeAccount = null;
-ui.activeTxn = null;
 
 $: init();
 async function init() {
-    let [aa, err] = await data.loadAccountsTxns();
-    model.accounts = aa;
-
-    let cc;
-    [cc, err] = await data.loadCurrencies();
-    model.currencies = cc;
+    let [rootdata, err] = await data.loadRootdata();
+    root = rootdata;
 
     //$$: Complex code below - needs rework.
 
@@ -64,23 +58,15 @@ async function init() {
         console.log("Received root data...");
         console.log(rootdata);
 
-        model.accounts = rootdata.accounts;
-        model.currencies = rootdata.currencies;
+        root = rootdata;
 
-        for (let i=0; i < model.accounts.length; i++) {
-            let a = model.accounts[i];
+        ui.activeAccount = null;
+        for (let i=0; i < root.accounts.length; i++) {
+            let a = root.accounts[i];
             data.addFormattedAmts(a);
-        }
 
-        // Refresh active account in txns.
-        if (ui.activeAccount != null) {
-            let activeAccountId = ui.activeAccount.accountid;
-            for (let i=0; i < model.accounts.length; i++) {
-                let a = model.accounts[i];
-                if (a.accountid == activeAccountId) {
-                    ui.activeAccount = a;
-                    break;
-                }
+            if (a.accountid == ui.activeAccountid) {
+                ui.activeAccount = a;
             }
         }
     });
@@ -96,11 +82,11 @@ function getqs(q) {
 }
 
 function resetAccounts() {
+    ui.activeAccountid = 0;
     ui.activeAccount = null;
     waccounts.reset();
 }
 function resetTxns() {
-    ui.activeTxn = null;
     wtxns.reset();
 }
 
@@ -109,28 +95,9 @@ function resetTxns() {
 
 async function accounts_select(e) {
     let err;
-    let account = e.detail;
-    [account, err] = await data.loadAccount(account.accountid);
-    if (err != null) {
-        console.error(err);
-    }
-    ui.activeAccount = account;
+    ui.activeAccount = e.detail;
+    ui.activeAccountid = ui.activeAccount.accountid;
     resetTxns();
-}
-
-function txns_select(e) {
-    let txn = e.detail;
-    ui.activeTxn = txn;
-}
-
-async function accounts_submit(e) {
-    let err;
-    let account = e.detail;
-
-    if (ui.activeAccount != null && ui.activeAccount.accountid == account.accountid) {
-        data.addFormattedAmts(account)
-        ui.activeAccount = account;
-    }
 }
 
 </script>

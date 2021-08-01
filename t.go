@@ -80,6 +80,7 @@ func run(args []string) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
+	http.HandleFunc("/api/rootdata", rootdataHandler(db))
 	http.HandleFunc("/api/currencies", currenciesHandler(db))
 	http.HandleFunc("/api/accounts", accountsHandler(db))
 	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
@@ -261,6 +262,19 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 
 		printContainerClose(P)
 		printHtmlClose(P)
+	}
+}
+
+func rootdataHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rootdata, err := findRootdata(db)
+		if err != nil {
+			handleErr(w, err, "rootdataHandler")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(rootdata))
 	}
 }
 
@@ -524,7 +538,7 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 		sub := addSub(&_mu1)
 		<-sub
 
-		model, err := findModel(db)
+		model, err := findRootdata(db)
 		if err != nil {
 			handleErr(w, err, "subscribemodelHandler")
 			return

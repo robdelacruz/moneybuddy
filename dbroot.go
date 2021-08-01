@@ -5,12 +5,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Model struct {
+type Rootdata struct {
 	Accounts   []*Account  `json:"accounts"`
 	Currencies []*Currency `json:"currencies"`
 }
 
-func findModel(db *sql.DB) (*Model, error) {
+func findRootdata(db *sql.DB) (*Rootdata, error) {
 	aa, err := findAllAccountsTxns(db)
 	if err != nil {
 		return nil, err
@@ -20,8 +20,8 @@ func findModel(db *sql.DB) (*Model, error) {
 		return nil, err
 	}
 
-	var m Model
-	m.Accounts = aa
-	m.Currencies = cc
-	return &m, nil
+	var rd Rootdata
+	rd.Accounts = aa
+	rd.Currencies = cc
+	return &rd, nil
 }

@@ -6,7 +6,7 @@
     {#each account.txns as t (t.txnid)}
     {#if ui.editid == t.txnid}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} on:submit={txnform_submit} on:cancel={txnform_cancel} />
+            <TxnForm txn={t} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
     {:else if ui.selid == t.txnid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
@@ -76,20 +76,7 @@ function onedittxn(txn) {
     ui.editid = txn.txnid;
 }
 
-function txnform_submit(e) {
-    ui.editid = 0;
-
-    let updatedTxn = e.detail;
-    updatedTxn.fmtamt = data.formattedAmt(updatedTxn.amt, account.currency);
-
-    for (let i=0; i < account.txns.length; i++) {
-        if (account.txns[i].txnid == updatedTxn.txnid) {
-            account.txns[i] = updatedTxn;
-        }
-    }
-    account = account;
-}
-function txnform_cancel(e) {
+function txnform_done(e) {
     ui.editid = 0;
 }
 

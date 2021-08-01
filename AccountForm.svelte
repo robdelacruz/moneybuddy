@@ -1,19 +1,19 @@
-{#if account == null}
+{#if ui.account == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={account.name}>
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={ui.account.name}>
         </div>
         <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={account.accounttype}>
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={ui.account.accounttype}>
                     <option value={0}>Bank Account</option>
                     <option value={1}>Stock</option>
                 </select>
             </div>
             <div class="w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={account.currencyid}>
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={ui.account.currencyid}>
                     {#each currencies as currency}
                     <option value={currency.currencyid}>{currency.currency}</option>
                     {/each}
@@ -47,6 +47,16 @@ let svcurl = "/api";
 let ui = {};
 ui.status = "";
 
+ui.account = {};
+ui.account.accountid = account.accountid;
+ui.account.code = account.code;
+ui.account.name = account.name;
+ui.account.accounttype = account.accounttype;
+ui.account.currencyid = account.currencyid;
+ui.account.currency = account.currency;
+ui.account.balance = account.balance;
+ui.account.fmtbalance = account.fmtbalance;
+
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
         dispatch("cancel");
@@ -58,10 +68,10 @@ async function onSubmit(e) {
 
     let sreq = `${svcurl}/account`;
     let method = "PUT";
-    if (account.accountid == 0) {
+    if (ui.account.accountid == 0) {
         method = "POST";
     }
-    let [savedaccount, err] = await submit(sreq, method, account);
+    let [savedaccount, err] = await submit(sreq, method, ui.account);
     if (err != null) {
         console.error(err);
         ui.status = "server error submitting account";
@@ -69,8 +79,8 @@ async function onSubmit(e) {
     }
 
     ui.status = "";
-    account = savedaccount;
-    dispatch("submit", account);
+    ui.account = savedaccount;
+    dispatch("submit", ui.account);
 }
 
 function onCancel(e) {
