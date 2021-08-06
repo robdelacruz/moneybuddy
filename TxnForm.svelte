@@ -52,7 +52,6 @@ ui.txn.date = txn.date;
 ui.txn.ref = txn.ref;
 ui.txn.desc = txn.desc;
 ui.txn.amt = txn.amt;
-ui.txn.fmtamt = txn.fmtamt;
 
 onMount(function() {
     if (ui.txn == null) {

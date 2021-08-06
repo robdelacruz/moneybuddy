@@ -1,8 +1,16 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
-    <h1 class="text-sm font-bold mb-2">Accounts</h1>
+    <div class="flex flex-row justify-between items-end mb-2">
+        <h1 class="text-sm font-bold">Accounts</h1>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
+    </div>
 {#if root == null}
     <p class="fg-dim">No data</p>
 {:else}
+    {#if ui.editid == 0}
+        <div class="p-2 border-b border-cell">
+            <AccountForm account={ui.newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+        </div>
+    {/if}
     {#each root.accounts as account (account.accountid)}
         {#if ui.editid == account.accountid}
         <div class="p-2 border-b border-cell">
@@ -35,8 +43,14 @@ export let root = null;
 let svcurl = "/api";
 let ui = {};
 ui.selid = 0;
-ui.editid = 0;
-ui.mode = "";
+ui.editid = -1;
+ui.newaccount = {
+    accountid: 0,
+    code: "",
+    name: "",
+    accounttype: 0,
+    currencyid: 0,
+};
 
 export function reset() {
     ui.selid = 0;
@@ -52,8 +66,8 @@ export function onEvent(e) {
 
 function onselaccount(account) {
     // If edit form is open, just cancel edit without selecting anything.
-    if (ui.editid != 0) {
-        ui.editid = 0;
+    if (ui.editid != -1) {
+        ui.editid = -1;
         return;
     }
 
@@ -63,9 +77,11 @@ function onselaccount(account) {
 function oneditaccount(account) {
     ui.editid = account.accountid;
 }
-
-function accountform_done(e) {
+function oncreate(e) {
     ui.editid = 0;
+}
+function accountform_done(e) {
+    ui.editid = -1;
 }
 
 </script>

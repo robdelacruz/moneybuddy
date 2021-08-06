@@ -358,6 +358,13 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 			a.Accountid = newid
 
+			// Inform all data subscribers that a data change occured.
+			signalSubs(_subs, &_mu1)
+			// Close all subscribers.
+			closeSubs(_subs, &_mu1)
+			_subs = nil
+			_whos = nil
+
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
 			P("%s", jsonstr(a))
@@ -382,11 +389,9 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 
 			// Inform all data subscribers that a data change occured.
 			signalSubs(_subs, &_mu1)
-
 			// Close all subscribers.
 			closeSubs(_subs, &_mu1)
 			_subs = nil
-
 			_whos = nil
 
 			savedAccount, err := findAccount(db, a.Accountid)
@@ -457,6 +462,13 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 			t.Txnid = newid
 
+			// Inform all data subscribers that a data change occured.
+			signalSubs(_subs, &_mu1)
+			// Close all subscribers.
+			closeSubs(_subs, &_mu1)
+			_subs = nil
+			_whos = nil
+
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
 			P("%s", jsonstr(t))
@@ -481,10 +493,10 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 
 			// Inform all data subscribers that a data change occured.
 			signalSubs(_subs, &_mu1)
-
 			// Close all subscribers.
 			closeSubs(_subs, &_mu1)
 			_subs = nil
+			_whos = nil
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)

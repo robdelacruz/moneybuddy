@@ -22,7 +22,11 @@
         </div>
         <div class="flex flex-row justify-start">
             <div>
+                {#if ui.account.accountid == 0}
+                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
+                {:else}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
+                {/if}
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
         </div>
@@ -53,9 +57,6 @@ ui.account.code = account.code;
 ui.account.name = account.name;
 ui.account.accounttype = account.accounttype;
 ui.account.currencyid = account.currencyid;
-ui.account.currency = account.currency;
-ui.account.balance = account.balance;
-ui.account.fmtbalance = account.fmtbalance;
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {

@@ -2,7 +2,15 @@
 {#if account == null || account.txns == null}
     <p class="fg-dim">Select Account</p>
 {:else}
-    <h1 class="text-sm font-bold mb-2">{account.name}: Transactions</h1>
+    <div class="flex flex-row justify-between items-end mb-2">
+        <h1 class="text-sm font-bold">Transactions for {account.name}</h1>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
+    </div>
+    {#if ui.editid == 0}
+        <div class="p-2 border-b border-cell">
+            <TxnForm txn={ui.newtxn} on:submit={txnform_done} on:cancel={txnform_done} />
+        </div>
+    {/if}
     {#each account.txns as t (t.txnid)}
     {#if ui.editid == t.txnid}
         <div class="p-2 border-b border-cell">
@@ -53,7 +61,15 @@ export let account = null;
 let svcurl = "/api";
 let ui = {};
 ui.selid = 0;
-ui.editid = 0;
+ui.editid = -1;
+ui.newtxn = {
+    txnid: 0,
+    accountid: 0,
+    date: "",
+    ref: "",
+    desc: "",
+    amt: 0.0,
+};
 
 export function reset() {
     ui.selid = 0;
@@ -64,8 +80,8 @@ export function onEvent(e) {
 
 function onseltxn(txn) {
     // If edit form is open, just cancel edit without selecting anything.
-    if (ui.editid != 0) {
-        ui.editid = 0;
+    if (ui.editid != -1) {
+        ui.editid = -1;
         return;
     }
 
@@ -75,9 +91,15 @@ function onseltxn(txn) {
 function onedittxn(txn) {
     ui.editid = txn.txnid;
 }
-
-function txnform_done(e) {
+function oncreate(e) {
+    if (account == null) {
+        return;
+    }
+    ui.newtxn.accountid = account.accountid;
     ui.editid = 0;
+}
+function txnform_done(e) {
+    ui.editid = -1;
 }
 
 </script>

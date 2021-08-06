@@ -100,7 +100,7 @@ export function addFormattedAmts(account) {
 
     for (let i=0; i < account.txns.length; i++) {
         let t = account.txns[i];
-        if (t.amt > 0) {
+        if (t.amt >= 0) {
             t.fmtamt = formatter.format(t.amt);
         } else {
             // Show negative amt as "(123.45)"
