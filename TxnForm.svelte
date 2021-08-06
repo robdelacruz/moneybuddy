@@ -11,7 +11,7 @@
             <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" step="any" bind:value={ui.txn.absamt}>
         </div>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" placeholder="yyyy-mm-dd" bind:value={ui.txn.isodate}>
+            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={ui.txn.isodate}>
             <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.txn.ref}>
             <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.txn.memo}>
         </div>
@@ -27,7 +27,7 @@
         </div>
         {#if ui.status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{ui.submitstatus}</p>
+            <p class="uppercase italic text-xs">{ui.status}</p>
         </div>
         {/if}
     </form>
@@ -48,6 +48,7 @@ ui.status = "";
 ui.txn = {};
 ui.txn.txnid = txn.txnid;
 ui.txn.accountid = txn.accountid;
+ui.txn.isodate = new Date().toISOString().substring(0,10);
 ui.txn.date = txn.date;
 ui.txn.ref = txn.ref;
 ui.txn.desc = txn.desc;
