@@ -65,7 +65,7 @@ ui.editid = -1;
 ui.newtxn = {
     txnid: 0,
     accountid: 0,
-    date: "",
+    date: new Date().toISOString(),
     ref: "",
     desc: "",
     amt: 0.0,
@@ -96,6 +96,7 @@ function oncreate(e) {
         return;
     }
     ui.newtxn.accountid = account.accountid;
+    ui.newtxn.date = new Date().toISOString(),
     ui.editid = 0;
 }
 function txnform_done(e) {
