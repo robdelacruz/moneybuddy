@@ -18,13 +18,13 @@
         </div>
         {:else if ui.selid == account.accountid}
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(account)}">
-            <p class="truncate cell-desc mr-2">{account.name}</p>
-            <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
+            <p class="flex-grow truncate mr-2">{account.name}</p>
+            <p class="fg-dim text-right mr-1">{account.fmtbalance}</p>
         </a>
         {:else}
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(account)}">
-            <p class="truncate cell-desc mr-2">{account.name}</p>
-            <p class="fg-dim text-right cell-amt mr-1">{account.fmtbalance}</p>
+            <p class="flex-grow truncate mr-2">{account.name}</p>
+            <p class="fg-dim text-right mr-1">{account.fmtbalance}</p>
         </a>
         {/if}
     {/each}
