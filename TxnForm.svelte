@@ -1,23 +1,23 @@
-{#if ui.txn == null}
+{#if txn == null}
     <p class="fg-dim">Select Txn</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={ui.txn.desc}>
-            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={ui.txn.action}>
+            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={ui.frm.desc}>
+            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={ui.frm.action}>
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="1.00" min="0.0" bind:value={ui.txn.absamt}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={ui.frm.amt}>
         </div>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={ui.txn.isodate}>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.txn.ref}>
-            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.txn.memo}>
+            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={ui.frm.date}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.frm.ref}>
+            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.frm.memo}>
         </div>
         <div class="flex flex-row justify-start">
             <div>
-                {#if ui.txn.txnid == 0}
+                {#if txn.txnid == 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
                 {:else}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
@@ -45,29 +45,32 @@ let svcurl = "/api";
 let ui = {};
 ui.status = "";
 
-ui.txn = {};
-ui.txn.txnid = txn.txnid;
-ui.txn.accountid = txn.accountid;
-ui.txn.date = txn.date;
-ui.txn.isodate = txn.date.substring(0,10);
-ui.txn.ref = txn.ref;
-ui.txn.desc = txn.desc;
-ui.txn.amt = txn.amt;
+$: init();
 
-onMount(function() {
-    if (ui.txn == null) {
+function init() {
+    if (txn == null) {
         return;
     }
 
-    if (ui.txn.amt >= 0) {
-        ui.txn.action = "deposit";
+    ui.frm = {};
+    ui.frm.desc = txn.desc;
+    ui.frm.ref = txn.ref;
+    ui.frm.memo = "";
+
+    if (txn.amt >= 0) {
+        ui.frm.action = "deposit";
     } else {
-        ui.txn.action = "withdraw";
+        ui.frm.action = "withdraw";
     }
-    ui.txn.absamt = Math.abs(ui.txn.amt);
-    ui.txn.isodate = ui.txn.date.substring(0,10);
-    ui.txn.memo = "";
-});
+    ui.frm.amt = Math.abs(txn.amt);
+
+    if (txn.date) {
+        ui.frm.date = txn.date.substring(0,10);
+    } else {
+        // If no date specified, use today's date.
+        ui.frm.date = new Date().toISOString().substring(0,10);
+    }
+}
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -78,27 +81,39 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     ui.status = "processing";
 
-    ui.txn.amt = Math.abs(ui.txn.absamt);
-    if (ui.txn.action == "withdraw") {
-        ui.txn.amt = -ui.txn.amt;
+    let t = {};
+    t.txnid = txn.txnid;
+    t.accountid = txn.accountid;
+    t.date = ui.frm.date;
+    t.ref = ui.frm.ref;
+    t.desc = ui.frm.desc;
+
+    t.amt = Math.abs(ui.frm.amt);
+    if (ui.frm.action == "withdraw") {
+        t.amt = -t.amt;
     }
-    ui.txn.date = ui.txn.isodate;
+
+    // If empty desc, just put "deposit" or "withdraw" depending on action.
+    if (t.desc.trim() == "") {
+        t.desc = ui.frm.action;
+    }
 
     let sreq = `${svcurl}/txn`;
     let method = "PUT";
-    if (ui.txn.txnid == 0) {
+    if (t.txnid == 0) {
         method = "POST";
     }
-    let [savedtxn, err] = await submit(sreq, method, ui.txn);
+    let err;
+    [t, err] = await submit(sreq, method, t);
     if (err != null) {
         console.error(err);
-        ui.submitstatus = "server error submitting txn";
+        ui.status = "server error submitting txn";
         return;
     }
 
     ui.status = "";
-    ui.txn = savedtxn;
-    dispatch("submit", ui.txn);
+    txn = t;
+    dispatch("submit", t);
 }
 
 function onCancel(e) {

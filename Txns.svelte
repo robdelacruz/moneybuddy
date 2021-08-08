@@ -65,7 +65,7 @@ ui.editid = -1;
 ui.newtxn = {
     txnid: 0,
     accountid: 0,
-    date: new Date().toISOString(),
+    date: "",
     ref: "",
     desc: "",
     amt: 0.0,

@@ -1,19 +1,19 @@
-{#if ui.account == null}
+{#if account == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={ui.account.name}>
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={ui.frm.name}>
         </div>
         <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={ui.account.accounttype}>
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={ui.frm.accounttype}>
                     <option value={0}>Bank Account</option>
                     <option value={1}>Stock</option>
                 </select>
             </div>
             <div class="w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={ui.account.currencyid}>
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={ui.frm.currencyid}>
                     {#each currencies as currency}
                     <option value={currency.currencyid}>{currency.currency}</option>
                     {/each}
@@ -22,7 +22,7 @@
         </div>
         <div class="flex flex-row justify-start">
             <div>
-                {#if ui.account.accountid == 0}
+                {#if account.accountid == 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
                 {:else}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
@@ -51,12 +51,18 @@ let svcurl = "/api";
 let ui = {};
 ui.status = "";
 
-ui.account = {};
-ui.account.accountid = account.accountid;
-ui.account.code = account.code;
-ui.account.name = account.name;
-ui.account.accounttype = account.accounttype;
-ui.account.currencyid = account.currencyid;
+$: init();
+
+function init() {
+    if (account == null) {
+        return;
+    }
+
+    ui.frm = {};
+    ui.frm.name = account.name;
+    ui.frm.accounttype = account.accounttype;
+    ui.frm.currencyid = account.currencyid;
+}
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -67,12 +73,20 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     ui.status = "processing";
 
+    let a = {};
+    a.accountid = account.accountid;
+    a.code = account.code;
+    a.name = ui.frm.name;
+    a.accounttype = ui.frm.accounttype
+    a.currencyid = ui.frm.currencyid;
+
     let sreq = `${svcurl}/account`;
     let method = "PUT";
-    if (ui.account.accountid == 0) {
+    if (a.accountid == 0) {
         method = "POST";
     }
-    let [savedaccount, err] = await submit(sreq, method, ui.account);
+    let err;
+    [a, err] = await submit(sreq, method, a);
     if (err != null) {
         console.error(err);
         ui.status = "server error submitting account";
@@ -80,8 +94,8 @@ async function onSubmit(e) {
     }
 
     ui.status = "";
-    ui.account = savedaccount;
-    dispatch("submit", ui.account);
+    account = a;
+    dispatch("submit", a);
 }
 
 function onCancel(e) {
