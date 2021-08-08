@@ -8,7 +8,7 @@
                 <option value="deposit">Deposit</option>
                 <option value="withdraw">Withdraw</option>
             </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="0.00" step="any" bind:value={ui.txn.absamt}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="1.00" min="0.0" bind:value={ui.txn.absamt}>
         </div>
         <div class="flex flex-row mb-2">
             <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={ui.txn.isodate}>
@@ -80,7 +80,7 @@ async function onSubmit(e) {
 
     ui.txn.amt = Math.abs(ui.txn.absamt);
     if (ui.txn.action == "withdraw") {
-        ui.txn.amt = -txn.amt;
+        ui.txn.amt = -ui.txn.amt;
     }
     ui.txn.date = ui.txn.isodate;
 
