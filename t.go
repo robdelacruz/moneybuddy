@@ -18,7 +18,15 @@ import (
 )
 
 var _log *log.Logger
-var _termW, _termH int
+
+type SignalChan chan struct{}
+type DataSync struct {
+	subs []SignalChan
+	mu   sync.RWMutex
+	whos []string
+}
+
+var _datasync DataSync
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -359,11 +367,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			a.Accountid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalSubs(_subs, &_mu1)
-			// Close all subscribers.
-			closeSubs(_subs, &_mu1)
-			_subs = nil
-			_whos = nil
+			signalAndCloseSubs(&_datasync)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -388,11 +392,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalSubs(_subs, &_mu1)
-			// Close all subscribers.
-			closeSubs(_subs, &_mu1)
-			_subs = nil
-			_whos = nil
+			signalAndCloseSubs(&_datasync)
 
 			savedAccount, err := findAccount(db, a.Accountid)
 			if err != nil {
@@ -415,6 +415,10 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "DEL accountHandler")
 				return
 			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync)
+
 			return
 		}
 
@@ -463,11 +467,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			t.Txnid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalSubs(_subs, &_mu1)
-			// Close all subscribers.
-			closeSubs(_subs, &_mu1)
-			_subs = nil
-			_whos = nil
+			signalAndCloseSubs(&_datasync)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -492,11 +492,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalSubs(_subs, &_mu1)
-			// Close all subscribers.
-			closeSubs(_subs, &_mu1)
-			_subs = nil
-			_whos = nil
+			signalAndCloseSubs(&_datasync)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -513,6 +509,10 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "DEL txnHandler")
 				return
 			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync)
+
 			return
 		}
 
@@ -520,21 +520,15 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-type SignalChan chan struct{}
-
-var _subs []SignalChan
-var _mu1 sync.RWMutex
-var _whos []string
-
 func whosHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		P := makeFprintf(w)
-		P("num _subs: %d\n", len(_subs))
-		P("num _whos: %d\n", len(_whos))
+		P("num subs: %d\n", len(_datasync.subs))
+		P("num whos: %d\n", len(_datasync.whos))
 
-		for i := 0; i < len(_whos); i++ {
-			P("_whos[%d]: %s\n", i, _whos[i])
+		for i := 0; i < len(_datasync.whos); i++ {
+			P("whos[%d]: %s\n", i, _datasync.whos[i])
 		}
 	}
 }
@@ -545,9 +539,10 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 		if qwho == "" {
 			qwho = "(noname)"
 		}
+		_datasync.whos = append(_datasync.whos, qwho)
 
-		_whos = append(_whos, qwho)
-		sub := addSub(&_mu1)
+		sub := make(SignalChan, 1)
+		addSub(&_datasync, sub)
 		<-sub
 
 		model, err := findRootdata(db)
@@ -562,30 +557,31 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func addSub(mu *sync.RWMutex) SignalChan {
-	mu.Lock()
-	defer mu.Unlock()
+func addSub(ds *DataSync, sub SignalChan) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
 
-	sub := make(SignalChan, 1)
-	_subs = append(_subs, sub)
-	return sub
+	ds.subs = append(ds.subs, sub)
 }
+func signalSubs(ds *DataSync) {
+	ds.mu.RLock()
+	defer ds.mu.RUnlock()
 
-func signalSubs(subs []SignalChan, mu *sync.RWMutex) {
-	fmt.Printf("signalSubs()\n")
-	mu.RLock()
-	defer mu.RUnlock()
-
-	for _, sub := range subs {
-		sub <- struct{}{}
+	for _, ch := range ds.subs {
+		ch <- struct{}{}
 	}
 }
+func closeSubs(ds *DataSync) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
 
-func closeSubs(subs []SignalChan, mu *sync.RWMutex) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	for _, sub := range subs {
+	for _, sub := range ds.subs {
 		close(sub)
 	}
+	ds.subs = nil
+	ds.whos = nil
+}
+func signalAndCloseSubs(ds *DataSync) {
+	signalSubs(ds)
+	closeSubs(ds)
 }

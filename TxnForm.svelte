@@ -15,7 +15,8 @@
             <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.frm.ref}>
             <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.frm.memo}>
         </div>
-        <div class="flex flex-row justify-start">
+        {#if ui.mode == ""}
+        <div class="flex flex-row justify-between">
             <div>
                 {#if txn.txnid == 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
@@ -24,7 +25,19 @@
                 {/if}
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
+            <div>
+                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
+            </div>
         </div>
+        {:else if ui.mode == "delete"}
+        <div class="flex flex-row justify-left">
+            <p class="self-center uppercase italic text-xs mr-4">Delete this transaction?</p>
+            <div>
+                <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
+                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+            </div>
+        </div>
+        {/if}
         {#if ui.status != ""}
         <div class="">
             <p class="uppercase italic text-xs">{ui.status}</p>
@@ -36,13 +49,14 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit} from "./helpers.js";
+import {find, submit, del} from "./helpers.js";
 import * as data from "./data.js";
 
 export let txn = null;
 
 let svcurl = "/api";
 let ui = {};
+ui.mode = "";
 ui.status = "";
 
 $: init();
@@ -114,6 +128,29 @@ async function onSubmit(e) {
     ui.status = "";
     txn = t;
     dispatch("submit", t);
+}
+
+function onDelete(e) {
+    ui.mode = "delete";
+}
+
+function onCancelDelete(e) {
+    ui.mode = "";
+}
+
+async function onConfirmDelete(e) {
+    ui.status = "processing";
+
+    let sreq = `${svcurl}/txn?id=${txn.txnid}`;
+    let err = await del(sreq);
+    if (err != null) {
+        console.error(err);
+        ui.status = "server error deleting txn";
+        return;
+    }
+
+    ui.status = "";
+    dispatch("submit");
 }
 
 function onCancel(e) {
