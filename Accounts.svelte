@@ -6,7 +6,8 @@
 {#if root == null || ui.accounts == null}
     <p class="fg-dim">No data</p>
 {:else}
-    {#if ui.editid == -1}
+    {#if ui.editid != 0}
+    <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
                 <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.frm.filter} on:keyup={processFilter}>
