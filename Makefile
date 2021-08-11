@@ -8,7 +8,7 @@ JSFILES = index.js helpers.js data.js
 JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte
 
 SRCS = t.go util.go web.go
-SRCS2 = db.go dbcurrency.go dbaccount.go dbtxn.go dbroot.go
+SRCS2 = db.go dbbook.go dbcurrency.go dbaccount.go dbtxn.go dbroot.go
 
 all: t static/style.css static/bundle.js
 

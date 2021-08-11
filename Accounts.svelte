@@ -1,11 +1,17 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
-    <div class="flex flex-row justify-between items-end mb-2">
-        <h1 class="text-sm font-bold">Accounts</h1>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
-    </div>
-{#if root == null || ui.accounts == null}
+{#if root == null || ui.accounts == null || ui.selbook == null}
     <p class="fg-dim">No data</p>
 {:else}
+    <div class="flex flex-row justify-between items-end mb-2">
+        <div class="flex-grow">
+            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={ui.frm.bookid}>
+                {#each root.books as book}
+                <option value={book.bookid}>{book.name}</option>
+                {/each}
+            </select>
+        </div>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
+    </div>
     {#if ui.editid != 0}
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
@@ -51,11 +57,20 @@ export let root = null;
 let svcurl = "/api";
 let ui = {};
 ui.accounts = null;
+ui.selbook = null;
+
+$: init();
+
 $: if (root != null) {
+    for (let i=0; i < root.books.length; i++) {
+        if (ui.frm.bookid == root.books[i].bookid) {
+            ui.selbook = root.books[i];
+            break;
+        }
+    }
     processFilter();
 }
 
-$: init();
 
 function init() {
     ui.selid = 0;
@@ -70,6 +85,7 @@ function init() {
 
     ui.frm = {};
     ui.frm.filter = "";
+    ui.frm.bookid = 1;
 }
 
 export function reset() {
@@ -105,13 +121,16 @@ function accountform_done(e) {
 }
 
 function processFilter() {
-    let filter = ui.frm.filter.trim();
-    if (filter == "") {
-        ui.accounts = root.accounts;
+    if (ui.selbook == null) {
+        ui.accounts = null;
         return;
     }
-
-    ui.accounts = filterAccounts(root.accounts, filter);
+    let filter = ui.frm.filter.trim();
+    if (filter == "") {
+        ui.accounts = ui.selbook.accounts;
+        return;
+    }
+    ui.accounts = filterAccounts(ui.selbook.accounts, filter);
 }
 function filterAccounts(accounts, filter) {
     filter = filter.toLowerCase();

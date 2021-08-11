@@ -71,5 +71,5 @@ func findCurrencies(db *sql.DB, swhere string) ([]*Currency, error) {
 	return cc, nil
 }
 func findAllCurrencies(db *sql.DB) ([]*Currency, error) {
-	return findCurrencies(db, "1=1 ORDER BY currency")
+	return findCurrencies(db, "1=1 ORDER BY currency_id")
 }

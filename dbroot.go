@@ -6,22 +6,22 @@ import (
 )
 
 type Rootdata struct {
-	Accounts   []*Account  `json:"accounts"`
 	Currencies []*Currency `json:"currencies"`
+	Books      []*Book     `json:"books"`
 }
 
 func findRootdata(db *sql.DB) (*Rootdata, error) {
-	aa, err := findAllAccountsTxns(db)
+	cc, err := findAllCurrencies(db)
 	if err != nil {
 		return nil, err
 	}
-	cc, err := findAllCurrencies(db)
+	bb, err := findAllBooks(db)
 	if err != nil {
 		return nil, err
 	}
 
 	var rd Rootdata
-	rd.Accounts = aa
 	rd.Currencies = cc
+	rd.Books = bb
 	return &rd, nil
 }

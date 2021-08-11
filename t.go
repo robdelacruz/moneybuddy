@@ -90,8 +90,7 @@ func run(args []string) error {
 	http.HandleFunc("/", indexHandler(db))
 	http.HandleFunc("/api/rootdata", rootdataHandler(db))
 	http.HandleFunc("/api/currencies", currenciesHandler(db))
-	http.HandleFunc("/api/accounts", accountsHandler(db))
-	http.HandleFunc("/api/accountstxns", accountstxnsHandler(db))
+	http.HandleFunc("/api/book", bookHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
 	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
@@ -138,8 +137,10 @@ func createTables(newfile string) {
 	}
 
 	ss := []string{
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT, usdrate REAL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT, name TEXT, accounttype INTEGER, currency_id INTEGER);",
+		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER, date TEXT, ref TEXT, desc TEXT, amt REAL);",
 	}
 
@@ -162,36 +163,64 @@ func createTables(newfile string) {
 		os.Exit(1)
 	}
 
+	c := Currency{
+		Currency: "USD",
+		Usdrate:  1.0,
+	}
+	_, err = createCurrency(db, &c)
+	if err != nil {
+		panic(err)
+	}
+
+	b := Book{Name: "Accounts"}
+	_, err = createBook(db, &b)
+	if err != nil {
+		log.Printf("DB error (%s)\n", err)
+		os.Exit(1)
+	}
+
 	fmt.Printf("Creating test data... ")
 	initTestData(db)
 	fmt.Printf("Done\n")
 }
 
 func initTestData(db *sql.DB) {
-	c1 := Currency{
-		Currency: "USD",
-		Usdrate:  1.0,
-	}
-	c2 := Currency{
+	c := Currency{
 		Currency: "PHP",
 		Usdrate:  48.0,
 	}
-	_, err := createCurrency(db, &c1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = createCurrency(db, &c2)
+	_, err := createCurrency(db, &c)
 	if err != nil {
 		panic(err)
 	}
 
-	naccounts := 5 + rand.Intn(25)
-	for i := 0; i < naccounts; i++ {
-		_, err := createRandomAccount(db)
-		if err != nil {
-			panic(err)
+	b := Book{Name: "Personal"}
+	_, err = createBook(db, &b)
+	if err != nil {
+		panic(err)
+	}
+	b = Book{Name: "Family"}
+	_, err = createBook(db, &b)
+	if err != nil {
+		panic(err)
+	}
+
+	bb, err := findAllBooks(db)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, b := range bb {
+		naccounts := 5 + rand.Intn(10)
+		fmt.Printf("Creating %d random accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
+		for i := 0; i < naccounts; i++ {
+			_, err := createRandomAccount(db, b.Bookid)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
+
 }
 
 func parseArgs(args []string) (map[string]string, []string) {
@@ -299,29 +328,106 @@ func currenciesHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func accountsHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		aa, err := findAllAccounts(db)
-		if err != nil {
-			handleErr(w, err, "accountsHandler")
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-		P("%s", jsonstr(aa))
+func getbookid(r *http.Request) int64 {
+	qbookid := idtoi(r.FormValue("bookid"))
+	if qbookid == 0 {
+		qbookid = 1 // Default to first book if not specified.
 	}
+	return qbookid
 }
 
-func accountstxnsHandler(db *sql.DB) http.HandlerFunc {
+func bookHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		aa, err := findAllAccountsTxns(db)
-		if err != nil {
-			handleErr(w, err, "accountstxnsHandler")
+		if r.Method == "GET" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			b, err := findBook(db, qid)
+			if err != nil {
+				handleErr(w, err, "bookHandler")
+				return
+			}
+			if b == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(b))
+			return
+		} else if r.Method == "POST" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "POST bookHandler")
+				return
+			}
+			var b Book
+			err = json.Unmarshal(bs, &b)
+			if err != nil {
+				handleErr(w, err, "POST bookHandler")
+				return
+			}
+			newid, err := createBook(db, &b)
+			if err != nil {
+				handleErr(w, err, "POST bookHandler")
+				return
+			}
+			b.Bookid = newid
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync)
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(b))
+			return
+		} else if r.Method == "PUT" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "PUT bookHandler")
+				return
+			}
+			var b Book
+			err = json.Unmarshal(bs, &b)
+			if err != nil {
+				handleErr(w, err, "PUT bookHandler")
+				return
+			}
+			err = editBook(db, &b)
+			if err != nil {
+				handleErr(w, err, "PUT bookHandler")
+				return
+			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync)
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(b))
+			return
+		} else if r.Method == "DELETE" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			err := delBook(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL bookHandler")
+				return
+			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync)
+
+			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-		P("%s", jsonstr(aa))
+		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
 	}
 }
 
@@ -348,6 +454,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			P("%s", jsonstr(a))
 			return
 		} else if r.Method == "POST" {
+			qbookid := getbookid(r)
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				handleErr(w, err, "POST accountHandler")
@@ -359,7 +466,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "POST accountHandler")
 				return
 			}
-			newid, err := createAccount(db, &a)
+			newid, err := createAccount(db, &a, qbookid)
 			if err != nil {
 				handleErr(w, err, "POST accountHandler")
 				return
@@ -394,15 +501,9 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			// Inform all data subscribers that a data change occured.
 			signalAndCloseSubs(&_datasync)
 
-			savedAccount, err := findAccount(db, a.Accountid)
-			if err != nil {
-				handleErr(w, err, "PUT accountHandler")
-				return
-			}
-
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
-			P("%s", jsonstr(savedAccount))
+			P("%s", jsonstr(a))
 			return
 		} else if r.Method == "DELETE" {
 			qid := idtoi(r.FormValue("id"))

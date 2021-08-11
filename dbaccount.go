@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type Ledger struct {
+	Ledgerid int64  `json:"ledgerid"`
+	Name     string `json:"name"`
+}
+
 type AccountType int
 
 const (
@@ -26,7 +31,7 @@ type Account struct {
 	Txns        []*Txn      `json:"txns"`
 }
 
-func createAccount(db *sql.DB, a *Account) (int64, error) {
+func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
 	s := "INSERT INTO account (code, name, accounttype, currency_id) VALUES (?, ?, ?, ?)"
 	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid)
 	if err != nil {
@@ -36,6 +41,13 @@ func createAccount(db *sql.DB, a *Account) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	s = "INSERT INTO bookaccount (book_id, account_id) VALUES (?, ?)"
+	_, err = sqlexec(db, s, bookid, id)
+	if err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
 func editAccount(db *sql.DB, a *Account) error {
@@ -49,6 +61,12 @@ func editAccount(db *sql.DB, a *Account) error {
 func delAccount(db *sql.DB, accountid int64) error {
 	s := "DELETE FROM account WHERE account_id = ?"
 	_, err := sqlexec(db, s, accountid)
+	if err != nil {
+		return err
+	}
+
+	s = "DELETE FROM bookaccount where account_id = ?"
+	_, err = sqlexec(db, s, accountid)
 	if err != nil {
 		return err
 	}
@@ -78,14 +96,15 @@ WHERE account_id = ?`
 	a.Txns = tt
 	return &a, nil
 }
-func findAccounts(db *sql.DB, swhere string) ([]*Account, error) {
+func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT account_id, code, name, accounttype, a.currency_id, IFNULL(cur.currency, ''), 
+SELECT a.account_id, a.code, a.name, a.accounttype, a.currency_id, IFNULL(cur.currency, ''), 
 (SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
-WHERE %s`, swhere)
-	rows, err := db.Query(s)
+INNER JOIN bookaccount ba ON ba.account_id = a.account_id
+WHERE ba.book_id = ? AND %s`, swhere)
+	rows, err := db.Query(s, bookid)
 	if err != nil {
 		return nil, err
 	}
@@ -93,29 +112,17 @@ WHERE %s`, swhere)
 	for rows.Next() {
 		var a Account
 		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency, &a.Balance)
-		aa = append(aa, &a)
-	}
-	return aa, nil
-}
-func findAccountsTxns(db *sql.DB, swhere string) ([]*Account, error) {
-	aa, err := findAccounts(db, swhere)
-	if err != nil {
-		return nil, err
-	}
-	for _, a := range aa {
 		tt, err := findAllTxnsOfAccount(db, a.Accountid)
 		if err != nil {
 			return nil, err
 		}
 		a.Txns = tt
+		aa = append(aa, &a)
 	}
 	return aa, nil
 }
-func findAllAccounts(db *sql.DB) ([]*Account, error) {
-	return findAccounts(db, "1=1 ORDER BY name")
-}
-func findAllAccountsTxns(db *sql.DB) ([]*Account, error) {
-	return findAccountsTxns(db, "1=1 ORDER BY name")
+func findAllAccounts(db *sql.DB, bookid int64) ([]*Account, error) {
+	return findAccounts(db, bookid, "1=1 ORDER BY name")
 }
 
 func balAccount(db *sql.DB, accountid int64) float64 {
@@ -129,7 +136,7 @@ func balAccount(db *sql.DB, accountid int64) float64 {
 	return bal
 }
 
-func createRandomAccount(db *sql.DB) (int64, error) {
+func createRandomAccount(db *sql.DB, bookid int64) (int64, error) {
 	banks := []string{"BPI", "Security", "Wells Fargo", "Bank of America", "FirstTech", "MetroBank"}
 	descs := []string{"Savings", "Checking", "Time Deposit", "Money Market", "Individual", "COD", "Maxi"}
 	opts := []string{"", "Cash", "Ext", "Other"}
@@ -145,7 +152,7 @@ func createRandomAccount(db *sql.DB) (int64, error) {
 		AccountType: BankAccount,
 		Currencyid:  1,
 	}
-	accountid, err := createAccount(db, &a)
+	accountid, err := createAccount(db, &a, bookid)
 	if err != nil {
 		return 0, err
 	}

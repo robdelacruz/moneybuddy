@@ -58,17 +58,20 @@ async function init() {
         console.log("Received root data...");
         console.log(rootdata);
 
-        root = rootdata;
-
         ui.activeAccount = null;
-        for (let i=0; i < root.accounts.length; i++) {
-            let a = root.accounts[i];
-            data.addFormattedAmts(a);
+        for (let i=0; i < rootdata.books.length; i++) {
+            let b = rootdata.books[i];
+            for (let j=0; j < b.accounts.length; j++) {
+                let a = b.accounts[j];
+                data.addFormattedAmts(a);
 
-            if (a.accountid == ui.activeAccountid) {
-                ui.activeAccount = a;
+                if (a.accountid == ui.activeAccountid) {
+                    ui.activeAccount = a;
+                }
             }
         }
+
+        root = rootdata;
     });
 }
 

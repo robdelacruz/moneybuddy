@@ -9,38 +9,14 @@ export async function loadRootdata() {
         return [null, err];
     }
 
-    for (let i=0; i < rootdata.accounts.length; i++) {
-        let a = rootdata.accounts[i];
-        addFormattedAmts(a);
+    for (let i=0; i < rootdata.books.length; i++) {
+        let b = rootdata.books[i];
+        for (let j=0; j < b.accounts.length; j++) {
+            let a = b.accounts[j];
+            addFormattedAmts(a);
+        }
     }
     return [rootdata, null];
-}
-
-export async function loadAccountsReq(sreq) {
-    let [aa, err] = await find(sreq);
-    if (err != null) {
-        return [null, err];
-    }
-    if (aa == null) {
-        aa = [];
-        return [aa, null];
-    }
-
-    for (let i=0; i < aa.length; i++) {
-        let a = aa[i];
-        addFormattedAmts(a);
-    }
-    return [aa, null];
-}
-
-export async function loadAccounts() {
-    let sreq = `${svcurl}/accounts`;
-    return loadAccountsReq(sreq);
-}
-
-export async function loadAccountsTxns() {
-    let sreq = `${svcurl}/accountstxns`;
-    return loadAccountsReq(sreq);
 }
 
 export async function loadCurrencies() {
