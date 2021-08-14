@@ -1,10 +1,10 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
-{#if root == null || ui.accounts == null || ui.selbook == null}
+{#if root == null || ui.accounts == null}
     <p class="fg-dim">No data</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="flex-grow">
-            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={ui.frm.bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
+            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={ui.bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
                 {#each root.books as book}
                 <option value={book.bookid}>{book.name}</option>
                 {/each}
@@ -16,7 +16,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.frm.filter} on:keyup={processFilter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.filter}>
             </form>
         </div>
     {/if}
@@ -57,60 +57,54 @@ export let root = null;
 let svcurl = "/api";
 let ui = {};
 ui.accounts = null;
-ui.selbook = null;
+ui.selid = 0;
+ui.editid = -1;
+ui.newaccount = {
+    accountid: 0,
+    code: "",
+    name: "",
+    accounttype: 0,
+    currencyid: 0,
+};
 
-init();
+ui.filter = "";
+ui.bookid = 1;
 
-$: initroot(root);
+$: render(root, ui.bookid, ui.filter);
 
-function init() {
-    ui.selid = 0;
-    ui.editid = -1;
-    ui.newaccount = {
-        accountid: 0,
-        code: "",
-        name: "",
-        accounttype: 0,
-        currencyid: 0,
-    };
-
-    ui.frm = {};
-    ui.frm.filter = "";
-    ui.frm.bookid = 1;
-}
-
-function initroot(root) {
-    console.log("initroot()");
+function render(root, bookid, sfilter) {
+    console.log("render()");
     if (root == null) {
         return;
     }
 
+    let selbook = null;
     for (let i=0; i < root.books.length; i++) {
-        if (ui.frm.bookid == root.books[i].bookid) {
-            ui.selbook = root.books[i];
+        if (bookid == root.books[i].bookid) {
+            selbook = root.books[i];
             break;
         }
     }
-    processFilter();
+    processFilter(selbook, sfilter);
 }
-function processFilter() {
-    if (ui.selbook == null) {
+function processFilter(book, sfilter) {
+    if (book == null) {
         ui.accounts = null;
         return;
     }
-    let filter = ui.frm.filter.trim();
-    if (filter == "") {
-        ui.accounts = ui.selbook.accounts;
+    sfilter = sfilter.trim();
+    if (sfilter == "") {
+        ui.accounts = book.accounts;
         return;
     }
-    ui.accounts = filterAccounts(ui.selbook.accounts, filter);
+    ui.accounts = filterAccounts(book.accounts, sfilter);
 }
-function filterAccounts(accounts, filter) {
-    filter = filter.toLowerCase();
+function filterAccounts(accounts, sfilter) {
+    sfilter = sfilter.toLowerCase();
     let aa = [];
     for (let i=0; i < accounts.length; i++) {
         let a = accounts[i];
-        if (a.name.toLowerCase().includes(filter)) {
+        if (a.name.toLowerCase().includes(sfilter)) {
             aa.push(a);
         }
     }
@@ -119,6 +113,7 @@ function filterAccounts(accounts, filter) {
 
 export function reset() {
     ui.selid = 0;
+    ui.editid = -1;
 }
 
 export function onEvent(e) {
