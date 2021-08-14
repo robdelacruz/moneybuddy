@@ -56,7 +56,6 @@ export let root = null;
 
 let svcurl = "/api";
 let ui = {};
-ui.accounts = null;
 ui.selid = 0;
 ui.editid = -1;
 ui.newaccount = {
@@ -67,25 +66,26 @@ ui.newaccount = {
     currencyid: 0,
 };
 
+ui.accounts = null;
 ui.filter = "";
 ui.bookid = 1;
 
-$: render(root, ui.bookid, ui.filter);
+$: render(root);
 
-function render(root, bookid, sfilter) {
-    console.log("render()");
-    if (root == null) {
+function render(rootdata) {
+    console.log("Accounts.svelte render()");
+    if (rootdata == null) {
         return;
     }
 
     let selbook = null;
-    for (let i=0; i < root.books.length; i++) {
-        if (bookid == root.books[i].bookid) {
-            selbook = root.books[i];
+    for (let i=0; i < rootdata.books.length; i++) {
+        if (ui.bookid == rootdata.books[i].bookid) {
+            selbook = rootdata.books[i];
             break;
         }
     }
-    processFilter(selbook, sfilter);
+    processFilter(selbook, ui.filter);
 }
 function processFilter(book, sfilter) {
     if (book == null) {

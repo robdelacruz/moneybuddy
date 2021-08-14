@@ -10,7 +10,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.frm.filter} on:keyup={processFilter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.filter} on:keyup="{e => render(account)}">
             </form>
         </div>
     {/if}
@@ -68,27 +68,52 @@ export let account = null;
 
 let svcurl = "/api";
 let ui = {};
+ui.selid = 0;
+ui.editid = -1;
+ui.newtxn = {
+    txnid: 0,
+    accountid: 0,
+    date: "",
+    ref: "",
+    desc: "",
+    amt: 0.0,
+};
+
 ui.txns = null;
-$: if (account != null) {
-    processFilter();
+ui.filter = "";
+
+$: render(account);
+
+function render(account) {
+    console.log("Txns.svelte render()");
+    if (account == null) {
+        return;
+    }
+    processFilter(account, ui.filter);
 }
 
-$: init();
-
-function init() {
-    ui.selid = 0;
-    ui.editid = -1;
-    ui.newtxn = {
-        txnid: 0,
-        accountid: 0,
-        date: "",
-        ref: "",
-        desc: "",
-        amt: 0.0,
-    };
-
-    ui.frm = {};
-    ui.frm.filter = "";
+function processFilter(account, sfilter) {
+    if (account == null) {
+        ui.txns = [];
+        return;
+    }
+    sfilter = sfilter.trim();
+    if (sfilter == "") {
+        ui.txns = account.txns;
+        return;
+    }
+    ui.txns = filterTxns(account.txns, sfilter);
+}
+function filterTxns(txns, sfilter) {
+    sfilter = sfilter.toLowerCase();
+    let tt = [];
+    for (let i=0; i < txns.length; i++) {
+        let t = txns[i];
+        if (t.desc.toLowerCase().includes(sfilter)) {
+            tt.push(t);
+        }
+    }
+    return tt;
 }
 
 export function reset() {
@@ -123,24 +148,4 @@ function txnform_done(e) {
     ui.editid = -1;
 }
 
-function processFilter() {
-    let filter = ui.frm.filter.trim();
-    if (filter == "") {
-        ui.txns = account.txns;
-        return;
-    }
-
-    ui.txns = filterTxns(account.txns, filter);
-}
-function filterTxns(txns, filter) {
-    filter = filter.toLowerCase();
-    let tt = [];
-    for (let i=0; i < txns.length; i++) {
-        let t = txns[i];
-        if (t.desc.toLowerCase().includes(filter)) {
-            tt.push(t);
-        }
-    }
-    return tt;
-}
 </script>
