@@ -99,7 +99,9 @@ function resetTxns() {
 async function accounts_select(e) {
     let err;
     ui.activeAccount = e.detail;
-    ui.activeAccountid = ui.activeAccount.accountid;
+    if (ui.activeAccount != null) {
+        ui.activeAccountid = ui.activeAccount.accountid;
+    }
     resetTxns();
 }
 

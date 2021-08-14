@@ -4,7 +4,7 @@
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="flex-grow">
-            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={ui.frm.bookid}>
+            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={ui.frm.bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
                 {#each root.books as book}
                 <option value={book.bookid}>{book.name}</option>
                 {/each}
@@ -59,18 +59,9 @@ let ui = {};
 ui.accounts = null;
 ui.selbook = null;
 
-$: init();
+init();
 
-$: if (root != null) {
-    for (let i=0; i < root.books.length; i++) {
-        if (ui.frm.bookid == root.books[i].bookid) {
-            ui.selbook = root.books[i];
-            break;
-        }
-    }
-    processFilter();
-}
-
+$: initroot(root);
 
 function init() {
     ui.selid = 0;
@@ -86,6 +77,44 @@ function init() {
     ui.frm = {};
     ui.frm.filter = "";
     ui.frm.bookid = 1;
+}
+
+function initroot(root) {
+    console.log("initroot()");
+    if (root == null) {
+        return;
+    }
+
+    for (let i=0; i < root.books.length; i++) {
+        if (ui.frm.bookid == root.books[i].bookid) {
+            ui.selbook = root.books[i];
+            break;
+        }
+    }
+    processFilter();
+}
+function processFilter() {
+    if (ui.selbook == null) {
+        ui.accounts = null;
+        return;
+    }
+    let filter = ui.frm.filter.trim();
+    if (filter == "") {
+        ui.accounts = ui.selbook.accounts;
+        return;
+    }
+    ui.accounts = filterAccounts(ui.selbook.accounts, filter);
+}
+function filterAccounts(accounts, filter) {
+    filter = filter.toLowerCase();
+    let aa = [];
+    for (let i=0; i < accounts.length; i++) {
+        let a = accounts[i];
+        if (a.name.toLowerCase().includes(filter)) {
+            aa.push(a);
+        }
+    }
+    return aa;
 }
 
 export function reset() {
@@ -120,28 +149,5 @@ function accountform_done(e) {
     ui.editid = -1;
 }
 
-function processFilter() {
-    if (ui.selbook == null) {
-        ui.accounts = null;
-        return;
-    }
-    let filter = ui.frm.filter.trim();
-    if (filter == "") {
-        ui.accounts = ui.selbook.accounts;
-        return;
-    }
-    ui.accounts = filterAccounts(ui.selbook.accounts, filter);
-}
-function filterAccounts(accounts, filter) {
-    filter = filter.toLowerCase();
-    let aa = [];
-    for (let i=0; i < accounts.length; i++) {
-        let a = accounts[i];
-        if (a.name.toLowerCase().includes(filter)) {
-            aa.push(a);
-        }
-    }
-    return aa;
-}
 </script>
 
