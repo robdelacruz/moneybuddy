@@ -16,19 +16,19 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={frm_filter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
             </form>
         </div>
     {/if}
     {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <AccountForm account={newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+            <AccountForm book={selbook} account={newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
     {/if}
     {#each displayaccounts as account (account.accountid)}
         {#if editid == account.accountid}
         <div class="p-2 border-b border-cell">
-            <AccountForm account={account} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+            <AccountForm book={selbook} account={account} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
         {:else if selid == account.accountid}
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(account)}">

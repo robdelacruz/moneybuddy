@@ -10,7 +10,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={frm_filter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="txnfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
             </form>
         </div>
     {/if}

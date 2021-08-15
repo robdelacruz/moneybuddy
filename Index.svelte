@@ -84,11 +84,6 @@ function getqs(q) {
     return v;
 }
 
-function resetAccounts() {
-    ui.activeAccountid = 0;
-    ui.activeAccount = null;
-    waccounts.reset();
-}
 function resetTxns() {
     wtxns.reset();
 }
