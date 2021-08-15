@@ -1,30 +1,30 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 40rem;">
-{#if account == null || ui.txns == null}
+{#if account == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <h1 class="text-sm font-bold">Transactions for {account.name}</h1>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
     </div>
-    {#if ui.editid != 0}
+    {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={ui.filter} on:keyup="{e => render(account)}">
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" bind:value={frm_filter}>
             </form>
         </div>
     {/if}
-    {#if ui.editid == 0}
+    {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={ui.newtxn} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={newtxn} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
     {/if}
-    {#each ui.txns as t (t.txnid)}
-        {#if ui.editid == t.txnid}
+    {#each displaytxns as t (t.txnid)}
+        {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
             <TxnForm txn={t} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
-        {:else if ui.selid == t.txnid}
+        {:else if selid == t.txnid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
@@ -67,10 +67,9 @@ import TxnForm from "./TxnForm.svelte";
 export let account = null;
 
 let svcurl = "/api";
-let ui = {};
-ui.selid = 0;
-ui.editid = -1;
-ui.newtxn = {
+let selid = 0;
+let editid = -1;
+let newtxn = {
     txnid: 0,
     accountid: 0,
     date: "",
@@ -79,36 +78,28 @@ ui.newtxn = {
     amt: 0.0,
 };
 
-ui.txns = null;
-ui.filter = "";
+let frm_filter = "";
+let displaytxns = [];
 
-$: render(account);
+// account + frm_filter --> displaytxns
 
-function render(account) {
-    console.log("Txns.svelte render()");
+$: displaytxns = filterTxns(account, frm_filter);
+
+function filterTxns(account, sfilter) {
+    console.log("Txns.svelte filterTxns()");
     if (account == null) {
-        return;
+        return [];
     }
-    processFilter(account, ui.filter);
-}
-
-function processFilter(account, sfilter) {
-    if (account == null) {
-        ui.txns = [];
-        return;
+    if (account.txns == null) {
+        return [];
     }
-    sfilter = sfilter.trim();
+    sfilter = sfilter.trim().toLowerCase();
     if (sfilter == "") {
-        ui.txns = account.txns;
-        return;
+        return account.txns;
     }
-    ui.txns = filterTxns(account.txns, sfilter);
-}
-function filterTxns(txns, sfilter) {
-    sfilter = sfilter.toLowerCase();
     let tt = [];
-    for (let i=0; i < txns.length; i++) {
-        let t = txns[i];
+    for (let i=0; i < account.txns.length; i++) {
+        let t = account.txns[i];
         if (t.desc.toLowerCase().includes(sfilter)) {
             tt.push(t);
         }
@@ -117,7 +108,7 @@ function filterTxns(txns, sfilter) {
 }
 
 export function reset() {
-    ui.selid = 0;
+    selid = 0;
 }
 
 export function onEvent(e) {
@@ -125,27 +116,27 @@ export function onEvent(e) {
 
 function onseltxn(txn) {
     // If edit form is open, just cancel edit without selecting anything.
-    if (ui.editid != -1) {
-        ui.editid = -1;
+    if (editid != -1) {
+        editid = -1;
         return;
     }
 
-    ui.selid = txn.txnid;
+    selid = txn.txnid;
     dispatch("select", txn);
 }
 function onedittxn(txn) {
-    ui.editid = txn.txnid;
+    editid = txn.txnid;
 }
 function oncreate(e) {
     if (account == null) {
         return;
     }
-    ui.newtxn.accountid = account.accountid;
-    ui.newtxn.date = new Date().toISOString(),
-    ui.editid = 0;
+    newtxn.accountid = account.accountid;
+    newtxn.date = new Date().toISOString(),
+    editid = 0;
 }
 function txnform_done(e) {
-    ui.editid = -1;
+    editid = -1;
 }
 
 </script>
