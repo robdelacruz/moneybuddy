@@ -116,12 +116,50 @@ func createRandomTxns(db *sql.DB, accountid int64, ntxns int) error {
 	s := "INSERT INTO txn (account_id, date, ref, desc, amt) VALUES (?, ?, ?, ?, ?)"
 
 	for i := 0; i < ntxns; i++ {
+		amt := float64(rand.Intn(5000000))/100.0 - 25000
 		t := Txn{
 			Accountid: accountid,
 			Date:      isodate(randdate(2000, 2021)),
 			Ref:       "",
 			Desc:      createRandomWords(words),
-			Amt:       rand.NormFloat64()*50000 + 30000,
+			Amt:       amt,
+		}
+		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createRandomStockTxns(db *sql.DB, accountid int64, ntxns int) error {
+	buydescs := []string{"buy", "dividend"}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	s := "INSERT INTO txn (account_id, date, ref, desc, amt) VALUES (?, ?, ?, ?, ?)"
+
+	for i := 0; i < ntxns; i++ {
+		desc := "sell"
+		amt := float64(rand.Intn(50000))/100.0 - 250
+		if amt >= 0 {
+			desc = buydescs[rand.Intn(len(buydescs))]
+		}
+
+		t := Txn{
+			Accountid: accountid,
+			Date:      isodate(randdate(2000, 2021)),
+			Ref:       "",
+			Desc:      desc,
+			Amt:       amt,
 		}
 		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
 		if err != nil {

@@ -137,11 +137,11 @@ func createTables(newfile string) {
 	}
 
 	ss := []string{
-		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT);",
-		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT, usdrate REAL);",
-		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT, name TEXT, accounttype INTEGER, currency_id INTEGER);",
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'Accounts');",
+		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0);",
+		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
-		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER, date TEXT, ref TEXT, desc TEXT, amt REAL);",
+		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
 	}
 
 	tx, err := db.Begin()
@@ -212,9 +212,23 @@ func initTestData(db *sql.DB) {
 
 	for _, b := range bb {
 		naccounts := 5 + rand.Intn(10)
-		fmt.Printf("Creating %d random accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
+		fmt.Printf("Creating %d random bank accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
 		for i := 0; i < naccounts; i++ {
-			_, err := createRandomAccount(db, b.Bookid)
+			_, err := createRandomBankAccount(db, b.Bookid)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		stocks := []string{"IBM", "CAT", "GE", "AMZN", "AAPL", "MSFT"}
+		unitprices := []float64{143.59, 217.71, 103.35, 3298.99, 151.12, 294.60}
+		naccounts = rand.Intn(len(stocks)+1) + 2
+		if naccounts > len(stocks) {
+			naccounts = len(stocks)
+		}
+		fmt.Printf("Creating %d random stock accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
+		for i := 0; i < naccounts; i++ {
+			_, err := createRandomStockAccount(db, b.Bookid, stocks[i], unitprices[i])
 			if err != nil {
 				panic(err)
 			}

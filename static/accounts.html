@@ -26,28 +26,41 @@ label {display: none;}
 <div class="flex flex-row">
     <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
         <div class="flex flex-row justify-between items-end mb-2">
-            <h1 class="text-sm font-bold">Accounts</h1>
+            <div class="flex-grow">
+                <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" value="1">
+                    <option value="1">My Accounts</option>
+                    <option value="2">Personal</option>
+                    <option value="3">Business</option>
+                </select>
+            </div>
             <a class="text-xs pill" href="/">Create</a>
         </div>
-        <div class="mb-2">
+        <div class="mb-4">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="filter" type="text" placeholder="Filter" value="">
         </div>
+        <div class="mb-1">
+            <h2 class="text-sm font-bold">Bank Accounts</h2>
+        </div>
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
-            <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv xyzabc</p>
+            <p class="truncate cell-desc mr-2">BPI Savings</p>
             <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
         </a>
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/">
-            <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv xyzabc</p>
-            <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
+            <p class="truncate cell-desc mr-2">BPI Checking</p>
+            <p class="fg-dim text-right cell-amt mr-1">4,567.89</p>
         </a>
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
-            <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv</p>
-            <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
+            <p class="truncate cell-desc mr-2">FirstTechCU Checking</p>
+            <p class="fg-dim text-right cell-amt mr-1">67.89</p>
+        </a>
+        <a class="flex flex-row justify-between px-1 pt-1" href="/">
+            <p class="truncate cell-desc mr-2">EmigrantDirect CD</p>
+            <p class="fg-dim text-right cell-amt mr-1">67.89</p>
         </a>
         <div class="p-2 border-b border-cell">
             <form class="">
                 <div class="mb-2">
-                    <input class="block bg-gray-700 fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" value="BPI Direct Abc Def">
+                    <input class="block bg-gray-700 fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" value="EmigrantDirect CD">
                 </div>
                 <div class="flex flex-row mb-2">
                     <div class="mr-2 w-1/2">
@@ -63,22 +76,38 @@ label {display: none;}
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-row justify-start">
+                <div class="flex flex-row justify-between">
                     <div>
-                        <button class="mx-auto border border-normal py-1 px-2 bg-green-700 mr-2">Update</button>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
                         <a class="mx-auto border-b border-normal pt-1">Cancel</a>
+                    </div>
+                    <div>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-input">Delete</button>
                     </div>
                 </div>
             </form>
         </div>
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
-            <p class="truncate cell-desc mr-2">BPI Direct Abc Def Ghijkl mnopqrstuv</p>
+            <p class="truncate cell-desc mr-2">INGDirect CD</p>
             <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
         </a>
-        <div>
-
-
+        <div class="mb-2">
         </div>
+        <div class="mb-1">
+            <h2 class="text-sm font-bold">Stocks</h2>
+        </div>
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
+            <p class="truncate cell-desc mr-2">BPI Savings</p>
+            <p class="fg-dim text-right cell-amt mr-1">1,234,567.89</p>
+        </a>
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
+            <p class="truncate cell-desc mr-2">BPI Checking</p>
+            <p class="fg-dim text-right cell-amt mr-1">4,567.89</p>
+        </a>
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/">
+            <p class="truncate cell-desc mr-2">FirstTechCU Checking</p>
+            <p class="fg-dim text-right cell-amt mr-1">67.89</p>
+        </a>
     </div>
 
     <div class="dim bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 40rem;">

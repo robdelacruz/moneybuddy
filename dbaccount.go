@@ -26,14 +26,15 @@ type Account struct {
 	Name        string      `json:"name"`
 	AccountType AccountType `json:"accounttype"`
 	Currencyid  int64       `json:"currencyid"`
+	Unitprice   float64     `json:"unitprice"`
 	Currency    string      `json:"currency"`
 	Balance     float64     `json:"balance"`
 	Txns        []*Txn      `json:"txns"`
 }
 
 func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
-	s := "INSERT INTO account (code, name, accounttype, currency_id) VALUES (?, ?, ?, ?)"
-	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid)
+	s := "INSERT INTO account (code, name, accounttype, currency_id, unitprice) VALUES (?, ?, ?, ?, ?)"
+	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice)
 	if err != nil {
 		return 0, err
 	}
@@ -51,8 +52,8 @@ func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
 	return id, nil
 }
 func editAccount(db *sql.DB, a *Account) error {
-	s := "UPDATE account SET code = ?, name = ?, accounttype = ?, currency_id = ? WHERE account_id = ?"
-	_, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Accountid)
+	s := "UPDATE account SET code = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ? WHERE account_id = ?"
+	_, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Accountid)
 	if err != nil {
 		return err
 	}
@@ -74,14 +75,14 @@ func delAccount(db *sql.DB, accountid int64) error {
 }
 
 func findAccount(db *sql.DB, accountid int64) (*Account, error) {
-	s := `SELECT account_id, code, name, accounttype, a.currency_id, IFNULL(cur.currency, ''), 
+	s := `SELECT account_id, code, name, accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
 (SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
 WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
-	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency, &a.Balance)
+	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Unitprice, &a.Currency, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -98,7 +99,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.code, a.name, a.accounttype, a.currency_id, IFNULL(cur.currency, ''), 
+SELECT a.account_id, a.code, a.name, a.accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
 (SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
@@ -111,7 +112,7 @@ WHERE ba.book_id = ? AND %s`, swhere)
 	aa := []*Account{}
 	for rows.Next() {
 		var a Account
-		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Currency, &a.Balance)
+		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Unitprice, &a.Currency, &a.Balance)
 		tt, err := findAllTxnsOfAccount(db, a.Accountid)
 		if err != nil {
 			return nil, err
@@ -136,7 +137,7 @@ func balAccount(db *sql.DB, accountid int64) float64 {
 	return bal
 }
 
-func createRandomAccount(db *sql.DB, bookid int64) (int64, error) {
+func createRandomBankAccount(db *sql.DB, bookid int64) (int64, error) {
 	banks := []string{"BPI", "Security", "Wells Fargo", "Bank of America", "FirstTech", "MetroBank"}
 	descs := []string{"Savings", "Checking", "Time Deposit", "Money Market", "Individual", "COD", "Maxi"}
 	opts := []string{"", "Cash", "Ext", "Other"}
@@ -150,6 +151,7 @@ func createRandomAccount(db *sql.DB, bookid int64) (int64, error) {
 		Code:        "",
 		Name:        name,
 		AccountType: BankAccount,
+		Unitprice:   1.0,
 		Currencyid:  1,
 	}
 	accountid, err := createAccount(db, &a, bookid)
@@ -160,6 +162,29 @@ func createRandomAccount(db *sql.DB, bookid int64) (int64, error) {
 	// Generate transactions for this account.
 	ntxns := 5 + rand.Intn(150)
 	err = createRandomTxns(db, accountid, ntxns)
+	if err != nil {
+		return 0, err
+	}
+
+	return accountid, nil
+}
+
+func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice float64) (int64, error) {
+	a := Account{
+		Code:        "",
+		Name:        ticker,
+		AccountType: StockAccount,
+		Unitprice:   unitprice,
+		Currencyid:  1,
+	}
+	accountid, err := createAccount(db, &a, bookid)
+	if err != nil {
+		return 0, err
+	}
+
+	// Generate transactions for this account.
+	ntxns := 5 + rand.Intn(30)
+	err = createRandomStockTxns(db, accountid, ntxns)
 	if err != nil {
 		return 0, err
 	}

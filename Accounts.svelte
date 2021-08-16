@@ -1,4 +1,4 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem;">
+<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
 {#if root == null}
     <p class="fg-dim">No data</p>
 {:else}

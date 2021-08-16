@@ -6,9 +6,11 @@
 
 .bg-page {@apply bg-gray-900;}
 
-.fg-dim {@apply text-gray-500;}
 .fg-normal {@apply text-gray-200;}
 .bg-normal {@apply bg-gray-800;}
+.fg-dim {@apply text-gray-500;}
+.fg-h1 {@apply text-green-200;}
+.fg-h2 {@apply text-green-400;}
 
 .fg-reverse {@apply text-gray-800;}
 .bg-reverse {@apply bg-gray-300;}
