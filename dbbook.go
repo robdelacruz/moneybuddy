@@ -7,9 +7,10 @@ import (
 )
 
 type Book struct {
-	Bookid   int64      `json:"bookid"`
-	Name     string     `json:"name"`
-	Accounts []*Account `json:"accounts"`
+	Bookid        int64      `json:"bookid"`
+	Name          string     `json:"name"`
+	BankAccounts  []*Account `json:"bankaccounts"`
+	StockAccounts []*Account `json:"stockaccounts"`
 }
 
 func createBook(db *sql.DB, b *Book) (int64, error) {
@@ -41,6 +42,20 @@ func delBook(db *sql.DB, bookid int64) error {
 	return nil
 }
 
+func assignBookAccounts(b *Book, aa []*Account) {
+	var bb []*Account
+	var ss []*Account
+	for _, a := range aa {
+		if a.AccountType == BankAccount {
+			bb = append(bb, a)
+		} else if a.AccountType == StockAccount {
+			ss = append(ss, a)
+		}
+	}
+	b.BankAccounts = bb
+	b.StockAccounts = ss
+}
+
 func findBook(db *sql.DB, bookid int64) (*Book, error) {
 	s := "SELECT book_id, name FROM book WHERE book_id = ?"
 	row := db.QueryRow(s, bookid)
@@ -53,11 +68,12 @@ func findBook(db *sql.DB, bookid int64) (*Book, error) {
 		return nil, err
 	}
 
-	aa, err := findAllAccounts(db, bookid)
+	aa, err := findAllAccountsByType(db, bookid)
 	if err != nil {
 		return nil, err
 	}
-	b.Accounts = aa
+
+	assignBookAccounts(&b, aa)
 	return &b, nil
 }
 
@@ -72,11 +88,11 @@ func findBooks(db *sql.DB, swhere string) ([]*Book, error) {
 		var b Book
 		rows.Scan(&b.Bookid, &b.Name)
 
-		aa, err := findAllAccounts(db, b.Bookid)
+		aa, err := findAllAccountsByType(db, b.Bookid)
 		if err != nil {
 			return nil, err
 		}
-		b.Accounts = aa
+		assignBookAccounts(&b, aa)
 		bb = append(bb, &b)
 	}
 	return bb, nil

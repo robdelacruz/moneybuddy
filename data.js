@@ -11,12 +11,17 @@ export async function loadRootdata() {
 
     for (let i=0; i < rootdata.books.length; i++) {
         let b = rootdata.books[i];
-        for (let j=0; j < b.accounts.length; j++) {
-            let a = b.accounts[j];
-            addFormattedAmts(a);
-        }
+        formatBookAmts(b);
     }
     return [rootdata, null];
+}
+export function formatBookAmts(b) {
+    for (let i=0; i < b.bankaccounts.length; i++) {
+        addFormattedAmts(b.bankaccounts[i]);
+    }
+    for (let i=0; i < b.stockaccounts.length; i++) {
+        addFormattedAmts(b.stockaccounts[i]);
+    }
 }
 
 export async function loadCurrencies() {

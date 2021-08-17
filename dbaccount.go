@@ -125,6 +125,9 @@ WHERE ba.book_id = ? AND %s`, swhere)
 func findAllAccounts(db *sql.DB, bookid int64) ([]*Account, error) {
 	return findAccounts(db, bookid, "1=1 ORDER BY name")
 }
+func findAllAccountsByType(db *sql.DB, bookid int64) ([]*Account, error) {
+	return findAccounts(db, bookid, "1=1 ORDER BY accounttype, name")
+}
 
 func balAccount(db *sql.DB, accountid int64) float64 {
 	s := "SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE account_id = ?"

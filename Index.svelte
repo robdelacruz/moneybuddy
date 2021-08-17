@@ -61,12 +61,20 @@ async function init() {
         ui.activeAccount = null;
         for (let i=0; i < rootdata.books.length; i++) {
             let b = rootdata.books[i];
-            for (let j=0; j < b.accounts.length; j++) {
-                let a = b.accounts[j];
-                data.addFormattedAmts(a);
+            data.formatBookAmts(b);
 
+            for (let j=0; j < b.bankaccounts.length; j++) {
+                let a = b.bankaccounts[j];
                 if (a.accountid == ui.activeAccountid) {
                     ui.activeAccount = a;
+                    break;
+                }
+            }
+            for (let j=0; j < b.stockaccounts.length; j++) {
+                let a = b.stockaccounts[j];
+                if (a.accountid == ui.activeAccountid) {
+                    ui.activeAccount = a;
+                    break;
                 }
             }
         }

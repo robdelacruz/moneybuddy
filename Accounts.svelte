@@ -4,7 +4,7 @@
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="flex-grow">
-            <select class="text-sm font-bold fg-normal bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={frm_bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
+            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={frm_bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
                 {#each root.books as book}
                 <option value={book.bookid}>{book.name}</option>
                 {/each}
@@ -14,7 +14,7 @@
     </div>
     {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->
-        <div class="mb-2">
+        <div class="mb-4">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
                 <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
             </form>
@@ -25,21 +25,25 @@
             <AccountForm book={selbook} account={newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
     {/if}
-    {#each displayaccounts as account (account.accountid)}
-        {#if editid == account.accountid}
-        <div class="p-2 border-b border-cell">
-            <AccountForm book={selbook} account={account} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
-        </div>
-        {:else if selid == account.accountid}
-        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(account)}">
-            <p class="flex-grow truncate mr-2">{account.name}</p>
-            <p class="fg-dim text-right mr-1">{account.fmtbalance}</p>
+    <div class="mb-1">
+        <h2 class="text-sm font-bold">Bank Accounts</h2>
+    </div>
+    {#each display_bb as a (a.accountid)}
+        {#if selid == a.accountid && selid != editid}
+        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
+            <p class="flex-grow truncate mr-2">{a.name}</p>
+            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
         </a>
         {:else}
-        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(account)}">
-            <p class="flex-grow truncate mr-2">{account.name}</p>
-            <p class="fg-dim text-right mr-1">{account.fmtbalance}</p>
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
+            <p class="flex-grow truncate mr-2">{a.name}</p>
+            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
         </a>
+        {/if}
+        {#if editid == a.accountid}
+        <div class="p-2 border-b border-cell">
+            <AccountForm book={selbook} account={a} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+        </div>
         {/if}
     {/each}
 {/if}
@@ -69,13 +73,14 @@ let frm_bookid = 1;
 let frm_filter = "";
 
 let selbook = null;
-let displayaccounts = [];
+let display_bb = []; // bankaccounts to display
+let display_ss = []; // stockaccounts to display
 
 // root + frm_bookid --> selbook
-// selbook + frm_filter --> displayaccounts
+// selbook + frm_filter --> display_bb, display_ss
 
 $: selbook = getSelectedBook(root, frm_bookid);
-$: displayaccounts = filterAccounts(selbook, frm_filter);
+$: [display_bb, display_ss] = filterAccounts(selbook, frm_filter);
 
 function getSelectedBook(rootdata, bookid) {
     console.log("Accounts.svelte getSelectedBook()");
@@ -91,27 +96,35 @@ function getSelectedBook(rootdata, bookid) {
     }
     return b
 }
+// Returns [bankaccounts, stockaccounts] where account.name matches sfilter
 function filterAccounts(book, sfilter) {
     console.log("Accounts.svelte filterAccounts()");
+    let bb = [];
+    let ss = [];
     if (book == null) {
-        return [];
+        return [bb, ss];
     }
-    if (book.accounts == null) {
-        return [];
+    if (book.bankaccounts == null || book.stockaccounts == null) {
+        return [bb, ss];
     }
     sfilter = sfilter.trim().toLowerCase();
     if (sfilter == "") {
-        return book.accounts;
+        return [book.bankaccounts, book.stockaccounts];
     }
 
-    let aa = [];
-    for (let i=0; i < book.accounts.length; i++) {
-        let a = book.accounts[i];
+    for (let i=0; i < book.bankaccounts.length; i++) {
+        let a = book.bankaccounts[i];
         if (a.name.toLowerCase().includes(sfilter)) {
-            aa.push(a);
+            bb.push(a);
         }
     }
-    return aa;
+    for (let i=0; i < book.stockaccounts.length; i++) {
+        let a = book.stockaccounts[i];
+        if (a.name.toLowerCase().includes(sfilter)) {
+            ss.push(a);
+        }
+    }
+    return [bb, ss];
 }
 
 export function reset() {
