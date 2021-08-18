@@ -96,8 +96,9 @@ function resetTxns() {
     wtxns.reset();
 }
 
-//document.addEventListener("keydown", function(e) {
-//});
+document.addEventListener("keyup", function(e) {
+    waccounts.postEvent(e);
+});
 
 async function accounts_select(e) {
     let err;

@@ -16,7 +16,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-4">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter} bind:this={input_filter}>
             </form>
         </div>
     {/if}
@@ -25,10 +25,37 @@
             <AccountForm book={selbook} account={newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
     {/if}
+    {#if display_bb.length > 0}
     <div class="mb-1">
         <h2 class="text-sm font-bold">Bank Accounts</h2>
     </div>
+    {/if}
     {#each display_bb as a (a.accountid)}
+        {#if selid == a.accountid && selid != editid}
+        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
+            <p class="flex-grow truncate mr-2">{a.name}</p>
+            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+        </a>
+        {:else}
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
+            <p class="flex-grow truncate mr-2">{a.name}</p>
+            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+        </a>
+        {/if}
+        {#if editid == a.accountid}
+        <div class="p-2 border-b border-cell">
+            <AccountForm book={selbook} account={a} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+        </div>
+        {/if}
+    {/each}
+    <div class="mb-4">
+    </div>
+    {#if display_ss.length > 0}
+    <div class="mb-1">
+        <h2 class="text-sm font-bold">Stock Accounts</h2>
+    </div>
+    {/if}
+    {#each display_ss as a (a.accountid)}
         {#if selid == a.accountid && selid != editid}
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
@@ -71,6 +98,7 @@ let newaccount = {
 
 let frm_bookid = 1;
 let frm_filter = "";
+let input_filter = null;
 
 let selbook = null;
 let display_bb = []; // bankaccounts to display
@@ -132,11 +160,14 @@ export function reset() {
     editid = -1;
 }
 
-export function onEvent(e) {
-    if (e.key == "ArrowUp") {
-    } else if (e.key == "ArrowDown") {
-    } else {
-        return;
+export function postEvent(e) {
+    if (e.code == "KeyL" && e.shiftKey && e.ctrlKey) {
+        // CTRL-SHIFT-L
+        frm_filter = "";
+        input_filter.focus();
+    } else if (e.code == "KeyK" && e.shiftKey && e.ctrlKey) {
+        // CTRL-SHIFT-K
+        input_filter.select();
     }
 }
 
