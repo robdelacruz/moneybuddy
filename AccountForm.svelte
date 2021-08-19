@@ -2,18 +2,29 @@
     <p class="fg-dim">Select Account</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
+        {#if frm_accounttype == 0}
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Enter Account Name" bind:value={frm.name}>
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Account Name" bind:value={frm_name}>
         </div>
+        {:else}
         <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={frm.accounttype}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Stock Name" bind:value={frm_name}>
+            </div>
+            <div class="w-1/2">
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="unitprice" id="unitprice" type="number" placeholder="Unit Price" step="any" min="0.0" bind:value={frm_unitprice}>
+            </div>
+        </div>
+        {/if}
+        <div class="flex flex-row mb-2">
+            <div class="mr-2 w-1/2">
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={frm_accounttype}>
                     <option value={0}>Bank Account</option>
                     <option value={1}>Stock</option>
                 </select>
             </div>
             <div class="w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={frm.currencyid}>
+                <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={frm_currencyid}>
                     {#each currencies as currency}
                     <option value={currency.currencyid}>{currency.currency}</option>
                     {/each}
@@ -64,11 +75,10 @@ export let currencies = [];
 let svcurl = "/api";
 let mode = "";
 let status = "";
-let frm = {
-    name: account.name,
-    accounttype: account.accounttype,
-    currencyid: account.currencyid,
-};
+let frm_name = account.name;
+let frm_accounttype = account.accounttype;
+let frm_currencyid = account.currencyid;
+let frm_unitprice = account.unitprice;
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -82,9 +92,10 @@ async function onSubmit(e) {
     let a = {};
     a.accountid = account.accountid;
     a.code = account.code;
-    a.name = frm.name;
-    a.accounttype = frm.accounttype
-    a.currencyid = frm.currencyid;
+    a.name = frm_name;
+    a.accounttype = frm_accounttype
+    a.currencyid = frm_currencyid;
+    a.unitprice = frm_unitprice;
 
     let sreq = `${svcurl}/account?bookid=${book.bookid}`;
     let method = "PUT";

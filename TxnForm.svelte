@@ -3,19 +3,19 @@
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={ui.frm.desc}>
-            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={ui.frm.action}>
-                <option value="deposit">Deposit</option>
-                <option value="withdraw">Withdraw</option>
+            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
+            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
+                <option value="plus">{option_plus}</option>
+                <option value="minus">{option_minus}</option>
             </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={ui.frm.amt}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
         </div>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={ui.frm.date}>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="ref no" bind:value={ui.frm.ref}>
-            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="memo" bind:value={ui.frm.memo}>
+            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={frm_date}>
+            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
+            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="Memo" bind:value={frm_memo}>
         </div>
-        {#if ui.mode == ""}
+        {#if mode == ""}
         <div class="flex flex-row justify-between">
             <div>
                 {#if txn.txnid == 0}
@@ -29,7 +29,7 @@
                 <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
             </div>
         </div>
-        {:else if ui.mode == "delete"}
+        {:else if mode == "delete"}
         <div class="flex flex-row justify-left">
             <p class="self-center uppercase italic text-xs mr-4">Delete this transaction?</p>
             <div>
@@ -38,9 +38,9 @@
             </div>
         </div>
         {/if}
-        {#if ui.status != ""}
+        {#if status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{ui.status}</p>
+            <p class="uppercase italic text-xs">{status}</p>
         </div>
         {/if}
     </form>
@@ -53,37 +53,45 @@ import {find, submit, del} from "./helpers.js";
 import * as data from "./data.js";
 
 export let txn = null;
+export let accounttype = 1;
 
 let svcurl = "/api";
 let ui = {};
-ui.mode = "";
-ui.status = "";
+let mode = "";
+let status = "";
 
-$: init();
+let frm_desc = txn.desc;
+let frm_ref = txn.ref;
+let frm_memo = null;
 
-function init() {
-    if (txn == null) {
-        return;
-    }
+let frm_amt = null;
+if (txn.amt != null) {
+    frm_amt = Math.abs(txn.amt);
+}
 
-    ui.frm = {};
-    ui.frm.desc = txn.desc;
-    ui.frm.ref = txn.ref;
-    ui.frm.memo = "";
+let option_plus;
+let option_minus;
+if (accounttype == 0) {
+    option_plus = "Deposit";
+    option_minus = "Withdraw";
+} else {
+    option_plus = "Buy";
+    option_minus = "Sell";
+}
 
-    if (txn.amt >= 0) {
-        ui.frm.action = "deposit";
-    } else {
-        ui.frm.action = "withdraw";
-    }
-    ui.frm.amt = Math.abs(txn.amt);
+let frm_action;
+if (txn.amt >= 0) {
+    frm_action = "plus"
+} else {
+    frm_action = "minus"
+}
 
-    if (txn.date) {
-        ui.frm.date = txn.date.substring(0,10);
-    } else {
-        // If no date specified, use today's date.
-        ui.frm.date = new Date().toISOString().substring(0,10);
-    }
+let frm_date;
+if (txn.date) {
+    frm_date = txn.date.substring(0,10);
+} else {
+    // If no date specified, use today's date.
+    frm_date = new Date().toISOString().substring(0,10);
 }
 
 document.addEventListener("keydown", function(e) {
@@ -93,23 +101,40 @@ document.addEventListener("keydown", function(e) {
 });
 
 async function onSubmit(e) {
-    ui.status = "processing";
+    status = "processing";
+
+    if (frm_ref == null) {
+        frm_ref = "";
+    }
+    if (frm_memo == null) {
+        frm_memo = "";
+    }
 
     let t = {};
     t.txnid = txn.txnid;
     t.accountid = txn.accountid;
-    t.date = ui.frm.date;
-    t.ref = ui.frm.ref;
-    t.desc = ui.frm.desc;
+    t.date = frm_date;
+    t.ref = frm_ref;
+    t.desc = frm_desc;
 
-    t.amt = Math.abs(ui.frm.amt);
-    if (ui.frm.action == "withdraw") {
+    if (frm_amt == null) {
+        status = "please enter an amount";
+        return;
+    }
+
+    t.amt = Math.abs(frm_amt);
+    if (frm_action == "minus") {
         t.amt = -t.amt;
     }
 
-    // If empty desc, just put "deposit" or "withdraw" depending on action.
+    // If empty desc, put default action
+    // (deposit/withdraw for accounts or buy/sell for stocks)
     if (t.desc.trim() == "") {
-        t.desc = ui.frm.action;
+        if (t.amt >= 0) {
+            t.desc = option_plus;
+        } else {
+            t.desc = option_minus;
+        }
     }
 
     let sreq = `${svcurl}/txn`;
@@ -121,35 +146,35 @@ async function onSubmit(e) {
     [t, err] = await submit(sreq, method, t);
     if (err != null) {
         console.error(err);
-        ui.status = "server error submitting txn";
+        status = "server error submitting txn";
         return;
     }
 
-    ui.status = "";
+    status = "";
     txn = t;
     dispatch("submit", t);
 }
 
 function onDelete(e) {
-    ui.mode = "delete";
+    mode = "delete";
 }
 
 function onCancelDelete(e) {
-    ui.mode = "";
+    mode = "";
 }
 
 async function onConfirmDelete(e) {
-    ui.status = "processing";
+    status = "processing";
 
     let sreq = `${svcurl}/txn?id=${txn.txnid}`;
     let err = await del(sreq);
     if (err != null) {
         console.error(err);
-        ui.status = "server error deleting txn";
+        status = "server error deleting txn";
         return;
     }
 
-    ui.status = "";
+    status = "";
     dispatch("submit");
 }
 

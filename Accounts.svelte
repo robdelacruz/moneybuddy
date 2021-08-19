@@ -34,12 +34,20 @@
         {#if selid == a.accountid && selid != editid}
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
-            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+            {#if a.balance >= 0}
+            <p class="text-right mr-1">{a.fmtbalance}</p>
+            {:else}
+            <p class="text-right mr-1">{a.fmtbalance}</p>
+            {/if}
         </a>
         {:else}
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
-            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+            {#if a.balance >= 0}
+            <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
+            {:else}
+            <p class="fg-number-minus text-right mr-1">{a.fmtbalance}</p>
+            {/if}
         </a>
         {/if}
         {#if editid == a.accountid}
@@ -59,12 +67,20 @@
         {#if selid == a.accountid && selid != editid}
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
-            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+            {#if a.balance >= 0}
+            <p class="text-right mr-1">{a.fmtbalance}</p>
+            {:else}
+            <p class="text-right mr-1">{a.fmtbalance}</p>
+            {/if}
         </a>
         {:else}
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
-            <p class="fg-dim text-right mr-1">{a.fmtbalance}</p>
+            {#if a.balance >= 0}
+            <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
+            {:else}
+            <p class="fg-number-minus text-right mr-1">{a.fmtbalance}</p>
+            {/if}
         </a>
         {/if}
         {#if editid == a.accountid}

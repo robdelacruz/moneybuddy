@@ -76,6 +76,14 @@ function createFormatter(currency) {
 
 // Set account.fmtbalance and account's txns'.fmtamt to currency amount format.
 export function addFormattedAmts(account) {
+    if (account.accounttype == 0) {
+        addCurrencyFormattedAmts(account);
+    } else {
+        addUnitFormattedAmts(account);
+    }
+}
+// Add 'fmtamt' property showing currency amount.
+function addCurrencyFormattedAmts(account) {
     let formatter = createFormatter(account.currency);
     account.fmtbalance = formatter.format(account.balance);
 
@@ -86,6 +94,19 @@ export function addFormattedAmts(account) {
         } else {
             // Show negative amt as "(123.45)"
             t.fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
+        }
+    }
+}
+// Add 'fmtamt' property showing non-currency amount.
+function addUnitFormattedAmts(account) {
+    let formatter = createFormatter(account.currency);
+    account.fmtbalance = formatter.format(account.balance);
+
+    for (let i=0; i < account.txns.length; i++) {
+        let t = account.txns[i];
+        t.fmtamt = Math.abs(t.amt).toLocaleString("en-US", {minimumFractionDigits: 2});
+        if (t.amt < 0) {
+            t.fmtamt = `(${t.fmtamt})`;
         }
     }
 }

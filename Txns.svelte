@@ -16,20 +16,20 @@
     {/if}
     {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={newtxn} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={newtxn} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
         {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={t} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
         {:else if selid == t.txnid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
-                {#if t.amt >= 0}
+                {#if t.amt < 0}
                 <p class="text-right cell-amt mr-1">{t.fmtamt}</p>
                 <p class="text-right cell-amt mr-1"></p>
                 {:else}
@@ -43,7 +43,7 @@
             <div class="flex flex-row flex-start p-1 border-b border-cell">
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
-                {#if t.amt >= 0}
+                {#if t.amt < 0}
                 <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
                 <p class="fg-dim text-right cell-amt mr-1"></p>
                 {:else}
@@ -75,14 +75,13 @@ let newtxn = {
     date: "",
     ref: "",
     desc: "",
-    amt: 0.0,
+    amt: null,
 };
 
 let frm_filter = "";
 let displaytxns = [];
 
 // account + frm_filter --> displaytxns
-
 $: displaytxns = filterTxns(account, frm_filter);
 
 function filterTxns(account, sfilter) {

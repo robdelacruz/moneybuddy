@@ -75,8 +75,17 @@ func delAccount(db *sql.DB, accountid int64) error {
 }
 
 func findAccount(db *sql.DB, accountid int64) (*Account, error) {
+	// account balance is calculated this way:
+	// For accounttype = 0 (bankaccount):
+	//   total of all txn amounts
+	// For accounttype = 1 (stockaccount):
+	//   total of all txn shares * acccount unit price
+
+	// txn shares is recorded in txn.amount field
+
 	s := `SELECT account_id, code, name, accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
-(SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE txn.account_id = a.account_id) AS bal
+(SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
+  FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
 WHERE account_id = ?`
@@ -100,7 +109,8 @@ WHERE account_id = ?`
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
 SELECT a.account_id, a.code, a.name, a.accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
-(SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE txn.account_id = a.account_id) AS bal
+(SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
+  FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
 INNER JOIN bookaccount ba ON ba.account_id = a.account_id
