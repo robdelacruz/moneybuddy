@@ -20,11 +20,7 @@
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
-        {#if editid == t.txnid}
-        <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
-        </div>
-        {:else if selid == t.txnid}
+        {#if selid == t.txnid && selid != editid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
             <div class="flex flex-row flex-start p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
@@ -52,6 +48,11 @@
                 {/if}
             </div>
         </a>
+        {/if}
+        {#if editid == t.txnid}
+        <div class="p-2 border-b border-cell">
+            <TxnForm txn={t} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
+        </div>
         {/if}
     {/each}
 {/if}

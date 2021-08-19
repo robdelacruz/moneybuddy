@@ -2,18 +2,24 @@
     <p class="fg-dim">Select Txn</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
-        <div class="flex flex-row mb-2">
+        <div class="flex flex-row mb-2 justify-between">
             <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
-            <select class="py-1 px-2 bg-input fg-normal mr-1 flex-shrink" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
-                <option value="plus">{option_plus}</option>
-                <option value="minus">{option_minus}</option>
-            </select>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
+            <input class="bg-input fg-normal py-1 px-2 cell-date" name="date" id="date" type="date" bind:value={frm_date}>
         </div>
         <div class="flex flex-row mb-2">
-            <input class="bg-input fg-normal py-1 px-2 cell-date mr-1" name="date" id="date" type="date" bind:value={frm_date}>
-            <input class="block bg-input fg-normal py-1 px-2 cell-amt mr-1" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
-            <input class="block bg-input fg-normal py-1 px-2 flex-grow" name="memo" id="memo" type="text" placeholder="Memo" bind:value={frm_memo}>
+            <div class="flex flex-row mr-1 w-1/2">
+                <select class="py-1 px-2 bg-input fg-normal mr-1" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
+                    <option value="plus">{option_plus}</option>
+                    <option value="minus">{option_minus}</option>
+                </select>
+                <input class="block bg-input fg-normal py-1 px-2 mr-1 input-amt flex-grow" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
+            </div>
+            <div class="w-1/2">
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
+            </div>
+        </div>
+        <div class="hidden flex flex-row mb-2">
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="memo" id="memo" type="text" placeholder="Memo" bind:value={frm_memo}>
         </div>
         {#if mode == ""}
         <div class="flex flex-row justify-between">

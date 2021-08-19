@@ -35,6 +35,8 @@
 .cell-desc {flex-basis: 40rem;}
 .cell-amt {flex-basis: 12rem;}
 
+.input-amt {width: 8rem;}
+
 .action {@apply border-b border-normal;}
 .pill {@apply fg-reverse bg-reverse rounded-md px-2;}
 
