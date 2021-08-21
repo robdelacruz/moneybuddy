@@ -1,9 +1,15 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
-{#if account == null}
+{#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
-        <h1 class="text-sm font-bold">Transactions for {account.name}</h1>
+        <div class="flex-grow">
+            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
+                {#each bookaccounts as a}
+                <option value={a.accountid}>{a.name}</option>
+                {/each}
+            </select>
+        </div>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
     </div>
     {#if editid != 0}
@@ -16,7 +22,7 @@
     {/if}
     {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={newtxn} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={newtxn} accounttype={displayaccount.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
@@ -51,7 +57,7 @@
         {/if}
         {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} accounttype={account.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={t} accounttype={displayaccount.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
         {/if}
     {/each}
@@ -65,7 +71,9 @@ import {find, submit} from "./helpers.js";
 import * as data from "./data.js";
 import TxnForm from "./TxnForm.svelte";
 
-export let account = null;
+export let root = null;
+export let bookid = 1;
+export let accountid = null;
 
 let svcurl = "/api";
 let selid = 0;
@@ -80,13 +88,71 @@ let newtxn = {
 };
 
 let frm_filter = "";
+let bookaccounts = [];
+let selbook = null;
+let displayaccount = null;
 let displaytxns = [];
 
-// account + frm_filter --> displaytxns
-$: displaytxns = filterTxns(account, frm_filter);
+// root + bookid --> selbook
+$: selbook = getSelectedBook(root, bookid);
+
+// selbook --> bookaccounts
+$: bookaccounts = getBookAccounts(selbook);
+
+// selbook + accountid --> displayaccount
+$: displayaccount = getBookAccount(selbook, accountid);
+
+// displayaccount + frm_filter --> displaytxns
+$: displaytxns = filterTxns(displayaccount, frm_filter);
+
+function getSelectedBook(rootdata, bookid) {
+    if (rootdata == null) {
+        return null;
+    }
+    let b = null;
+    for (let i=0; i < rootdata.books.length; i++) {
+        if (bookid == rootdata.books[i].bookid) {
+            b = rootdata.books[i];
+            break;
+        }
+    }
+    return b
+}
+
+function getBookAccounts(book) {
+    if (book == null) {
+        return null;
+    }
+    let aa = [];
+    for (let i=0; i < book.bankaccounts.length; i++) {
+        aa.push(book.bankaccounts[i]);
+    }
+    for (let i=0; i < book.stockaccounts.length; i++) {
+        aa.push(book.stockaccounts[i]);
+    }
+    return aa;
+}
+
+function getBookAccount(book, accountid) {
+    if (book == null || accountid == null) {
+        return null;
+    }
+    for (let i=0; i < book.bankaccounts.length; i++) {
+        let a = book.bankaccounts[i];
+        if (a.accountid == accountid) {
+            return a;
+        }
+    }
+    for (let i=0; i < book.stockaccounts.length; i++) {
+        let a = book.stockaccounts[i];
+        if (a.accountid == accountid) {
+            return a;
+        }
+    }
+    return null;
+}
 
 function filterTxns(account, sfilter) {
-    console.log("Txns.svelte filterTxns()");
     if (account == null) {
         return [];
     }
@@ -107,6 +173,14 @@ function filterTxns(account, sfilter) {
     return tt;
 }
 
+function onaccountchange(e) {
+    let a = getBookAccount(selbook, accountid);
+    if (a == null) {
+        return;
+    }
+    dispatch("selectaccount", a);
+}
+
 export function reset() {
     selid = 0;
 }
@@ -122,16 +196,16 @@ function onseltxn(txn) {
     }
 
     selid = txn.txnid;
-    dispatch("select", txn);
+    dispatch("selecttxn", txn);
 }
 function onedittxn(txn) {
     editid = txn.txnid;
 }
 function oncreate(e) {
-    if (account == null) {
+    if (accountid == null) {
         return;
     }
-    newtxn.accountid = account.accountid;
+    newtxn.accountid = accountid;
     newtxn.date = new Date().toISOString(),
     editid = 0;
 }

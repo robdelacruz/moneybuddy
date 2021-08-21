@@ -4,7 +4,7 @@
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="flex-grow">
-            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={frm_bookid} on:change="{e => dispatch('select', null)}" on:blur="{e => {}}">
+            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
                 {#each root.books as book}
                 <option value={book.bookid}>{book.name}</option>
                 {/each}
@@ -41,7 +41,7 @@
             {/if}
         </a>
         {:else}
-        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselectaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
             {#if a.balance >= 0}
             <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
@@ -74,7 +74,7 @@
             {/if}
         </a>
         {:else}
-        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselaccount(a)}">
+        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselectaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
             {#if a.balance >= 0}
             <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
@@ -100,6 +100,7 @@ import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
 export let root = null;
+export let bookid = 1;
 
 let svcurl = "/api";
 let selid = 0;
@@ -112,7 +113,6 @@ let newaccount = {
     currencyid: 0,
 };
 
-let frm_bookid = 1;
 let frm_filter = "";
 let input_filter = null;
 
@@ -120,14 +120,13 @@ let selbook = null;
 let display_bb = []; // bankaccounts to display
 let display_ss = []; // stockaccounts to display
 
-// root + frm_bookid --> selbook
+// root + bookid --> selbook
 // selbook + frm_filter --> display_bb, display_ss
 
-$: selbook = getSelectedBook(root, frm_bookid);
+$: selbook = getSelectedBook(root, bookid);
 $: [display_bb, display_ss] = filterAccounts(selbook, frm_filter);
 
 function getSelectedBook(rootdata, bookid) {
-    console.log("Accounts.svelte getSelectedBook()");
     if (rootdata == null) {
         return null;
     }
@@ -142,7 +141,6 @@ function getSelectedBook(rootdata, bookid) {
 }
 // Returns [bankaccounts, stockaccounts] where account.name matches sfilter
 function filterAccounts(book, sfilter) {
-    console.log("Accounts.svelte filterAccounts()");
     let bb = [];
     let ss = [];
     if (book == null) {
@@ -171,6 +169,10 @@ function filterAccounts(book, sfilter) {
     return [bb, ss];
 }
 
+function onbookchange(e) {
+    dispatch("selectbookid", bookid);
+}
+
 export function reset() {
     selid = 0;
     editid = -1;
@@ -187,7 +189,7 @@ export function postEvent(e) {
     }
 }
 
-function onselaccount(account) {
+export function selectAccount(account) {
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
@@ -195,7 +197,10 @@ function onselaccount(account) {
     }
 
     selid = account.accountid;
-    dispatch("select", account);
+}
+function onselectaccount(account) {
+    selectAccount(account);
+    dispatch("selectaccount", account);
 }
 function oneditaccount(account) {
     editid = account.accountid;

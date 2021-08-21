@@ -10,8 +10,8 @@
 </div>
 
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} on:select={accounts_select} root={root}/>
-    <Txns bind:this={wtxns} account={ui.activeAccount} />
+    <Accounts bind:this={waccounts} root={root} bookid={selbookid} on:selectbookid={accounts_selectbookid} on:selectaccount={accounts_selectaccount} />
+    <Txns bind:this={wtxns} root={root} bookid={selbookid} accountid={selaccountid} on:selectaccount={txns_selectaccount}/>
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
         <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
@@ -32,19 +32,15 @@ let waccounts;
 let wtxns;
 
 let root = null;
-
-let ui = {};
-ui.activeAccountid = 0;
-ui.activeAccount = null;
+let selbookid = 1;
+let selaccountid = null;
 
 $: init();
 async function init() {
     let [rootdata, err] = await data.loadRootdata();
     root = rootdata;
 
-    //$$: Complex code below - needs rework.
-
-    // Subscribe to data changes and update accounts and txns.
+    // Subscribe to data changes.
     let qwho = getqs("who");
     let sreq = `/api/subscriberoot?who=${qwho}`;
     console.log(`Subscribing (${qwho})...`);
@@ -58,25 +54,9 @@ async function init() {
         console.log("Received root data...");
         console.log(rootdata);
 
-        ui.activeAccount = null;
         for (let i=0; i < rootdata.books.length; i++) {
             let b = rootdata.books[i];
             data.formatBookAmts(b);
-
-            for (let j=0; j < b.bankaccounts.length; j++) {
-                let a = b.bankaccounts[j];
-                if (a.accountid == ui.activeAccountid) {
-                    ui.activeAccount = a;
-                    break;
-                }
-            }
-            for (let j=0; j < b.stockaccounts.length; j++) {
-                let a = b.stockaccounts[j];
-                if (a.accountid == ui.activeAccountid) {
-                    ui.activeAccount = a;
-                    break;
-                }
-            }
         }
 
         root = rootdata;
@@ -92,21 +72,24 @@ function getqs(q) {
     return v;
 }
 
-function resetTxns() {
-    wtxns.reset();
-}
-
 document.addEventListener("keyup", function(e) {
     waccounts.postEvent(e);
 });
 
-async function accounts_select(e) {
-    let err;
-    ui.activeAccount = e.detail;
-    if (ui.activeAccount != null) {
-        ui.activeAccountid = ui.activeAccount.accountid;
-    }
-    resetTxns();
+function accounts_selectbookid(e) {
+    selbookid = e.detail;
+    selaccountid = null;
+    wtxns.reset();
+}
+
+function accounts_selectaccount(e) {
+    let a = e.detail;
+    selaccountid = a.accountid;
+}
+
+function txns_selectaccount(e) {
+    let a = e.detail;
+    waccounts.selectAccount(a);
 }
 
 </script>
