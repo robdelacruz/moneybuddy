@@ -10,7 +10,7 @@
                 {/each}
             </select>
         </div>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Account</a>
     </div>
     {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->

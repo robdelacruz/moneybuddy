@@ -2,6 +2,9 @@ import {find, submit} from "./helpers.js";
 
 let svcurl = "/api";
 
+export let BANKACCOUNT = 0;
+export let STOCKACCOUNT = 1;
+
 export async function loadRootdata() {
     let sreq = `${svcurl}/rootdata`;
     let [rootdata, err] = await find(sreq);

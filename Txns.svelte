@@ -3,14 +3,19 @@
     <p class="fg-dim">Select Account</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
-        <div class="flex-grow">
-            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
+        <div class="flex flex-row">
+            <select class="text-sm font-bold fg-h1 bg-normal pr-2 mr-2" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
                 {#each bookaccounts as a}
                 <option value={a.accountid}>{a.name}</option>
                 {/each}
             </select>
+            {#if displayaccount.balance >= 0}
+            <p class="text-sm self-end fg-number-plus">{displayaccount.fmtbalance}</p>
+            {:else}
+            <p class="text-sm self-end fg-number-minus">{displayaccount.fmtbalance}</p>
+            {/if}
         </div>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Create</a>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Transaction</a>
     </div>
     {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->

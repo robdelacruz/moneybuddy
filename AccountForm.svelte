@@ -19,8 +19,8 @@
         <div class="flex flex-row mb-2">
             <div class="mr-2 w-1/2">
                 <select class="py-1 px-2 bg-input fg-normal w-full" id="accounttype" name="accounttype" placeholder="Account Type" bind:value={frm_accounttype}>
-                    <option value={0}>Bank Account</option>
-                    <option value={1}>Stock</option>
+                    <option value={data.BANKACCOUNT}>Bank Account</option>
+                    <option value={data.STOCKACCOUNT}>Stock</option>
                 </select>
             </div>
             <div class="w-1/2">
