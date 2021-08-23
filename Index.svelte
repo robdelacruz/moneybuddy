@@ -9,6 +9,8 @@
     </div>
 </div>
 
+<Tablinks links="journal|Journal;report|Report;setup|Setup" sel="journal" />
+
 <div class="flex flex-row">
     <Accounts bind:this={waccounts} root={root} bookid={selbookid} on:selectbookid={accounts_selectbookid} on:selectaccount={accounts_selectaccount} />
     <Txns bind:this={wtxns} root={root} bookid={selbookid} accountid={selaccountid} on:selectaccount={txns_selectaccount}/>
@@ -25,6 +27,7 @@ import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import {find, submit, subscribe} from "./helpers.js";
 import * as data from "./data.js";
+import Tablinks from "./Tablinks.svelte";
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
 
