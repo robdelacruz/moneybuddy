@@ -1,9 +1,9 @@
 <div class="flex flex-row fg-normal text-sm">
 {#each ui.links as link}
     {#if link.signal == sel}
-        <a href="#a" class="rounded-t-md py-1 px-2 bg-normal" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
+        <a href="#a" class="rounded-t-md py-1 px-3 bg-normal" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
     {:else}
-        <a href="#a" class="py-1 px-2" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
+        <a href="#a" class="py-1 px-3" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
     {/if}
 {/each}
 </div>
