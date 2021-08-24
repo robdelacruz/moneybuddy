@@ -1,9 +1,9 @@
 <div class="flex flex-row fg-normal text-sm">
-{#each ui.links as link}
-    {#if link.signal == sel}
-        <a href="#a" class="rounded-t-md py-1 px-3 bg-normal" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
+{#each tabs as tab}
+    {#if tab.id == sel}
+        <a href="#a" class="rounded-t-md py-1 px-3 bg-normal" on:click='{e => onlink(tab.id)}'>{tab.caption}</a>
     {:else}
-        <a href="#a" class="py-1 px-3" on:click='{e => onlink(link.signal)}'>{link.caption}</a>
+        <a href="#a" class="py-1 px-3" on:click='{e => onlink(tab.id)}'>{tab.caption}</a>
     {/if}
 {/each}
 </div>
@@ -15,9 +15,7 @@ let dispatch = createEventDispatcher();
 // Ex. "entries|Entries;images|Images;files|Files"
 export let links = "";
 export let sel = "";
-
-let ui = {};
-ui.links = [];
+let tabs = [];
 
 let ll = links.split(";");
 for (let i=0; i < ll.length; i++) {
@@ -25,19 +23,19 @@ for (let i=0; i < ll.length; i++) {
     if (ss.length != 2) {
         continue;
     }
-    let signal = ss[0].trim();
+    let id = ss[0].trim();
     let caption = ss[1];
-    ui.links.push({signal: signal, caption: caption});
+    tabs.push({id: id, caption: caption});
 
     // Make the first link active by default.
     if (sel == "") {
-        sel = signal;
+        sel = id;
     }
 }
 
-function onlink(signal) {
-    sel = signal;
-    dispatch("sel", signal);
+function onlink(id) {
+    sel = id;
+    dispatch("sel", id);
 }
 
 </script>
