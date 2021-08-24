@@ -44,7 +44,7 @@ func delCurrency(db *sql.DB, currencyid int64) error {
 }
 
 func findCurrency(db *sql.DB, currencyid int64) (*Currency, error) {
-	s := "SELECT currency_id, currency, usdrate, FROM currency WHERE currency_id = ?"
+	s := "SELECT currency_id, currency, usdrate FROM currency WHERE currency_id = ?"
 	row := db.QueryRow(s, currencyid)
 	var c Currency
 	err := row.Scan(&c.Currencyid, &c.Currency, &c.Usdrate)
@@ -72,4 +72,11 @@ func findCurrencies(db *sql.DB, swhere string) ([]*Currency, error) {
 }
 func findAllCurrencies(db *sql.DB) ([]*Currency, error) {
 	return findCurrencies(db, "1=1 ORDER BY currency_id")
+}
+
+func convToCurrency(n float64, ncur, tocur *Currency) float64 {
+	if ncur.Usdrate == 0.0 {
+		return n * tocur.Usdrate
+	}
+	return n / ncur.Usdrate * tocur.Usdrate
 }

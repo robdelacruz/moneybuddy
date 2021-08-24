@@ -95,6 +95,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/txn", txnHandler(db))
 	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
 	http.HandleFunc("/api/whos", whosHandler(db))
+	http.HandleFunc("/api/rptdata", rptdataHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -645,6 +646,24 @@ func whosHandler(db *sql.DB) http.HandlerFunc {
 		for i := 0; i < len(_datasync.whos); i++ {
 			P("whos[%d]: %s\n", i, _datasync.whos[i])
 		}
+	}
+}
+
+func rptdataHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		qcurrencyid := idtoi(r.FormValue("currencyid"))
+		if qcurrencyid == 0 {
+			qcurrencyid = 1
+		}
+
+		rptdata, err := findRptdata(db, qcurrencyid)
+		if err != nil {
+			handleErr(w, err, "rptdataHandler")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		P("%s", jsonstr(rptdata))
 	}
 }
 

@@ -25,9 +25,9 @@ type Account struct {
 	Code        string      `json:"code"`
 	Name        string      `json:"name"`
 	AccountType AccountType `json:"accounttype"`
-	Currencyid  int64       `json:"currencyid"`
 	Unitprice   float64     `json:"unitprice"`
-	Currency    string      `json:"currency"`
+	Currencyid  int64       `json:"currencyid"`
+	Currency    *Currency   `json:"currency"`
 	Balance     float64     `json:"balance"`
 	Txns        []*Txn      `json:"txns"`
 }
@@ -83,7 +83,7 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 
 	// txn shares is recorded in txn.amount field
 
-	s := `SELECT account_id, code, name, accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
+	s := `SELECT account_id, code, name, accounttype, a.unitprice, a.currency_id, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -91,13 +91,16 @@ LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id
 WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
-	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Unitprice, &a.Currency, &a.Balance)
+	var c Currency
+	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &c.Currency, &c.Usdrate, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
+	a.Currencyid = c.Currencyid
+	a.Currency = &c
 
 	tt, err := findAllTxnsOfAccount(db, accountid)
 	if err != nil {
@@ -108,7 +111,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.code, a.name, a.accounttype, a.currency_id, a.unitprice, IFNULL(cur.currency, ''), 
+SELECT a.account_id, a.code, a.name, a.accounttype, a.unitprice, a.currency_id, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -122,7 +125,11 @@ WHERE ba.book_id = ? AND %s`, swhere)
 	aa := []*Account{}
 	for rows.Next() {
 		var a Account
-		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Currencyid, &a.Unitprice, &a.Currency, &a.Balance)
+		var c Currency
+		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &c.Currency, &c.Usdrate, &a.Balance)
+		a.Currencyid = c.Currencyid
+		a.Currency = &c
+
 		tt, err := findAllTxnsOfAccount(db, a.Accountid)
 		if err != nil {
 			return nil, err
@@ -139,15 +146,15 @@ func findAllAccountsByType(db *sql.DB, bookid int64) ([]*Account, error) {
 	return findAccounts(db, bookid, "1=1 ORDER BY accounttype, name")
 }
 
-func balAccount(db *sql.DB, accountid int64) float64 {
+func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {
 	s := "SELECT IFNULL(SUM(amt), 0.0) FROM txn WHERE account_id = ?"
 	row := db.QueryRow(s, accountid)
 	var bal float64
 	err := row.Scan(&bal)
 	if err != nil {
-		return 0.0
+		return 0.0, err
 	}
-	return bal
+	return bal, nil
 }
 
 func createRandomBankAccount(db *sql.DB, bookid int64) (int64, error) {
