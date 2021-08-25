@@ -46,7 +46,7 @@ let tabsel = "journal";
 let selbookid = 1;
 let selaccountid = null;
 
-$: init();
+init();
 async function init() {
     let [rootdata, err] = await data.loadRootdata();
     root = rootdata;
