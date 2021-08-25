@@ -87,7 +87,7 @@ export function addFormattedAmts(account) {
 }
 // Add 'fmtamt' property showing currency amount.
 function addCurrencyFormattedAmts(account) {
-    let formatter = createFormatter(account.currency);
+    let formatter = createFormatter(account.currency.currency);
     account.fmtbalance = formatter.format(account.balance);
 
     for (let i=0; i < account.txns.length; i++) {
@@ -102,7 +102,7 @@ function addCurrencyFormattedAmts(account) {
 }
 // Add 'fmtamt' property showing non-currency amount.
 function addUnitFormattedAmts(account) {
-    let formatter = createFormatter(account.currency);
+    let formatter = createFormatter(account.currency.currency);
     account.fmtbalance = formatter.format(account.balance);
 
     for (let i=0; i < account.txns.length; i++) {
