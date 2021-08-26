@@ -14,7 +14,7 @@
 {#if tabsel == "journal"}
     <Journal bind:this={wjournal} root={root} />
 {:else if tabsel == "report"}
-    <Report bind:this={wreport} />
+    <Report bind:this={wreport} currencies={currencies} />
 {:else if tabsel == "setup"}
     <p class="fg-normal">setup</p>
 {/if}
@@ -34,6 +34,9 @@ let tabsel = "journal";
 
 let wjournal;
 let wreport;
+
+let currencies = [];
+$: if (root != null) currencies = root.currencies;
 
 init();
 async function init() {

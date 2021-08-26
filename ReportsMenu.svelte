@@ -40,7 +40,7 @@ export let rptdata = null;
 export let bookid = 1;
 
 let menurpts = [
-    {id: "summaryrpt", name: "Summary"},
+    {id: "summaryrpt", name: "Summary Report"},
     {id: "robrpt", name: "Rob Report"}
 ];
 let seli = 0;

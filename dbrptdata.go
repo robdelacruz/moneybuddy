@@ -93,7 +93,7 @@ func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
 	}
 
 	var summaryrpt SummaryRpt
-	summaryrpt.Heading = "Summary Report"
+	summaryrpt.Heading = fmt.Sprintf("Summary Report for '%s'", b.Name)
 	summaryrpt.Items = items
 
 	var bookrpt BookRpt

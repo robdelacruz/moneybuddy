@@ -1,23 +1,35 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
 {#if rptdata == null || selbookrpt == null}
     <p class="fg-dim">No data</p>
 {:else}
     <div class="flex flex-row justify-between mb-2">
-        <h1 class="text-sm font-bold fg-h1 bg-normal">{selbookrpt.summaryrpt.heading}</h1>
+        <h1 class="text-sm font-bold fg-h2 bg-normal">{selbookrpt.summaryrpt.heading}</h1>
     </div>
 
     {#each selbookrpt.summaryrpt.rptitems as ri}
-    <div class="flex flex-row flex-start p-1 border-b border-cell">
-        <p class="cell-desc">{ri.caption}</p>
-        <p class="text-right cell-amt">{ri.val}</p>
-    </div>
+        {#if ri.caption == ""}
+            <div class="flex flex-row py-2">
+            </div>
+        {:else if ri.caption.startsWith("# ")}
+            <div class="flex flex-row flex-start p-1">
+                <h2 class="cell-desc fg-h2">{ri.caption.substring(2)}</h2>
+            </div>
+        {:else}
+        <div class="flex flex-row flex-start p-1 border-b border-cell">
+            <p class="cell-desc">{ri.caption}</p>
+            {#if ri.val >= 0}
+            <p class="whitespace-nowrap fg-number-plus text-right cell-amt">{data.formattedAmt(ri.val, rptdata.currency.currency)}</p>
+            {:else}
+            <p class="whitespace-nowrap fg-number-minus text-right cell-amt">{data.formattedAmt(ri.val, rptdata.currency.currency)}</p>
+            {/if}
+        </div>
+        {/if}
     {/each}
 {/if}
-</div>
 
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
+import * as data from "./data.js";
 
 export let rptdata = null;
 export let bookid = 1;
