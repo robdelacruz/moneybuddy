@@ -35,18 +35,18 @@
         <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
             {#if a.balance >= 0}
-            <p class="text-right mr-1">{a.fmtbalance}</p>
+            <p class="whitespace-nowrap text-right mr-1">{a.fmtbalance}</p>
             {:else}
-            <p class="text-right mr-1">{a.fmtbalance}</p>
+            <p class="whitespace-nowrap text-right mr-1">{a.fmtbalance}</p>
             {/if}
         </a>
         {:else}
         <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselectaccount(a)}">
             <p class="flex-grow truncate mr-2">{a.name}</p>
             {#if a.balance >= 0}
-            <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
+            <p class="whitespace-nowrap fg-number-plus text-right mr-1">{a.fmtbalance}</p>
             {:else}
-            <p class="fg-number-minus text-right mr-1">{a.fmtbalance}</p>
+            <p class="whitespace-nowrap fg-number-minus text-right mr-1">{a.fmtbalance}</p>
             {/if}
         </a>
         {/if}
@@ -102,7 +102,6 @@ import AccountForm from "./AccountForm.svelte";
 export let root = null;
 export let bookid = 1;
 
-let svcurl = "/api";
 let selid = 0;
 let editid = -1;
 let newaccount = {

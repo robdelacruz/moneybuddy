@@ -12,9 +12,14 @@ type Rptdata struct {
 }
 
 type BookRpt struct {
-	Bookid   int64      `json:"bookid"`
-	Bookname string     `json:"bookname"`
-	RptItems []*RptItem `json:"rptitems"`
+	Bookid     int64      `json:"bookid"`
+	Bookname   string     `json:"bookname"`
+	SummaryRpt SummaryRpt `json:"summaryrpt"`
+}
+
+type SummaryRpt struct {
+	Heading string     `json:"heading"`
+	Items   []*RptItem `json:"rptitems"`
 }
 
 type RptItem struct {
@@ -87,9 +92,13 @@ func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
 		items = append(items, &RptItem{stockdesc, stockbal})
 	}
 
-	var r BookRpt
-	r.Bookid = b.Bookid
-	r.Bookname = b.Name
-	r.RptItems = items
-	return &r, nil
+	var summaryrpt SummaryRpt
+	summaryrpt.Heading = "Summary Report"
+	summaryrpt.Items = items
+
+	var bookrpt BookRpt
+	bookrpt.Bookid = b.Bookid
+	bookrpt.Bookname = b.Name
+	bookrpt.SummaryRpt = summaryrpt
+	return &bookrpt, nil
 }
