@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type Rptdata struct {
@@ -81,13 +83,15 @@ func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
 	}
 	items = append(items, &EmptyRptItem)
 
+	p := message.NewPrinter(language.English)
+
 	items = append(items, &RptItem{"# Stocks", 0})
 	for _, a := range b.StockAccounts {
 		nshares, err := accountSumAmt(db, a.Accountid)
 		if err != nil {
 			return nil, err
 		}
-		stockdesc := fmt.Sprintf("%s: %.2f shares at %.2f/share", a.Name, nshares, a.Unitprice)
+		stockdesc := p.Sprintf("%s (%.2f shares)", a.Name, nshares)
 		stockbal := convToCurrency(a.Balance, a.Currency, c)
 		items = append(items, &RptItem{stockdesc, stockbal})
 	}
