@@ -43,7 +43,6 @@
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import * as data from "./data.js";
-import ReportsMenu from "./ReportsMenu.svelte";
 import SummaryRpt from "./SummaryRpt.svelte";
 
 export let currencies = [];
