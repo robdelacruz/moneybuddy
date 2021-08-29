@@ -101,3 +101,30 @@ func printContainerOpen(P PrintFunc) {
 func printContainerClose(P PrintFunc) {
 	P("</div>\n")
 }
+
+//*** Cookie functions ***
+func setCookie(w http.ResponseWriter, name, val string) {
+	c := http.Cookie{
+		Name:  name,
+		Value: val,
+		Path:  "/",
+		// Expires: time.Now().Add(24 * time.Hour),
+	}
+	http.SetCookie(w, &c)
+}
+func delCookie(w http.ResponseWriter, name string) {
+	c := http.Cookie{
+		Name:   name,
+		Value:  "",
+		Path:   "/",
+		MaxAge: 0,
+	}
+	http.SetCookie(w, &c)
+}
+func readCookie(r *http.Request, name string) string {
+	c, err := r.Cookie(name)
+	if err != nil {
+		return ""
+	}
+	return c.Value
+}

@@ -16,6 +16,11 @@ const (
 	StockAccount
 )
 
+type User struct {
+	Userid   int64  `json:"userid"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 type Currency struct {
 	Currencyid int64   `json:"currencyid"`
 	Currency   string  `json:"currency"`
@@ -30,6 +35,7 @@ type Book struct {
 	Name          string     `json:"name"`
 	BankAccounts  []*Account `json:"bankaccounts"`
 	StockAccounts []*Account `json:"stockaccounts"`
+	Userid        int64      `json:"userid"`
 }
 type Account struct {
 	Accountid   int64       `json:"accountid"`
@@ -562,4 +568,89 @@ func createRandomStockTxns(db *sql.DB, accountid int64, ntxns int) error {
 		return err
 	}
 	return nil
+}
+
+//** User functions **
+func createUser(db *sql.DB, u *User) (int64, error) {
+	s := "INSERT INTO user (user_id, username, password) VALUES (?, ?, ?)"
+	result, err := sqlexec(db, s, u.Userid, u.Username, u.Password)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+func editUser(db *sql.DB, u *User) error {
+	s := "UPDATE user SET username = ?, password = ? WHERE user_id = ?"
+	_, err := sqlexec(db, s, u.Username, u.Password, u.Userid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func delUser(db *sql.DB, userid int64) error {
+	s := "DELETE FROM user WHERE user_id = ?"
+	_, err := sqlexec(db, s, userid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func findUser(db *sql.DB, userid int64) (*User, error) {
+	s := "SELECT user_id, username, password FROM user WHERE user_id = ?"
+	row := db.QueryRow(s, userid)
+	var u User
+	err := row.Scan(&u.Userid, &u.Username, &u.Password)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+func findUserByUsername(db *sql.DB, username string) (*User, error) {
+	s := "SELECT user_id, username, password FROM user WHERE username = ?"
+	row := db.QueryRow(s, username)
+	var u User
+	err := row.Scan(&u.Userid, &u.Username, &u.Password)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+func isUsernameExists(db *sql.DB, username string) (bool, error) {
+	u, err := findUserByUsername(db, username)
+	if err != nil {
+		return false, err
+	}
+	if u != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+func findUsers(db *sql.DB, swhere string) ([]*User, error) {
+	s := fmt.Sprintf("SELECT user_id, username, password FROM user WHERE %s", swhere)
+	rows, err := db.Query(s)
+	if err != nil {
+		return nil, err
+	}
+	uu := []*User{}
+	for rows.Next() {
+		var u User
+		rows.Scan(&u.Userid, &u.Username, &u.Password)
+		uu = append(uu, &u)
+	}
+	return uu, nil
+}
+func findAllUsers(db *sql.DB) ([]*User, error) {
+	return findUsers(db, "1=1 ORDER BY user_id")
 }

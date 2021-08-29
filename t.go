@@ -97,6 +97,11 @@ func run(args []string) error {
 	http.HandleFunc("/api/whos", whosHandler(db))
 	http.HandleFunc("/api/rptdata", rptdataHandler(db))
 
+	http.HandleFunc("/api/login/", loginHandler(db))
+	http.HandleFunc("/api/signup/", signupHandler(db))
+	http.HandleFunc("/api/edituser/", edituserHandler(db))
+	http.HandleFunc("/api/deluser/", deluserHandler(db))
+
 	port := "8000"
 	if len(parms) > 1 {
 		port = parms[1]
@@ -138,11 +143,13 @@ func createTables(newfile string) {
 	}
 
 	ss := []string{
-		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'Accounts');",
+		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', user_id INTEGER NOT NULL);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
+		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
 	}
 
 	tx, err := db.Begin()
@@ -718,4 +725,220 @@ func closeSubs(ds *DataSync) {
 func signalAndCloseSubs(ds *DataSync) {
 	signalSubs(ds)
 	closeSubs(ds)
+}
+
+type LoginResult struct {
+	Sig   string `json:"sig"`
+	Error string `json:"error"`
+}
+
+func loginHandler(db *sql.DB) http.HandlerFunc {
+	type LoginReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+		var loginreq LoginReq
+		err = json.Unmarshal(bs, &loginreq)
+		if err != nil {
+			handleErr(w, err, "loginHandler")
+			return
+		}
+
+		var result LoginResult
+		sig, err := loginUsername(db, loginreq.Username, loginreq.Pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		result.Sig = sig
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
+}
+
+func signupHandler(db *sql.DB) http.HandlerFunc {
+	type SignupReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "signupHandler")
+			return
+		}
+		var signupreq SignupReq
+		err = json.Unmarshal(bs, &signupreq)
+		if err != nil {
+			handleErr(w, err, "signupHandler")
+			return
+		}
+		if signupreq.Username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+
+		// Attempt to sign up new user.
+		var result LoginResult
+		err = signup(db, signupreq.Username, signupreq.Pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+			bs, _ := json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		// Log in the newly signed up user.
+		sig, err := loginUsername(db, signupreq.Username, signupreq.Pwd)
+		result.Sig = sig
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
+}
+
+func edituser(db *sql.DB, username, pwd string, newpwd string) error {
+	// Validate existing password
+	_, err := loginUsername(db, username, pwd)
+	if err != nil {
+		return err
+	}
+
+	// Set new password
+	hashedPwd := genHash(newpwd)
+	s := "UPDATE user SET password = ? WHERE username = ?"
+	_, err = sqlexec(db, s, hashedPwd, username)
+	if err != nil {
+		return fmt.Errorf("DB error updating user password: %s", err)
+	}
+	return nil
+}
+func edituserHandler(db *sql.DB) http.HandlerFunc {
+	type EditUserReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+		NewPwd   string `json:"newpwd"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "edituserHandler")
+			return
+		}
+		var req EditUserReq
+		err = json.Unmarshal(bs, &req)
+		if err != nil {
+			handleErr(w, err, "edituserHandler")
+			return
+		}
+		if req.Username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+
+		// Attempt to edit user.
+		var result LoginResult
+		err = edituser(db, req.Username, req.Pwd, req.NewPwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+			bs, _ := json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		// Log in the newly edited user.
+		sig, err := loginUsername(db, req.Username, req.NewPwd)
+		result.Sig = sig
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
+}
+
+func deluser(db *sql.DB, username, pwd string) error {
+	// Validate existing password
+	_, err := loginUsername(db, username, pwd)
+	if err != nil {
+		return err
+	}
+
+	// Delete user
+	s := "DELETE FROM user WHERE username = ?"
+	_, err = sqlexec(db, s, username)
+	if err != nil {
+		return fmt.Errorf("DB error deleting user: %s", err)
+	}
+	return nil
+}
+func deluserHandler(db *sql.DB) http.HandlerFunc {
+	type DelUserReq struct {
+		Username string `json:"username"`
+		Pwd      string `json:"pwd"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "deluserHandler")
+			return
+		}
+		var req DelUserReq
+		err = json.Unmarshal(bs, &req)
+		if err != nil {
+			handleErr(w, err, "deluserHandler")
+			return
+		}
+		if req.Username == "" {
+			http.Error(w, "username required", 401)
+			return
+		}
+
+		// Attempt to delete user.
+		var result LoginResult
+		err = deluser(db, req.Username, req.Pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
 }
