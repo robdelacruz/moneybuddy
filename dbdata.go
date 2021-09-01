@@ -25,8 +25,10 @@ type Currency struct {
 	Currencyid int64   `json:"currencyid"`
 	Currency   string  `json:"currency"`
 	Usdrate    float64 `json:"usdrate"`
+	Userid     int64   `json:"userid"`
 }
 type Rootdata struct {
+	Userid     int64       `json:"userid"`
 	Currencies []*Currency `json:"currencies"`
 	Books      []*Book     `json:"books"`
 }
@@ -59,8 +61,8 @@ type Txn struct {
 
 //** Currency functions **
 func createCurrency(db *sql.DB, c *Currency) (int64, error) {
-	s := "INSERT INTO currency (currency, usdrate) VALUES (?, ?)"
-	result, err := sqlexec(db, s, c.Currency, c.Usdrate)
+	s := "INSERT INTO currency (currency, usdrate, user_id) VALUES (?, ?, ?)"
+	result, err := sqlexec(db, s, c.Currency, c.Usdrate, c.Userid)
 	if err != nil {
 		return 0, err
 	}
@@ -71,8 +73,8 @@ func createCurrency(db *sql.DB, c *Currency) (int64, error) {
 	return id, nil
 }
 func editCurrency(db *sql.DB, c *Currency) error {
-	s := "UPDATE currency SET currency = ?, usdrate = ? WHERE currency_id = ?"
-	_, err := sqlexec(db, s, c.Currency, c.Usdrate, c.Currencyid)
+	s := "UPDATE currency SET currency = ?, usdrate = ?, user_id = ? WHERE currency_id = ?"
+	_, err := sqlexec(db, s, c.Currency, c.Usdrate, c.Userid, c.Currencyid)
 	if err != nil {
 		return err
 	}
@@ -88,10 +90,10 @@ func delCurrency(db *sql.DB, currencyid int64) error {
 }
 
 func findCurrency(db *sql.DB, currencyid int64) (*Currency, error) {
-	s := "SELECT currency_id, currency, usdrate FROM currency WHERE currency_id = ?"
+	s := "SELECT currency_id, currency, usdrate, user_id FROM currency WHERE currency_id = ?"
 	row := db.QueryRow(s, currencyid)
 	var c Currency
-	err := row.Scan(&c.Currencyid, &c.Currency, &c.Usdrate)
+	err := row.Scan(&c.Currencyid, &c.Currency, &c.Usdrate, &c.Userid)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -100,22 +102,22 @@ func findCurrency(db *sql.DB, currencyid int64) (*Currency, error) {
 	}
 	return &c, nil
 }
-func findCurrencies(db *sql.DB, swhere string) ([]*Currency, error) {
-	s := fmt.Sprintf("SELECT currency_id, currency, usdrate FROM currency WHERE %s", swhere)
-	rows, err := db.Query(s)
+func findCurrencies(db *sql.DB, userid int64, swhere string) ([]*Currency, error) {
+	s := fmt.Sprintf("SELECT currency_id, currency, usdrate, user_id FROM currency WHERE user_id = ? AND %s", swhere)
+	rows, err := db.Query(s, userid)
 	if err != nil {
 		return nil, err
 	}
 	cc := []*Currency{}
 	for rows.Next() {
 		var c Currency
-		rows.Scan(&c.Currencyid, &c.Currency, &c.Usdrate)
+		rows.Scan(&c.Currencyid, &c.Currency, &c.Usdrate, &c.Userid)
 		cc = append(cc, &c)
 	}
 	return cc, nil
 }
-func findAllCurrencies(db *sql.DB) ([]*Currency, error) {
-	return findCurrencies(db, "1=1 ORDER BY currency_id")
+func findUserCurrencies(db *sql.DB, userid int64) ([]*Currency, error) {
+	return findCurrencies(db, userid, "1=1 ORDER BY currency_id")
 }
 
 func convToCurrency(n float64, ncur, tocur *Currency) float64 {
@@ -126,25 +128,26 @@ func convToCurrency(n float64, ncur, tocur *Currency) float64 {
 }
 
 //** Rootdata, Book functions
-func findRootdata(db *sql.DB) (*Rootdata, error) {
-	cc, err := findAllCurrencies(db)
+func findRootdata(db *sql.DB, userid int64) (*Rootdata, error) {
+	cc, err := findUserCurrencies(db, userid)
 	if err != nil {
 		return nil, err
 	}
-	bb, err := findAllBooks(db)
+	bb, err := findUserBooks(db, userid)
 	if err != nil {
 		return nil, err
 	}
 
 	var rd Rootdata
+	rd.Userid = userid
 	rd.Currencies = cc
 	rd.Books = bb
 	return &rd, nil
 }
 
 func createBook(db *sql.DB, b *Book) (int64, error) {
-	s := "INSERT INTO book (name) VALUES (?)"
-	result, err := sqlexec(db, s, b.Name)
+	s := "INSERT INTO book (name, user_id) VALUES (?, ?)"
+	result, err := sqlexec(db, s, b.Name, b.Userid)
 	if err != nil {
 		return 0, err
 	}
@@ -155,8 +158,8 @@ func createBook(db *sql.DB, b *Book) (int64, error) {
 	return id, nil
 }
 func editBook(db *sql.DB, b *Book) error {
-	s := "UPDATE book SET name = ? WHERE book_id = ?"
-	_, err := sqlexec(db, s, b.Name, b.Bookid)
+	s := "UPDATE book SET name = ?, user_id = ? WHERE book_id = ?"
+	_, err := sqlexec(db, s, b.Name, b.Userid, b.Bookid)
 	if err != nil {
 		return err
 	}
@@ -206,9 +209,9 @@ func findBook(db *sql.DB, bookid int64) (*Book, error) {
 	return &b, nil
 }
 
-func findBooks(db *sql.DB, swhere string) ([]*Book, error) {
-	s := fmt.Sprintf("SELECT book_id, name FROM book WHERE %s", swhere)
-	rows, err := db.Query(s)
+func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
+	s := fmt.Sprintf("SELECT book_id, name FROM book WHERE user_id = ? AND %s", swhere)
+	rows, err := db.Query(s, userid)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +229,8 @@ func findBooks(db *sql.DB, swhere string) ([]*Book, error) {
 	}
 	return bb, nil
 }
-func findAllBooks(db *sql.DB) ([]*Book, error) {
-	return findBooks(db, "1=1 ORDER BY book_id")
+func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
+	return findBooks(db, userid, "1=1 ORDER BY book_id")
 }
 
 //** Account functions **
@@ -572,8 +575,8 @@ func createRandomStockTxns(db *sql.DB, accountid int64, ntxns int) error {
 
 //** User functions **
 func createUser(db *sql.DB, u *User) (int64, error) {
-	s := "INSERT INTO user (user_id, username, password) VALUES (?, ?, ?)"
-	result, err := sqlexec(db, s, u.Userid, u.Username, u.Password)
+	s := "INSERT INTO user (username, password) VALUES (?, ?)"
+	result, err := sqlexec(db, s, u.Username, u.Password)
 	if err != nil {
 		return 0, err
 	}

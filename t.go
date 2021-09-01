@@ -89,7 +89,6 @@ func run(args []string) error {
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
 	http.HandleFunc("/api/rootdata", rootdataHandler(db))
-	http.HandleFunc("/api/currencies", currenciesHandler(db))
 	http.HandleFunc("/api/book", bookHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
@@ -144,7 +143,7 @@ func createTables(newfile string) {
 	ss := []string{
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', user_id INTEGER NOT NULL);",
-		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0);",
+		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
@@ -170,49 +169,57 @@ func createTables(newfile string) {
 		os.Exit(1)
 	}
 
-	c := Currency{
-		Currency: "USD",
-		Usdrate:  1.0,
-	}
-	_, err = createCurrency(db, &c)
-	if err != nil {
-		panic(err)
-	}
-
-	b := Book{Name: "Accounts"}
-	_, err = createBook(db, &b)
-	if err != nil {
-		log.Printf("DB error (%s)\n", err)
-		os.Exit(1)
-	}
-
 	fmt.Printf("Creating test data... ")
 	initTestData(db)
 	fmt.Printf("Done\n")
 }
 
 func initTestData(db *sql.DB) {
+	u := User{
+		Username: "rob",
+	}
+	userid, err := createUser(db, &u)
+	if err != nil {
+		panic(err)
+	}
+
 	c := Currency{
+		Currency: "USD",
+		Usdrate:  1.0,
+		Userid:   userid,
+	}
+	_, err = createCurrency(db, &c)
+	if err != nil {
+		panic(err)
+	}
+	c = Currency{
 		Currency: "PHP",
 		Usdrate:  48.0,
+		Userid:   userid,
 	}
-	_, err := createCurrency(db, &c)
+	_, err = createCurrency(db, &c)
 	if err != nil {
 		panic(err)
 	}
 
-	b := Book{Name: "Personal"}
+	b := Book{
+		Name:   "My Accounts",
+		Userid: userid,
+	}
 	_, err = createBook(db, &b)
 	if err != nil {
 		panic(err)
 	}
-	b = Book{Name: "Family"}
+	b = Book{
+		Name:   "Work Accounts",
+		Userid: userid,
+	}
 	_, err = createBook(db, &b)
 	if err != nil {
 		panic(err)
 	}
 
-	bb, err := findAllBooks(db)
+	bb, err := findUserBooks(db, userid)
 	if err != nil {
 		panic(err)
 	}
@@ -325,7 +332,12 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 
 func rootdataHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rootdata, err := findRootdata(db)
+		quserid := idtoi(r.FormValue("userid"))
+		if quserid == 0 {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+		rootdata, err := findRootdata(db, quserid)
 		if err != nil {
 			handleErr(w, err, "rootdataHandler")
 		}
@@ -333,19 +345,6 @@ func rootdataHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
 		P("%s", jsonstr(rootdata))
-	}
-}
-
-func currenciesHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cc, err := findAllCurrencies(db)
-		if err != nil {
-			handleErr(w, err, "currenciesHandler")
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-		P("%s", jsonstr(cc))
 	}
 }
 
@@ -657,12 +656,17 @@ func whosHandler(db *sql.DB) http.HandlerFunc {
 
 func rptdataHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		quserid := idtoi(r.FormValue("userid"))
+		if quserid == 0 {
+			http.Error(w, "Not found.", 404)
+			return
+		}
 		qcurrencyid := idtoi(r.FormValue("currencyid"))
 		if qcurrencyid == 0 {
 			qcurrencyid = 1
 		}
 
-		rptdata, err := findRptdata(db, qcurrencyid)
+		rptdata, err := findRptdata(db, quserid, qcurrencyid)
 		if err != nil {
 			handleErr(w, err, "rptdataHandler")
 		}
@@ -675,6 +679,12 @@ func rptdataHandler(db *sql.DB) http.HandlerFunc {
 
 func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		quserid := idtoi(r.FormValue("userid"))
+		if quserid == 0 {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+
 		qwho := r.FormValue("who")
 		if qwho == "" {
 			qwho = "(noname)"
@@ -685,15 +695,15 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 		addSub(&_datasync, sub)
 		<-sub
 
-		model, err := findRootdata(db)
+		rootdata, err := findRootdata(db, quserid)
 		if err != nil {
-			handleErr(w, err, "subscribemodelHandler")
+			handleErr(w, err, "subscriberootHandler")
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
-		P("%s", jsonstr(model))
+		P("%s", jsonstr(rootdata))
 	}
 }
 

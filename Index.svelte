@@ -51,7 +51,9 @@ let tablinks;
 let tabsel = "journal";
 let mode = "";
 
-let userid, username, sig;
+let userid = 0;
+let username = "";
+let sig = "";
 
 let currencies = [];
 $: if (root != null) currencies = root.currencies;
@@ -60,12 +62,12 @@ reset();
 
 init();
 async function init() {
-    let [rootdata, err] = await data.loadRootdata();
+    let [rootdata, err] = await data.loadRootdata(userid);
     root = rootdata;
 
     // Subscribe to data changes.
     let qwho = getqs("who");
-    let sreq = `/api/subscriberoot?who=${qwho}`;
+    let sreq = `/api/subscriberoot?userid=${userid}&who=${qwho}`;
     console.log(`Subscribing (${qwho})...`);
     await subscribe(sreq, "json", function(rootdata, err) {
         if (err != null) {
@@ -99,6 +101,7 @@ function getqs(q) {
 // Reads user cookie of the format:
 //   user=<username>|<user signature>;
 //   Ex: user=robdelacruz|abc123
+/*
 function currentSession() {
     let userid = 0;
     let suserid = "";
@@ -133,6 +136,11 @@ function currentSession() {
         break;
     }
     return [userid, username, sig];
+}
+*/
+
+function currentSession() {
+    return [2, "rob", ""];
 }
 
 document.addEventListener("keyup", function(e) {

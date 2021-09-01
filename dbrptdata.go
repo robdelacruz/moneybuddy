@@ -9,6 +9,7 @@ import (
 )
 
 type Rptdata struct {
+	Userid   int64      `json:"userid"`
 	Currency *Currency  `json:"currency"`
 	BookRpts []*BookRpt `json:"bookrpts"`
 }
@@ -29,16 +30,16 @@ type RptItem struct {
 	Val     float64 `json:"val"`
 }
 
-func findRptdata(db *sql.DB, currencyid int64) (*Rptdata, error) {
+func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 	c, err := findCurrency(db, currencyid)
 	if err != nil {
 		return nil, err
 	}
 	if c == nil {
-		c = &Currency{1, "USD", 1.0}
+		c = &Currency{1, "USD", 1.0, 0}
 	}
 
-	bb, err := findAllBooks(db)
+	bb, err := findUserBooks(db, userid)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +54,7 @@ func findRptdata(db *sql.DB, currencyid int64) (*Rptdata, error) {
 	}
 
 	var rptdata Rptdata
+	rptdata.Userid = userid
 	rptdata.Currency = c
 	rptdata.BookRpts = rr
 	return &rptdata, nil
