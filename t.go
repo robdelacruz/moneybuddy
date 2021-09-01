@@ -97,9 +97,9 @@ func run(args []string) error {
 	http.HandleFunc("/api/whos", whosHandler(db))
 	http.HandleFunc("/api/rptdata", rptdataHandler(db))
 
-	http.HandleFunc("/api/login/", loginHandler(db))
-	http.HandleFunc("/api/signup/", signupHandler(db))
-	http.HandleFunc("/api/user/", userHandler(db))
+	http.HandleFunc("/api/login", loginHandler(db))
+	http.HandleFunc("/api/signup", signupHandler(db))
+	http.HandleFunc("/api/user", userHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
