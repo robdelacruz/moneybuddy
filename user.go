@@ -32,23 +32,24 @@ func validateSig(sig string, u *User) bool {
 	return validateHash(sig, fmt.Sprintf("%s_%s", u.Username, u.Password))
 }
 
-func signup(db *sql.DB, username, pwd string) error {
+func signup(db *sql.DB, username, pwd string) (*User, error) {
 	fexists, err := isUsernameExists(db, username)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if fexists {
-		return fmt.Errorf("username '%s' already exists", username)
+		return nil, fmt.Errorf("username '%s' already exists", username)
 	}
 
 	var u User
 	u.Username = username
 	u.Password = genHash(pwd)
-	_, err = createUser(db, &u)
+	newid, err := createUser(db, &u)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	u.Userid = newid
+	return &u, nil
 }
 
 var ErrLoginIncorrect = errors.New("Incorrect username or password")

@@ -99,8 +99,7 @@ func run(args []string) error {
 
 	http.HandleFunc("/api/login/", loginHandler(db))
 	http.HandleFunc("/api/signup/", signupHandler(db))
-	http.HandleFunc("/api/edituser/", edituserHandler(db))
-	http.HandleFunc("/api/deluser/", deluserHandler(db))
+	http.HandleFunc("/api/user/", userHandler(db))
 
 	port := "8000"
 	if len(parms) > 1 {
@@ -728,8 +727,10 @@ func signalAndCloseSubs(ds *DataSync) {
 }
 
 type LoginResult struct {
-	Sig   string `json:"sig"`
-	Error string `json:"error"`
+	Userid   int64  `json:"userid"`
+	Username string `json:"username"`
+	Sig      string `json:"sig"`
+	Error    string `json:"error"`
 }
 
 func loginHandler(db *sql.DB) http.HandlerFunc {
@@ -754,15 +755,32 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var result LoginResult
-		sig, err := loginUsername(db, loginreq.Username, loginreq.Pwd)
+		u, err := findUserByUsername(db, loginreq.Username)
 		if err != nil {
-			result.Error = fmt.Sprintf("%s", err)
+			handleErr(w, err, "loginHandler")
+			return
 		}
-		result.Sig = sig
 
 		w.Header().Set("Content-Type", "application/json")
 		P := makeFprintf(w)
+
+		var result LoginResult
+		if u == nil {
+			result.Error = fmt.Sprintf("Username '%s' not found", loginreq.Username)
+			bs, _ = json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		// Log in user.
+		sig, err := login(u, loginreq.Pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		result.Userid = u.Userid
+		result.Username = u.Username
+		result.Sig = sig
+
 		bs, _ = json.MarshalIndent(result, "", "\t")
 		P("%s\n", string(bs))
 	}
@@ -800,7 +818,7 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 
 		// Attempt to sign up new user.
 		var result LoginResult
-		err = signup(db, signupreq.Username, signupreq.Pwd)
+		u, err := signup(db, signupreq.Username, signupreq.Pwd)
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 			bs, _ := json.MarshalIndent(result, "", "\t")
@@ -809,136 +827,101 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Log in the newly signed up user.
-		sig, err := loginUsername(db, signupreq.Username, signupreq.Pwd)
+		sig, err := login(u, signupreq.Pwd)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		result.Userid = u.Userid
+		result.Username = u.Username
 		result.Sig = sig
-		if err != nil {
-			result.Error = fmt.Sprintf("%s", err)
-		}
+
 		bs, _ = json.MarshalIndent(result, "", "\t")
 		P("%s\n", string(bs))
 	}
 }
 
-func edituser(db *sql.DB, username, pwd string, newpwd string) error {
-	// Validate existing password
-	_, err := loginUsername(db, username, pwd)
-	if err != nil {
-		return err
-	}
-
-	// Set new password
-	hashedPwd := genHash(newpwd)
-	s := "UPDATE user SET password = ? WHERE username = ?"
-	_, err = sqlexec(db, s, hashedPwd, username)
-	if err != nil {
-		return fmt.Errorf("DB error updating user password: %s", err)
-	}
-	return nil
-}
-func edituserHandler(db *sql.DB) http.HandlerFunc {
-	type EditUserReq struct {
-		Username string `json:"username"`
-		Pwd      string `json:"pwd"`
-		NewPwd   string `json:"newpwd"`
-	}
+func userHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "Use POST method", 401)
+		if r.Method == "GET" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			a, err := findUser(db, qid)
+			if err != nil {
+				handleErr(w, err, "userHandler")
+				return
+			}
+			if a == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(a))
+			return
+		} else if r.Method == "POST" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "POST userHandler")
+				return
+			}
+			var u User
+			err = json.Unmarshal(bs, &u)
+			if err != nil {
+				handleErr(w, err, "POST userHandler")
+				return
+			}
+			newid, err := createUser(db, &u)
+			if err != nil {
+				handleErr(w, err, "POST userHandler")
+				return
+			}
+			u.Userid = newid
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(u))
+			return
+		} else if r.Method == "PUT" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "PUT userHandler")
+				return
+			}
+			var u User
+			err = json.Unmarshal(bs, &u)
+			if err != nil {
+				handleErr(w, err, "PUT userHandler")
+				return
+			}
+			err = editUser(db, &u)
+			if err != nil {
+				handleErr(w, err, "PUT userHandler")
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(u))
+			return
+		} else if r.Method == "DELETE" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			err := delUser(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL userHandler")
+				return
+			}
+
 			return
 		}
 
-		bs, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			handleErr(w, err, "edituserHandler")
-			return
-		}
-		var req EditUserReq
-		err = json.Unmarshal(bs, &req)
-		if err != nil {
-			handleErr(w, err, "edituserHandler")
-			return
-		}
-		if req.Username == "" {
-			http.Error(w, "username required", 401)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-
-		// Attempt to edit user.
-		var result LoginResult
-		err = edituser(db, req.Username, req.Pwd, req.NewPwd)
-		if err != nil {
-			result.Error = fmt.Sprintf("%s", err)
-			bs, _ := json.MarshalIndent(result, "", "\t")
-			P("%s\n", string(bs))
-			return
-		}
-
-		// Log in the newly edited user.
-		sig, err := loginUsername(db, req.Username, req.NewPwd)
-		result.Sig = sig
-		if err != nil {
-			result.Error = fmt.Sprintf("%s", err)
-		}
-		bs, _ = json.MarshalIndent(result, "", "\t")
-		P("%s\n", string(bs))
-	}
-}
-
-func deluser(db *sql.DB, username, pwd string) error {
-	// Validate existing password
-	_, err := loginUsername(db, username, pwd)
-	if err != nil {
-		return err
-	}
-
-	// Delete user
-	s := "DELETE FROM user WHERE username = ?"
-	_, err = sqlexec(db, s, username)
-	if err != nil {
-		return fmt.Errorf("DB error deleting user: %s", err)
-	}
-	return nil
-}
-func deluserHandler(db *sql.DB) http.HandlerFunc {
-	type DelUserReq struct {
-		Username string `json:"username"`
-		Pwd      string `json:"pwd"`
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "Use POST method", 401)
-			return
-		}
-
-		bs, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			handleErr(w, err, "deluserHandler")
-			return
-		}
-		var req DelUserReq
-		err = json.Unmarshal(bs, &req)
-		if err != nil {
-			handleErr(w, err, "deluserHandler")
-			return
-		}
-		if req.Username == "" {
-			http.Error(w, "username required", 401)
-			return
-		}
-
-		// Attempt to delete user.
-		var result LoginResult
-		err = deluser(db, req.Username, req.Pwd)
-		if err != nil {
-			result.Error = fmt.Sprintf("%s", err)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		P := makeFprintf(w)
-		bs, _ = json.MarshalIndent(result, "", "\t")
-		P("%s\n", string(bs))
+		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
 	}
 }
