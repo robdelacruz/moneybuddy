@@ -20,8 +20,19 @@ export let root = null;
 let waccounts;
 let wtxns;
 
-let selbookid = 1;
+let selbookid = 0;
 let selaccountid = null;
+
+$: if (selbookid == 0 && root != null) {
+    selbookid = firstbookid(root);
+}
+
+function firstbookid(rootdata) {
+    if (rootdata == null || rootdata.books.length == 0) {
+        return 0;
+    }
+    return rootdata.books[0].bookid;
+}
 
 function accounts_selectbookid(e) {
     selbookid = e.detail;

@@ -1,5 +1,5 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
-{#if root == null}
+{#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
@@ -100,7 +100,7 @@ import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
 export let root = null;
-export let bookid = 1;
+export let bookid = 0;
 
 let selid = 0;
 let editid = -1;

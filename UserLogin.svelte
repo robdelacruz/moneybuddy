@@ -1,5 +1,5 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
-    <h1 class="text-sm font-bold fg-h1 mb-2">Create Your Account</h1>
+    <h1 class="text-sm font-bold fg-h1 mb-2">Log In</h1>
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
@@ -7,12 +7,9 @@
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="password" id="password" type="password" placeholder="Password" bind:value={frm_password}>
         </div>
-        <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="password2" id="password2" type="password" placeholder="Re-enter Password" bind:value={frm_password2}>
-        </div>
         <div class="flex flex-row justify-left">
             <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Sign Up</button>
+                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Login</button>
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
             </div>
         </div>
@@ -45,19 +42,14 @@ document.addEventListener("keydown", function(e) {
 });
 
 async function onSubmit(e) {
-    if (frm_password != frm_password2) {
-        status = "passwords don't match";
-        return;
-    }
-
     status = "processing";
 
-    let signupreq = {};
-    signupreq.username = frm_username;
-    signupreq.password = frm_password;
+    let loginreq = {};
+    loginreq.username = frm_username;
+    loginreq.password = frm_password;
 
-    let sreq = `${svcurl}/signup`;
-    let [result, err] = await submit(sreq, "POST", signupreq);
+    let sreq = `${svcurl}/login`;
+    let [result, err] = await submit(sreq, "POST", loginreq);
     if (err != null) {
         console.error(err);
         status = err;

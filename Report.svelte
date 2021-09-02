@@ -1,6 +1,6 @@
 <div class="flex flex-row">
     <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
-    {#if rptdata == null}
+    {#if rptdata == null || rptdata.bookrpts.length == 0}
         <p class="fg-dim">No data</p>
     {:else}
         <div class="flex flex-row justify-between border-b border-cell mb-4">
@@ -55,9 +55,21 @@ let menurpts = [
     {id: "robrpt", name: "Rob Report"}
 ];
 
-let selbookid = 1;
+let selbookid = 0;
 let selrptid = menurpts[0].id;
 let selcurrencyid = 1;
+
+$: if (selbookid == 0 && rptdata != null) {
+    selbookid = firstbookid(rptdata);
+}
+
+function firstbookid(rptdata) {
+    if (rptdata == null || rptdata.bookrpts.length == 0) {
+        return 0;
+    }
+    return rptdata.bookrpts[0].bookid;
+}
+
 
 $: init(userid, selcurrencyid);
 

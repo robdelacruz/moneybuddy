@@ -7,7 +7,7 @@
 JSFILES = index.js helpers.js data.js
 JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte
 JSFILES3 = Tablinks.svelte Journal.svelte Report.svelte SummaryRpt.svelte
-JSFILES4 = UserSignup.svelte
+JSFILES4 = UserLogin.svelte UserSignup.svelte
 
 SRCS = t.go util.go web.go user.go
 SRCS2 = db.go dbdata.go dbrptdata.go

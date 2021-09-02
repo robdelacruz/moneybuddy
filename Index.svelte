@@ -25,7 +25,7 @@
 {:else if mode == "login"}
 <Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
     {#if tabsel == "login"}
-    <p>login</p>
+    <UserLogin bind:this={wuserlogin} on:submit={reset} on:cancel={reset} />
     {:else if tabsel == "signup"}
     <UserSignup bind:this={wusersignup} on:submit={reset} on:cancel={reset} />
     {/if}
@@ -39,6 +39,7 @@ import * as data from "./data.js";
 import Tablinks from "./Tablinks.svelte";
 import Journal from "./Journal.svelte";
 import Report from "./Report.svelte";
+import UserLogin from "./UserLogin.svelte";
 import UserSignup from "./UserSignup.svelte";
 
 let wjournal;
@@ -108,7 +109,6 @@ function getqs(q) {
 // Reads user cookie of the format:
 //   user=<username>|<user signature>;
 //   Ex: user=robdelacruz|abc123
-/*
 function currentSession() {
     let userid = 0;
     let suserid = "";
@@ -143,11 +143,6 @@ function currentSession() {
         break;
     }
     return [userid, username, sig];
-}
-*/
-
-function currentSession() {
-    return [2, "rob", ""];
 }
 
 document.addEventListener("keyup", function(e) {

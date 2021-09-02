@@ -748,7 +748,7 @@ type LoginResult struct {
 func loginHandler(db *sql.DB) http.HandlerFunc {
 	type LoginReq struct {
 		Username string `json:"username"`
-		Pwd      string `json:"pwd"`
+		Password string `json:"password"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -785,7 +785,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Log in user.
-		sig, err := login(u, loginreq.Pwd)
+		sig, err := login(u, loginreq.Password)
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 		}
@@ -801,7 +801,7 @@ func loginHandler(db *sql.DB) http.HandlerFunc {
 func signupHandler(db *sql.DB) http.HandlerFunc {
 	type SignupReq struct {
 		Username string `json:"username"`
-		Pwd      string `json:"pwd"`
+		Password string `json:"password"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -830,7 +830,7 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 
 		// Attempt to sign up new user.
 		var result LoginResult
-		u, err := signup(db, signupreq.Username, signupreq.Pwd)
+		u, err := signup(db, signupreq.Username, signupreq.Password)
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 			bs, _ := json.MarshalIndent(result, "", "\t")
@@ -839,7 +839,7 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Log in the newly signed up user.
-		sig, err := login(u, signupreq.Pwd)
+		sig, err := login(u, signupreq.Password)
 		if err != nil {
 			result.Error = fmt.Sprintf("%s", err)
 		}

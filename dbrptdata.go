@@ -44,7 +44,7 @@ func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 		return nil, err
 	}
 
-	var rr []*BookRpt
+	rr := []*BookRpt{}
 	for _, b := range bb {
 		r, err := findBookRptdata(db, b, c)
 		if err != nil {
