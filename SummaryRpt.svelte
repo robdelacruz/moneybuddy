@@ -2,7 +2,7 @@
     <p class="fg-dim">No data</p>
 {:else}
     <div class="flex flex-row justify-between mb-2">
-        <h1 class="text-sm font-bold fg-h2 bg-normal">{selbookrpt.summaryrpt.heading}</h1>
+        <h1 class="text-sm font-bold fg-h2">{selbookrpt.summaryrpt.heading}</h1>
     </div>
 
     {#each selbookrpt.summaryrpt.rptitems as ri}
@@ -11,7 +11,7 @@
             </div>
         {:else if ri.caption.startsWith("# ")}
             <div class="flex flex-row flex-start p-1">
-                <h2 class="cell-desc fg-h2">{ri.caption.substring(2)}</h2>
+                <h2 class="cell-desc font-bold fg-h2">{ri.caption.substring(2)}</h2>
             </div>
         {:else}
         <div class="flex flex-row flex-start p-1 border-b border-cell">

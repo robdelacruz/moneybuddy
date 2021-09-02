@@ -1,9 +1,9 @@
 <div class="flex flex-row fg-normal text-sm">
 {#each tabs as tab}
     {#if tab.id == sel}
-        <a href="#a" class="rounded-t-md py-1 px-3 bg-normal" on:click='{e => onlink(tab.id)}'>{tab.caption}</a>
+        <a href="/" class="rounded-t-md py-1 px-3 bg-normal" on:click|preventDefault='{e => onlink(tab.id)}'>{tab.caption}</a>
     {:else}
-        <a href="#a" class="py-1 px-3" on:click='{e => onlink(tab.id)}'>{tab.caption}</a>
+        <a href="/" class="py-1 px-3" on:click|preventDefault='{e => onlink(tab.id)}'>{tab.caption}</a>
     {/if}
 {/each}
 </div>

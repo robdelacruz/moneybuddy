@@ -3,7 +3,7 @@
     <p class="fg-dim">No data</p>
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
-        <div class="flex-grow">
+        <div class="">
             <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
                 {#each root.books as book}
                 <option value={book.bookid}>{book.name}</option>
@@ -27,7 +27,7 @@
     {/if}
     {#if display_bb.length > 0}
     <div class="mb-1">
-        <h2 class="text-sm font-bold">Bank Accounts</h2>
+        <h2 class="font-bold fg-h2">Bank Accounts</h2>
     </div>
     {/if}
     {#each display_bb as a (a.accountid)}
@@ -60,7 +60,7 @@
     </div>
     {#if display_ss.length > 0}
     <div class="mb-1">
-        <h2 class="text-sm font-bold">Stock Accounts</h2>
+        <h2 class="font-bold fg-h2">Stocks</h2>
     </div>
     {/if}
     {#each display_ss as a (a.accountid)}

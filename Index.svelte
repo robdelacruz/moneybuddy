@@ -25,9 +25,9 @@
 {:else if mode == "login"}
 <Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
     {#if tabsel == "login"}
-    <UserLogin bind:this={wuserlogin} on:submit={reset} on:cancel={reset} />
+    <UserLogin bind:this={wuserlogin} on:submit={reset} />
     {:else if tabsel == "signup"}
-    <UserSignup bind:this={wusersignup} on:submit={reset} on:cancel={reset} />
+    <UserSignup bind:this={wusersignup} on:submit={reset} />
     {/if}
 {/if}
 
