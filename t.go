@@ -169,14 +169,16 @@ func createTables(newfile string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Creating test data... ")
-	initTestData(db)
+	fmt.Printf("Creating user1's test data... ")
+	initTestData(db, "rob")
+	fmt.Printf("Creating user2's test data... ")
+	initTestData(db, "user2")
 	fmt.Printf("Done\n")
 }
 
-func initTestData(db *sql.DB) {
+func initTestData(db *sql.DB, username string) {
 	u := User{
-		Username: "rob",
+		Username: username,
 	}
 	userid, err := createUser(db, &u)
 	if err != nil {
@@ -203,7 +205,7 @@ func initTestData(db *sql.DB) {
 	}
 
 	b := Book{
-		Name:   "My Accounts",
+		Name:   fmt.Sprintf("%s's accounts", username),
 		Userid: userid,
 	}
 	_, err = createBook(db, &b)

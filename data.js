@@ -124,8 +124,8 @@ export function formattedAmt(amt, currency) {
     return formatter.format(amt);
 }
 
-export async function loadRptdata(currencyid) {
-    let sreq = `${svcurl}/rptdata?currencyid=${currencyid}`;
+export async function loadRptdata(userid, currencyid) {
+    let sreq = `${svcurl}/rptdata?userid=${userid}&currencyid=${currencyid}`;
     let [rptdata, err] = await find(sreq);
     return [rptdata, null];
 }

@@ -18,7 +18,7 @@
     {#if tabsel == "journal"}
         <Journal bind:this={wjournal} root={root} />
     {:else if tabsel == "report"}
-        <Report bind:this={wreport} currencies={currencies} />
+        <Report bind:this={wreport} userid={userid} currencies={currencies} />
     {:else if tabsel == "setup"}
         <p class="fg-normal">setup</p>
     {/if}
@@ -60,8 +60,15 @@ $: if (root != null) currencies = root.currencies;
 
 reset();
 
-init();
-async function init() {
+$: resetTabs(userid);
+$: subscribeRootdata(userid);
+
+async function subscribeRootdata(userid) {
+    if (userid == 0) {
+        root = null;
+        return;
+    }
+
     let [rootdata, err] = await data.loadRootdata(userid);
     root = rootdata;
 
@@ -165,7 +172,9 @@ function onlogout(e) {
 
 function reset() {
     [userid, username, sig] = currentSession();
+}
 
+function resetTabs(userid) {
     // Not logged in, show login prompt.
     if (userid == 0) {
         mode = "login";

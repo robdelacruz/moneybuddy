@@ -45,6 +45,7 @@ let dispatch = createEventDispatcher();
 import * as data from "./data.js";
 import SummaryRpt from "./SummaryRpt.svelte";
 
+export let userid = 0;
 export let currencies = [];
 let rptdata = null;
 let wsummaryrpt;
@@ -58,10 +59,10 @@ let selbookid = 1;
 let selrptid = menurpts[0].id;
 let selcurrencyid = 1;
 
-$: init(selcurrencyid);
+$: init(userid, selcurrencyid);
 
-async function init(currencyid) {
-    let [d, err] = await data.loadRptdata(currencyid);
+async function init(userid, currencyid) {
+    let [d, err] = await data.loadRptdata(userid, currencyid);
     rptdata = d;
 }
 
