@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -49,7 +51,55 @@ func signup(db *sql.DB, username, pwd string) (*User, error) {
 		return nil, err
 	}
 	u.Userid = newid
+
+	err = initUserData(db, &u)
+	if err != nil {
+		delUser(db, u.Userid)
+		return nil, err
+	}
+
 	return &u, nil
+}
+
+// Create initial data set for new user.
+func initUserData(db *sql.DB, u *User) error {
+	c := Currency{
+		Currency: "USD",
+		Usdrate:  1.0,
+		Userid:   u.Userid,
+	}
+	_, err := createCurrency(db, &c)
+	if err != nil {
+		return err
+	}
+	c = Currency{
+		Currency: "PHP",
+		Usdrate:  48.0,
+		Userid:   u.Userid,
+	}
+	_, err = createCurrency(db, &c)
+	if err != nil {
+		return err
+	}
+
+	b := Book{
+		Name:   fmt.Sprintf("%s's Accounts", strings.Title(u.Username)),
+		Userid: u.Userid,
+	}
+	_, err = createBook(db, &b)
+	if err != nil {
+		return err
+	}
+	b = Book{
+		Name:   "Other Accounts",
+		Userid: u.Userid,
+	}
+	_, err = createBook(db, &b)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var ErrLoginIncorrect = errors.New("Incorrect username or password")

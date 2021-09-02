@@ -175,8 +175,8 @@ func delBook(db *sql.DB, bookid int64) error {
 }
 
 func assignBookAccounts(b *Book, aa []*Account) {
-	var bb []*Account
-	var ss []*Account
+	bb := []*Account{}
+	ss := []*Account{}
 	for _, a := range aa {
 		if a.AccountType == BankAccount {
 			bb = append(bb, a)
