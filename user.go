@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -125,4 +126,42 @@ func loginUsername(db *sql.DB, username, pwd string) (string, error) {
 		return "", err
 	}
 	return sig, nil
+}
+
+func validateUserSig(db *sql.DB, userid int64, sig string) *User {
+	if userid == 0 {
+		return nil
+	}
+	u, err := findUser(db, userid)
+	if err != nil {
+		return nil
+	}
+	if u == nil {
+		return nil
+	}
+	if !validateSig(sig, u) {
+		return nil
+	}
+	return u
+}
+
+func validateApiUser(db *sql.DB, r *http.Request) *User {
+	// Get user making the request. There are two ways to specify user:
+	// - Through querystring siguserid and sig
+	// - Through http cookies 'userid' and 'sig'
+	quserid := idtoi(r.FormValue("siguserid"))
+	qsig := r.FormValue("sig")
+	if quserid == 0 {
+		// cookie format: user=<userid>|<username>|<sig>
+		vvv := strings.Split(readCookie(r, "user"), "|")
+		if len(vvv) < 3 {
+			return nil
+		}
+		quserid = idtoi(vvv[0])
+		qsig = vvv[2]
+	}
+
+	fmt.Printf("validateApiUser: quserid=%d, qsig=%s\n", quserid, qsig)
+
+	return validateUserSig(db, quserid, qsig)
 }

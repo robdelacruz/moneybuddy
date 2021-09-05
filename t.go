@@ -334,9 +334,23 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 
 func rootdataHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Use GET", 401)
+			return
+		}
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		quserid := idtoi(r.FormValue("userid"))
 		if quserid == 0 {
 			http.Error(w, "Not found.", 404)
+			return
+		}
+		if quserid != requser.Userid {
+			http.Error(w, "Invalid user", 401)
 			return
 		}
 		rootdata, err := findRootdata(db, quserid)
@@ -360,6 +374,12 @@ func getbookid(r *http.Request) int64 {
 
 func bookHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		if r.Method == "GET" {
 			qid := idtoi(r.FormValue("id"))
 			if qid == 0 {
@@ -373,6 +393,10 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 			if b == nil {
 				http.Error(w, "Not found.", 404)
+				return
+			}
+			if b.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
 				return
 			}
 
@@ -392,6 +416,11 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "POST bookHandler")
 				return
 			}
+			if b.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			newid, err := createBook(db, &b)
 			if err != nil {
 				handleErr(w, err, "POST bookHandler")
@@ -418,6 +447,11 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT bookHandler")
 				return
 			}
+			if b.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			err = editBook(db, &b)
 			if err != nil {
 				handleErr(w, err, "PUT bookHandler")
@@ -437,7 +471,20 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Not found.", 404)
 				return
 			}
-			err := delBook(db, qid)
+			b, err := findBook(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL bookHandler")
+				return
+			}
+			if b == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			if b.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+			err = delBook(db, qid)
 			if err != nil {
 				handleErr(w, err, "DEL bookHandler")
 				return
@@ -455,6 +502,12 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 
 func accountHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		if r.Method == "GET" {
 			qid := idtoi(r.FormValue("id"))
 			if qid == 0 {
