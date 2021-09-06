@@ -21,9 +21,8 @@ var _log *log.Logger
 
 type SignalChan chan struct{}
 type DataSync struct {
-	subs []SignalChan
+	subs map[int64][]SignalChan
 	mu   sync.RWMutex
-	whos []string
 }
 
 var _datasync DataSync
@@ -93,7 +92,6 @@ func run(args []string) error {
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
 	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
-	http.HandleFunc("/api/whos", whosHandler(db))
 	http.HandleFunc("/api/rptdata", rptdataHandler(db))
 
 	http.HandleFunc("/api/login", loginHandler(db))
@@ -430,7 +428,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			b.Bookid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -460,7 +458,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -492,7 +490,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -571,7 +569,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			a.Accountid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -607,7 +605,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -637,7 +635,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -714,7 +712,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			t.Txnid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -750,7 +748,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -780,25 +778,12 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync)
+			signalAndCloseSubs(&_datasync, requser.Userid)
 
 			return
 		}
 
 		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
-	}
-}
-
-func whosHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		P := makeFprintf(w)
-		P("num subs: %d\n", len(_datasync.subs))
-		P("num whos: %d\n", len(_datasync.whos))
-
-		for i := 0; i < len(_datasync.whos); i++ {
-			P("whos[%d]: %s\n", i, _datasync.whos[i])
-		}
 	}
 }
 
@@ -862,14 +847,8 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		qwho := r.FormValue("who")
-		if qwho == "" {
-			qwho = "(noname)"
-		}
-		_datasync.whos = append(_datasync.whos, qwho)
-
 		sub := make(SignalChan, 1)
-		addSub(&_datasync, sub)
+		addSub(&_datasync, quserid, sub)
 		<-sub
 
 		rootdata, err := findRootdata(db, quserid)
@@ -884,33 +863,35 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func addSub(ds *DataSync, sub SignalChan) {
+func addSub(ds *DataSync, userid int64, sub SignalChan) {
 	ds.mu.Lock()
 	defer ds.mu.Unlock()
 
-	ds.subs = append(ds.subs, sub)
+	if ds.subs == nil {
+		ds.subs = make(map[int64][]SignalChan)
+	}
+	ds.subs[userid] = append(ds.subs[userid], sub)
 }
-func signalSubs(ds *DataSync) {
+func signalSubs(ds *DataSync, userid int64) {
 	ds.mu.RLock()
 	defer ds.mu.RUnlock()
 
-	for _, ch := range ds.subs {
+	for _, ch := range ds.subs[userid] {
 		ch <- struct{}{}
 	}
 }
-func closeSubs(ds *DataSync) {
+func closeSubs(ds *DataSync, userid int64) {
 	ds.mu.Lock()
 	defer ds.mu.Unlock()
 
-	for _, sub := range ds.subs {
+	for _, sub := range ds.subs[userid] {
 		close(sub)
 	}
-	ds.subs = nil
-	ds.whos = nil
+	ds.subs[userid] = nil
 }
-func signalAndCloseSubs(ds *DataSync) {
-	signalSubs(ds)
-	closeSubs(ds)
+func signalAndCloseSubs(ds *DataSync, userid int64) {
+	signalSubs(ds, userid)
+	closeSubs(ds, userid)
 }
 
 type LoginResult struct {
