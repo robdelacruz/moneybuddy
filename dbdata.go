@@ -59,6 +59,45 @@ type Txn struct {
 	Amt       float64 `json:"amt"`
 }
 
+func findAccountUserid(db *sql.DB, accountid int64) (int64, error) {
+	s := `SELECT IFNULL(b.user_id, 0) 
+FROM account a
+INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
+INNER JOIN book b ON b.book_id = ba.book_id 
+WHERE a.account_id = ?`
+	rows, err := db.Query(s, accountid)
+	if err != nil {
+		return 0, err
+	}
+	var userid int64
+	for rows.Next() {
+		rows.Scan(&userid)
+		break
+	}
+	rows.Close()
+	return userid, nil
+}
+
+func findTxnUserid(db *sql.DB, txnid int64) (int64, error) {
+	s := `SELECT IFNULL(b.user_id, 0) 
+FROM txn t
+INNER JOIN account a ON a.account_id = t.account_id
+INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
+INNER JOIN book b ON b.book_id = ba.book_id 
+WHERE t.txn_id = ?`
+	rows, err := db.Query(s, txnid)
+	if err != nil {
+		return 0, err
+	}
+	var userid int64
+	for rows.Next() {
+		rows.Scan(&userid)
+		break
+	}
+	rows.Close()
+	return userid, nil
+}
+
 //** Currency functions **
 func createCurrency(db *sql.DB, c *Currency) (int64, error) {
 	s := "INSERT INTO currency (currency, usdrate, user_id) VALUES (?, ?, ?)"

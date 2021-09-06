@@ -516,11 +516,21 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 			a, err := findAccount(db, qid)
 			if err != nil {
-				handleErr(w, err, "accountHandler")
+				handleErr(w, err, "GET accountHandler")
 				return
 			}
 			if a == nil {
 				http.Error(w, "Not found.", 404)
+				return
+			}
+			// Check if requester user has access.
+			accountUserid, err := findAccountUserid(db, qid)
+			if err != nil {
+				handleErr(w, err, "GET accountHandler")
+				return
+			}
+			if accountUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
 				return
 			}
 
@@ -541,6 +551,17 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "POST accountHandler")
 				return
 			}
+			// Check if requester user has access.
+			accountUserid, err := findAccountUserid(db, a.Accountid)
+			if err != nil {
+				handleErr(w, err, "POST accountHandler")
+				return
+			}
+			if accountUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			newid, err := createAccount(db, &a, qbookid)
 			if err != nil {
 				handleErr(w, err, "POST accountHandler")
@@ -567,6 +588,17 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT accountHandler")
 				return
 			}
+			// Check if requester user has access.
+			accountUserid, err := findAccountUserid(db, a.Accountid)
+			if err != nil {
+				handleErr(w, err, "PUT accountHandler")
+				return
+			}
+			if accountUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			err = editAccount(db, &a)
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
@@ -586,7 +618,18 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Not found.", 404)
 				return
 			}
-			err := delAccount(db, qid)
+			// Check if requester user has access.
+			accountUserid, err := findAccountUserid(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL accountHandler")
+				return
+			}
+			if accountUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
+			err = delAccount(db, qid)
 			if err != nil {
 				handleErr(w, err, "DEL accountHandler")
 				return
@@ -603,6 +646,12 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 }
 func txnHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		if r.Method == "GET" {
 			qid := idtoi(r.FormValue("id"))
 			if qid == 0 {
@@ -616,6 +665,16 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 			if t == nil {
 				http.Error(w, "Not found.", 404)
+				return
+			}
+			// Check if requester user has access.
+			txnUserid, err := findTxnUserid(db, qid)
+			if err != nil {
+				handleErr(w, err, "GET txnHandler")
+				return
+			}
+			if txnUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
 				return
 			}
 
@@ -635,6 +694,17 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "POST txnHandler")
 				return
 			}
+			// Check if requester user has access.
+			txnUserid, err := findTxnUserid(db, t.Txnid)
+			if err != nil {
+				handleErr(w, err, "POST txnHandler")
+				return
+			}
+			if txnUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			newid, err := createTxn(db, &t)
 			if err != nil {
 				handleErr(w, err, "POST txnHandler")
@@ -661,6 +731,17 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT txnHandler")
 				return
 			}
+			// Check if requester user has access.
+			txnUserid, err := findTxnUserid(db, t.Txnid)
+			if err != nil {
+				handleErr(w, err, "PUT txnHandler")
+				return
+			}
+			if txnUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			err = editTxn(db, &t)
 			if err != nil {
 				handleErr(w, err, "PUT txnHandler")
@@ -680,7 +761,18 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Not found.", 404)
 				return
 			}
-			err := delTxn(db, qid)
+			// Check if requester user has access.
+			txnUserid, err := findTxnUserid(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL txnHandler")
+				return
+			}
+			if txnUserid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
+			err = delTxn(db, qid)
 			if err != nil {
 				handleErr(w, err, "DEL txnHandler")
 				return

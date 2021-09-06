@@ -161,7 +161,5 @@ func validateApiUser(db *sql.DB, r *http.Request) *User {
 		qsig = vvv[2]
 	}
 
-	fmt.Printf("validateApiUser: quserid=%d, qsig=%s\n", quserid, qsig)
-
 	return validateUserSig(db, quserid, qsig)
 }
