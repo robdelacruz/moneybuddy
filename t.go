@@ -353,6 +353,7 @@ func rootdataHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Invalid user", 401)
 			return
 		}
+
 		rootdata, err := findRootdata(db, quserid)
 		if err != nil {
 			handleErr(w, err, "rootdataHandler")
@@ -803,11 +804,26 @@ func whosHandler(db *sql.DB) http.HandlerFunc {
 
 func rptdataHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Use GET", 401)
+			return
+		}
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		quserid := idtoi(r.FormValue("userid"))
 		if quserid == 0 {
 			http.Error(w, "Not found.", 404)
 			return
 		}
+		if quserid != requser.Userid {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		qcurrencyid := idtoi(r.FormValue("currencyid"))
 		if qcurrencyid == 0 {
 			qcurrencyid = 1
@@ -826,9 +842,23 @@ func rptdataHandler(db *sql.DB) http.HandlerFunc {
 
 func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Use GET", 401)
+			return
+		}
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		quserid := idtoi(r.FormValue("userid"))
 		if quserid == 0 {
 			http.Error(w, "Not found.", 404)
+			return
+		}
+		if quserid != requser.Userid {
+			http.Error(w, "Invalid user", 401)
 			return
 		}
 
