@@ -20,7 +20,7 @@
     {:else if tabsel == "report"}
         <Report bind:this={wreport} userid={userid} currencies={currencies} />
     {:else if tabsel == "setup"}
-        <p class="fg-normal">setup</p>
+        <Setup bind:this={wsetup} userid={userid} root={root} />
     {/if}
 {:else if mode == "login"}
 <Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
@@ -39,11 +39,13 @@ import * as data from "./data.js";
 import Tablinks from "./Tablinks.svelte";
 import Journal from "./Journal.svelte";
 import Report from "./Report.svelte";
+import Setup from "./Setup.svelte";
 import UserLogin from "./UserLogin.svelte";
 import UserSignup from "./UserSignup.svelte";
 
 let wjournal;
 let wreport;
+let wsetup;
 let wuserlogin;
 let wusersignup;
 
