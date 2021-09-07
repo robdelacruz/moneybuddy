@@ -1,8 +1,8 @@
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}
-    <div class="flex flex-row justify-left items-end mb-2">
-        <div></div>
+    <div class="flex flex-row justify-between items-end mb-2">
+        <h2 class="text-sm font-bold fg-h1 bg-normal">Setup Books</h2>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Book</a>
     </div>
     {#if editid == 0}
