@@ -11,11 +11,11 @@
             </select>
         </div>
         {#if selmenuid == "books"}
-        <SetupBooks root={root} userid={userid} />
+            <SetupBooks root={root} userid={userid} />
         {:else if selmenuid == "currencies"}
-            <p>currencies</p>
+            <SetupCurrencies root={root} userid={userid} />
         {:else if selmenuid == "user"}
-            <p>user</p>
+            <SetupUser userid={userid} />
         {/if}
     {/if}
     </div>
@@ -31,6 +31,8 @@ import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
 import * as data from "./data.js";
 import SetupBooks from "./SetupBooks.svelte";
+import SetupCurrencies from "./SetupCurrencies.svelte";
+import SetupUser from "./SetupUser.svelte";
 
 export let userid = 0;
 export let root = null;

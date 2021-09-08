@@ -1,23 +1,34 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 15rem;">
-    <h1 class="text-sm font-bold fg-h1 mb-4">User Login</h1>
+{#if userid == 0}
+    <p class="fg-dim">Select User</p>
+{:else}
     <form class="" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
         </div>
-        <div class="mb-4">
+        <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="password" id="password" type="password" placeholder="Password" bind:value={frm_password}>
         </div>
-        <div class="flex flex-row justify-center mb-2">
-            <button class="border border-normal py-1 px-2 bg-inputok mr-2">Login</button>
-            <a href="/" class="hidden action self-center" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
+        {#if mode == ""}
+        <div class="flex flex-row justify-left mb-2">
+            <button class="border border-normal py-1 px-2 bg-inputok mr-2" on:click|preventDefault={onDelete}>Delete User</button>
+            <a href="/" class="action self-center" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
         </div>
+        {:else if mode == "delete"}
+        <div class="flex flex-row justify-left">
+            <p class="self-center uppercase italic text-xs mr-4">This cannot be undone. Confirm Delete?</p>
+            <div>
+                <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2">Delete</button>
+                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+            </div>
+        </div>
+        {/if}
         {#if status != ""}
         <div class="">
             <p class="uppercase italic text-xs">{status}</p>
         </div>
         {/if}
     </form>
-</div>
+{/if}
 
 <script>
 import {onMount, createEventDispatcher} from "svelte";
@@ -25,11 +36,13 @@ let dispatch = createEventDispatcher();
 import {find, submit, del} from "./helpers.js";
 import * as data from "./data.js";
 
+export let userid = 0;
+
 let svcurl = "/api";
+let mode = "";
 let status = "";
 let frm_username = "";
 let frm_password = "";
-let frm_password2 = "";
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -37,9 +50,18 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
+function onDelete(e) {
+    mode = "delete";
+}
+
+function onCancelDelete(e) {
+    mode = "";
+}
+
 async function onSubmit(e) {
     status = "processing";
 
+    // Validate username and password first.
     let loginreq = {};
     loginreq.username = frm_username;
     loginreq.password = frm_password;
@@ -57,7 +79,16 @@ async function onSubmit(e) {
         return;
     }
 
-    document.cookie = `user=${result.userid}|${result.username}|${result.sig};path=/`;
+    // Delete user.
+    sreq = `${svcurl}/user?id=${userid}`;
+    err = await del(sreq);
+    if (err != null) {
+        console.error(err);
+        status = "server error deleting user";
+        return;
+    }
+
+    status = "";
     dispatch("submit");
 }
 

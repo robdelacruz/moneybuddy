@@ -88,6 +88,7 @@ func run(args []string) error {
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
 	http.HandleFunc("/", indexHandler(db))
 	http.HandleFunc("/api/rootdata", rootdataHandler(db))
+	http.HandleFunc("/api/currency", currencyHandler(db))
 	http.HandleFunc("/api/book", bookHandler(db))
 	http.HandleFunc("/api/account", accountHandler(db))
 	http.HandleFunc("/api/txn", txnHandler(db))
@@ -96,6 +97,7 @@ func run(args []string) error {
 
 	http.HandleFunc("/api/login", loginHandler(db))
 	http.HandleFunc("/api/signup", signupHandler(db))
+	http.HandleFunc("/api/password", passwordHandler(db))
 	http.HandleFunc("/api/user", userHandler(db))
 
 	port := "8000"
@@ -371,6 +373,134 @@ func getbookid(r *http.Request) int64 {
 	return qbookid
 }
 
+func currencyHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
+		if r.Method == "GET" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			c, err := findCurrency(db, qid)
+			if err != nil {
+				handleErr(w, err, "GET currencyHandler")
+				return
+			}
+			if c == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			if c.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(c))
+			return
+		} else if r.Method == "POST" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "POST currencyHandler")
+				return
+			}
+			var c Currency
+			err = json.Unmarshal(bs, &c)
+			if err != nil {
+				handleErr(w, err, "POST currencyHandler")
+				return
+			}
+			if c.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
+			newid, err := createCurrency(db, &c)
+			if err != nil {
+				handleErr(w, err, "POST currencyHandler")
+				return
+			}
+			c.Currencyid = newid
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync, requser.Userid)
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(c))
+			return
+		} else if r.Method == "PUT" {
+			bs, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				handleErr(w, err, "PUT currencyHandler")
+				return
+			}
+			var c Currency
+			err = json.Unmarshal(bs, &c)
+			if err != nil {
+				handleErr(w, err, "PUT currencyHandler")
+				return
+			}
+			if c.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
+			err = editCurrency(db, &c)
+			if err != nil {
+				handleErr(w, err, "PUT currencyHandler")
+				return
+			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync, requser.Userid)
+
+			w.Header().Set("Content-Type", "application/json")
+			P := makeFprintf(w)
+			P("%s", jsonstr(c))
+			return
+		} else if r.Method == "DELETE" {
+			qid := idtoi(r.FormValue("id"))
+			if qid == 0 {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			c, err := findCurrency(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL currencyHandler")
+				return
+			}
+			if c == nil {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+			if c.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+			err = delCurrency(db, qid)
+			if err != nil {
+				handleErr(w, err, "DEL currencyHandler")
+				return
+			}
+
+			// Inform all data subscribers that a data change occured.
+			signalAndCloseSubs(&_datasync, requser.Userid)
+
+			return
+		}
+
+		http.Error(w, "Use GET/POST/PUT/DELETE", 401)
+	}
+}
+
 func bookHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requser := validateApiUser(db, r)
@@ -387,7 +517,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 			b, err := findBook(db, qid)
 			if err != nil {
-				handleErr(w, err, "bookHandler")
+				handleErr(w, err, "GET bookHandler")
 				return
 			}
 			if b == nil {
@@ -1008,29 +1138,126 @@ func signupHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+func passwordHandler(db *sql.DB) http.HandlerFunc {
+	type PasswordReq struct {
+		Userid      int64  `json:"userid"`
+		Password    string `json:"password"`
+		NewPassword string `json:"newpassword"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST method", 401)
+			return
+		}
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
+		bs, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			handleErr(w, err, "passwordHandler")
+			return
+		}
+		var passwordreq PasswordReq
+		err = json.Unmarshal(bs, &passwordreq)
+		if err != nil {
+			handleErr(w, err, "passwordHandler")
+			return
+		}
+		if passwordreq.Userid != requser.Userid {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
+		u, err := findUser(db, passwordreq.Userid)
+		if err != nil {
+			handleErr(w, err, "passwordHandler")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		P := makeFprintf(w)
+
+		var result LoginResult
+		if u == nil {
+			result.Error = fmt.Sprintf("Userid %d not found", passwordreq.Userid)
+			bs, _ = json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		if !validateHash(u.Password, passwordreq.Password) {
+			result.Error = "Incorrect password"
+			bs, _ = json.MarshalIndent(result, "", "\t")
+			P("%s\n", string(bs))
+			return
+		}
+
+		// Update the password
+		u.Password = genHash(passwordreq.NewPassword)
+		err = editUser(db, u)
+		if err != nil {
+			handleErr(w, err, "passwordHandler")
+			return
+		}
+
+		// Log in again with the new password to return new user signature.
+		sig, err := login(u, passwordreq.NewPassword)
+		if err != nil {
+			result.Error = fmt.Sprintf("%s", err)
+		}
+		result.Userid = u.Userid
+		result.Username = u.Username
+		result.Sig = sig
+
+		bs, _ = json.MarshalIndent(result, "", "\t")
+		P("%s\n", string(bs))
+	}
+}
+
 func userHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
 		if r.Method == "GET" {
 			qid := idtoi(r.FormValue("id"))
 			if qid == 0 {
 				http.Error(w, "Not found.", 404)
 				return
 			}
-			a, err := findUser(db, qid)
-			if err != nil {
-				handleErr(w, err, "userHandler")
+			// Only admin or same user can GET
+			if requser.Userid != 1 && qid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
 				return
 			}
-			if a == nil {
+
+			u, err := findUser(db, qid)
+			if err != nil {
+				handleErr(w, err, "GET userHandler")
+				return
+			}
+			if u == nil {
 				http.Error(w, "Not found.", 404)
 				return
 			}
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
-			P("%s", jsonstr(a))
+			P("%s", jsonstr(u))
 			return
 		} else if r.Method == "POST" {
+			// Only admin can POST
+			if requser.Userid != 1 {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				handleErr(w, err, "POST userHandler")
@@ -1065,6 +1292,12 @@ func userHandler(db *sql.DB) http.HandlerFunc {
 				handleErr(w, err, "PUT userHandler")
 				return
 			}
+			// Only admin or same user can PUT
+			if requser.Userid != 1 && u.Userid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			err = editUser(db, &u)
 			if err != nil {
 				handleErr(w, err, "PUT userHandler")
@@ -1081,6 +1314,12 @@ func userHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Not found.", 404)
 				return
 			}
+			// Only admin or same user can DEL
+			if requser.Userid != 1 && qid != requser.Userid {
+				http.Error(w, "Invalid user", 401)
+				return
+			}
+
 			err := delUser(db, qid)
 			if err != nil {
 				handleErr(w, err, "DEL userHandler")
