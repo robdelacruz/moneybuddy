@@ -21,7 +21,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="txnfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="txnfilter" type="text" placeholder="Filter" bind:value={frm_filter} bind:this={input_filter}>
             </form>
         </div>
     {/if}
@@ -93,6 +93,8 @@ let newtxn = {
 };
 
 let frm_filter = "";
+let input_filter = null;
+
 let bookaccounts = [];
 let selbook = null;
 let displayaccount = null;
@@ -188,9 +190,6 @@ function onaccountchange(e) {
 
 export function reset() {
     selid = 0;
-}
-
-export function onEvent(e) {
 }
 
 function onseltxn(txn) {

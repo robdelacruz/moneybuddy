@@ -50,8 +50,4 @@ function txns_selectaccount(e) {
     waccounts.selectAccount(a);
 }
 
-export function postEvent(e) {
-    waccounts.postEvent(e);
-}
-
 </script>

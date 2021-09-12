@@ -177,17 +177,6 @@ export function reset() {
     editid = -1;
 }
 
-export function postEvent(e) {
-    if (e.code == "KeyL" && e.shiftKey && e.ctrlKey) {
-        // CTRL-SHIFT-L
-        frm_filter = "";
-        input_filter.focus();
-    } else if (e.code == "KeyK" && e.shiftKey && e.ctrlKey) {
-        // CTRL-SHIFT-K
-        input_filter.select();
-    }
-}
-
 export function selectAccount(account) {
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {

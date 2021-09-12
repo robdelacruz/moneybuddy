@@ -147,12 +147,6 @@ function currentSession() {
     return [userid, username, sig];
 }
 
-document.addEventListener("keyup", function(e) {
-    if (wjournal) {
-        wjournal.postEvent(e);
-    }
-});
-
 function onlogin(e) {
     mode = "login";
     tabsel = "login";
