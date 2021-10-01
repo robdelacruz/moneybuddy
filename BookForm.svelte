@@ -5,6 +5,12 @@
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="bookname" id="bookname" type="text" placeholder="Book Name" bind:value={frm_name}>
         </div>
+        <div class="mb-2">
+            <label class="inline-flex items-center bg-input fg-normal py-1 px-2 w-full" for="bookactive">
+                <input class="fg-normal mr-1" name="bookactive" id="bookactive" type="checkbox" bind:checked={frm_active}>
+                <span class="">Active</span>
+            </label>
+        </div>
         {#if mode == ""}
         <div class="flex flex-row justify-between">
             <div>
@@ -49,6 +55,10 @@ let svcurl = "/api";
 let mode = "";
 let status = "";
 let frm_name = book.name;
+let frm_active = false;
+if (book.active > 0) {
+    frm_active = true;
+}
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -61,8 +71,13 @@ async function onSubmit(e) {
 
     let b = {};
     b.bookid = book.bookid;
-    b.name = frm_name;
     b.userid = userid;
+    b.name = frm_name;
+    b.active = 0;
+    console.log(`frm_active = ${frm_active}`);
+    if (frm_active == true) {
+        b.active = 1;
+    }
 
     let sreq = `${svcurl}/book`;
     let method = "PUT";

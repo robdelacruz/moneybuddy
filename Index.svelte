@@ -76,9 +76,8 @@ async function subscribeRootdata(userid) {
     root = rootdata;
 
     // Subscribe to data changes.
-    let qwho = getqs("who");
-    let sreq = `/api/subscriberoot?userid=${userid}&who=${qwho}`;
-    console.log(`Subscribing (${qwho})...`);
+    let sreq = `/api/subscriberoot?userid=${userid}`;
+    console.log(`Subscribing rootdata...`);
     await subscribe(sreq, "json", function(rootdata, err) {
         if (err != null) {
             console.log("Error receiving root data...");

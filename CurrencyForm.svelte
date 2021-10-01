@@ -67,7 +67,7 @@ async function onSubmit(e) {
         status = "enter the currency name (Ex. USD)";
         return;
     }
-    if (frm_usdrate == 0) {
+    if (frm_usdrate == null || frm_usdrate == 0) {
         status = "enter the currency rate in terms of USD";
         return;
     }

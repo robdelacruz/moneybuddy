@@ -2,6 +2,7 @@
     <p class="fg-dim">Select Account</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
+    {#if mode == ""}
         {#if frm_accounttype == 0}
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Account Name" bind:value={frm_name}>
@@ -31,8 +32,7 @@
                 </select>
             </div>
         </div>
-        {#if mode == ""}
-        <div class="flex flex-row justify-between">
+        <div class="flex flex-row justify-between items-center">
             <div>
                 {#if account.accountid == 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
@@ -42,23 +42,36 @@
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
             <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
+                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onMove}>Move...</button>
             </div>
         </div>
-        {:else if mode == "delete"}
-        <div class="flex flex-row justify-left">
-            <p class="self-center uppercase italic text-xs mr-4">Delete this account?</p>
+    {:else if mode == "move"}
+        <div class="">
+            <p class="mb-2">Move <span class="font-bold">{account.name}</span>:</p>
+            <select class="py-1 px-2 bg-input fg-normal mb-2">
+                <option value="1">My Accounts</option>
+                <option value="2">Other Accounts</option>
+                <option value="3">Work</option>
+            </select>
+            <div>
+                <button class="border border-normal py-1 px-2 bg-inputok mr-2" on:click|preventDefault={onConfirmMove}>Move</button>
+                <a href="/" class="border-b border-normal pt-1" on:click|preventDefault={onConfirmCancel}>Cancel</a>
+            </div>
+        </div>
+    {:else if mode == "delete"}
+        <div class="">
+            <p class="mb-2">Delete <span class="font-bold">{account.name}</span>?</p>
             <div>
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onConfirmCancel}>Cancel</a>
             </div>
         </div>
-        {/if}
-        {#if status != ""}
+    {/if}
+    {#if status != ""}
         <div class="">
             <p class="uppercase italic text-xs">{status}</p>
         </div>
-        {/if}
+    {/if}
     </form>
 {/if}
 
@@ -115,11 +128,13 @@ async function onSubmit(e) {
     dispatch("submit", a);
 }
 
+function onMove(e) {
+    mode = "move";
+}
 function onDelete(e) {
     mode = "delete";
 }
-
-function onCancelDelete(e) {
+function onConfirmCancel(e) {
     mode = "";
 }
 
@@ -138,6 +153,10 @@ async function onConfirmDelete(e) {
     dispatch("submit");
 }
 
+async function onConfirmMove(e) {
+    status = "";
+    dispatch("submit");
+}
 
 function onCancel(e) {
     dispatch("cancel");

@@ -76,14 +76,39 @@ label {display: none;}
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-row justify-between">
+                <div class="flex flex-row justify-between items-center mb-2">
                     <div>
                         <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
                         <a class="mx-auto border-b border-normal pt-1">Cancel</a>
                     </div>
+                    <button class="w-4 h-4 fg-dim fill-current">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M4 12a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+                    </button>
                     <div>
-                        <button class="mx-auto border border-normal py-1 px-2 bg-input">Delete</button>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-input mr-2">Move...</button>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-input">Delete...</button>
                     </div>
+                </div>
+                <div class="mb-2">
+                    <p class="self-center uppercase italic text-xs mb-1">Move to:</p>
+                    <select class="py-1 px-2 bg-input fg-normal mb-1" placeholder="Select New Book" >
+                        <option value="1">My Accounts</option>
+                        <option value="2">Other Accounts</option>
+                        <option value="3">Work</option>
+                    </select>
+                    <div>
+                        <button class="border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
+                        <a href="/" class="border-b border-normal pt-1">Cancel</a>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <p class="self-center uppercase italic text-xs mb-1">Delete this account?</p>
+                    <div>
+                        <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2">Delete</button>
+                        <a href="/" class="mx-auto border-b border-normal pt-1">Cancel</a>
+                    </div>
+                </div>
+                <div class="flex flex-row justify-left mb-2">
                 </div>
             </form>
         </div>

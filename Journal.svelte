@@ -31,7 +31,15 @@ function firstbookid(rootdata) {
     if (rootdata == null || rootdata.books.length == 0) {
         return 0;
     }
-    return rootdata.books[0].bookid;
+    // Find first active book's id.
+    let bookid = 0;
+    for (let i=0; i < rootdata.books.length; i++) {
+        if (rootdata.books[i].active == 1) {
+            bookid = rootdata.books[i].bookid;
+            break;
+        }
+    }
+    return bookid;
 }
 
 function accounts_selectbookid(e) {

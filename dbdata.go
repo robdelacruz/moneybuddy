@@ -38,6 +38,7 @@ type Book struct {
 	BankAccounts  []*Account `json:"bankaccounts"`
 	StockAccounts []*Account `json:"stockaccounts"`
 	Userid        int64      `json:"userid"`
+	Active        int64      `json:"active"`
 }
 type Account struct {
 	Accountid   int64       `json:"accountid"`
@@ -185,8 +186,8 @@ func findRootdata(db *sql.DB, userid int64) (*Rootdata, error) {
 }
 
 func createBook(db *sql.DB, b *Book) (int64, error) {
-	s := "INSERT INTO book (name, user_id) VALUES (?, ?)"
-	result, err := sqlexec(db, s, b.Name, b.Userid)
+	s := "INSERT INTO book (name, user_id, active) VALUES (?, ?, ?)"
+	result, err := sqlexec(db, s, b.Name, b.Userid, b.Active)
 	if err != nil {
 		return 0, err
 	}
@@ -197,8 +198,8 @@ func createBook(db *sql.DB, b *Book) (int64, error) {
 	return id, nil
 }
 func editBook(db *sql.DB, b *Book) error {
-	s := "UPDATE book SET name = ?, user_id = ? WHERE book_id = ?"
-	_, err := sqlexec(db, s, b.Name, b.Userid, b.Bookid)
+	s := "UPDATE book SET name = ?, user_id = ?, active = ? WHERE book_id = ?"
+	_, err := sqlexec(db, s, b.Name, b.Userid, b.Bookid, b.Active)
 	if err != nil {
 		return err
 	}
@@ -228,10 +229,10 @@ func assignBookAccounts(b *Book, aa []*Account) {
 }
 
 func findBook(db *sql.DB, bookid int64) (*Book, error) {
-	s := "SELECT book_id, name FROM book WHERE book_id = ?"
+	s := "SELECT book_id, name, active FROM book WHERE book_id = ?"
 	row := db.QueryRow(s, bookid)
 	var b Book
-	err := row.Scan(&b.Bookid, &b.Name)
+	err := row.Scan(&b.Bookid, &b.Name, &b.Active)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -249,7 +250,7 @@ func findBook(db *sql.DB, bookid int64) (*Book, error) {
 }
 
 func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
-	s := fmt.Sprintf("SELECT book_id, name FROM book WHERE user_id = ? AND %s", swhere)
+	s := fmt.Sprintf("SELECT book_id, name, active FROM book WHERE user_id = ? AND %s", swhere)
 	rows, err := db.Query(s, userid)
 	if err != nil {
 		return nil, err
@@ -257,7 +258,7 @@ func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
 	bb := []*Book{}
 	for rows.Next() {
 		var b Book
-		rows.Scan(&b.Bookid, &b.Name)
+		rows.Scan(&b.Bookid, &b.Name, &b.Active)
 
 		aa, err := findAllAccountsByType(db, b.Bookid)
 		if err != nil {
@@ -269,7 +270,7 @@ func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
 	return bb, nil
 }
 func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
-	return findBooks(db, userid, "1=1 ORDER BY book_id")
+	return findBooks(db, userid, "1=1 ORDER BY active, book_id")
 }
 
 //** Account functions **

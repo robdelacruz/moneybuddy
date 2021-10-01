@@ -84,8 +84,29 @@ func initUserData(db *sql.DB, u *User) error {
 	}
 
 	b := Book{
+		Name:   "Trash",
+		Userid: u.Userid,
+		Active: 0,
+	}
+	_, err = createBook(db, &b)
+	if err != nil {
+		return err
+	}
+
+	b = Book{
+		Name:   "Archive",
+		Userid: u.Userid,
+		Active: 0,
+	}
+	_, err = createBook(db, &b)
+	if err != nil {
+		return err
+	}
+
+	b = Book{
 		Name:   fmt.Sprintf("%s's Accounts", strings.Title(u.Username)),
 		Userid: u.Userid,
+		Active: 1,
 	}
 	_, err = createBook(db, &b)
 	if err != nil {
@@ -94,6 +115,7 @@ func initUserData(db *sql.DB, u *User) error {
 	b = Book{
 		Name:   "Other Accounts",
 		Userid: u.Userid,
+		Active: 1,
 	}
 	_, err = createBook(db, &b)
 	if err != nil {

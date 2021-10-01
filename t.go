@@ -142,7 +142,7 @@ func createTables(newfile string) {
 
 	ss := []string{
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
-		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', user_id INTEGER NOT NULL);",
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
@@ -169,9 +169,9 @@ func createTables(newfile string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Creating user1's test data... ")
+	fmt.Printf("Creating user1's test data...\n")
 	initTestData(db, "rob")
-	fmt.Printf("Creating user2's test data... ")
+	fmt.Printf("Creating user2's test data...\n")
 	initTestData(db, "user2")
 	fmt.Printf("Done\n")
 }
@@ -184,39 +184,9 @@ func initTestData(db *sql.DB, username string) {
 	if err != nil {
 		panic(err)
 	}
+	u.Userid = userid
 
-	c := Currency{
-		Currency: "USD",
-		Usdrate:  1.0,
-		Userid:   userid,
-	}
-	_, err = createCurrency(db, &c)
-	if err != nil {
-		panic(err)
-	}
-	c = Currency{
-		Currency: "PHP",
-		Usdrate:  48.0,
-		Userid:   userid,
-	}
-	_, err = createCurrency(db, &c)
-	if err != nil {
-		panic(err)
-	}
-
-	b := Book{
-		Name:   fmt.Sprintf("%s's accounts", username),
-		Userid: userid,
-	}
-	_, err = createBook(db, &b)
-	if err != nil {
-		panic(err)
-	}
-	b = Book{
-		Name:   "Work Accounts",
-		Userid: userid,
-	}
-	_, err = createBook(db, &b)
+	err = initUserData(db, &u)
 	if err != nil {
 		panic(err)
 	}
@@ -227,6 +197,10 @@ func initTestData(db *sql.DB, username string) {
 	}
 
 	for _, b := range bb {
+		if b.Active == 0 {
+			continue
+		}
+
 		naccounts := 5 + rand.Intn(10)
 		fmt.Printf("Creating %d random bank accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
 		for i := 0; i < naccounts; i++ {

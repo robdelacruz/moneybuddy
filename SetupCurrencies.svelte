@@ -43,7 +43,7 @@ let editid = -1;
 let newcurrency = {
     currencyid: 0,
     currency: "",
-    usdrate: 1.0,
+    usdrate: null,
     userid: userid,
 };
 

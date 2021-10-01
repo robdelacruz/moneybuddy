@@ -5,9 +5,11 @@
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="">
             <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
-                {#each root.books as book}
+            {#each root.books as book}
+                {#if book.active > 0}
                 <option value={book.bookid}>{book.name}</option>
-                {/each}
+                {/if}
+            {/each}
             </select>
         </div>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Account</a>
