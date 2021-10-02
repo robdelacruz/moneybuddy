@@ -5,6 +5,9 @@ let svcurl = "/api";
 export let BANKACCOUNT = 0;
 export let STOCKACCOUNT = 1;
 
+export let USERBOOK = 0;
+export let SYSTEMBOOK = 1;
+
 export async function loadRootdata(userid) {
     let sreq = `${svcurl}/rootdata?userid=${userid}`;
     let [rootdata, err] = await find(sreq);

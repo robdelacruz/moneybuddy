@@ -142,7 +142,7 @@ func createTables(newfile string) {
 
 	ss := []string{
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
-		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
@@ -197,7 +197,7 @@ func initTestData(db *sql.DB, username string) {
 	}
 
 	for _, b := range bb {
-		if b.Active == 0 {
+		if b.BookType == SystemBook {
 			continue
 		}
 
@@ -680,6 +680,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			P("%s", jsonstr(a))
 			return
 		} else if r.Method == "PUT" {
+			qbookid := getbookid(r)
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
@@ -706,6 +707,14 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
 				return
+			}
+
+			if qbookid > 0 {
+				err = assignAccountToBook(db, a.Accountid, qbookid)
+				if err != nil {
+					handleErr(w, err, "PUT accountHandler")
+					return
+				}
 			}
 
 			// Inform all data subscribers that a data change occured.

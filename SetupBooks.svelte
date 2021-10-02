@@ -42,6 +42,7 @@ let selid = 0;
 let editid = -1;
 let newbook = {
     bookid: 0,
+    booktype: data.USERBOOK,
     name: "",
     userid: userid,
 };

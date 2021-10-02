@@ -46,6 +46,10 @@ func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 
 	rr := []*BookRpt{}
 	for _, b := range bb {
+		if b.BookType != UserBook {
+			continue
+		}
+
 		r, err := findBookRptdata(db, b, c)
 		if err != nil {
 			return nil, err

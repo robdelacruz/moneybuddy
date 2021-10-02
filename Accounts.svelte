@@ -5,10 +5,8 @@
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="">
             <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
-            {#each root.books as book}
-                {#if book.active > 0}
-                <option value={book.bookid}>{book.name}</option>
-                {/if}
+            {#each root.books as b}
+                <option value={b.bookid}>{b.name}</option>
             {/each}
             </select>
         </div>
@@ -24,7 +22,7 @@
     {/if}
     {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <AccountForm book={selbook} account={newaccount} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+            <AccountForm book={selbook} account={newaccount} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
     {/if}
     {#if display_bb.length > 0}
@@ -54,7 +52,7 @@
         {/if}
         {#if editid == a.accountid}
         <div class="p-2 border-b border-cell">
-            <AccountForm book={selbook} account={a} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+            <AccountForm book={selbook} account={a} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
         {/if}
     {/each}

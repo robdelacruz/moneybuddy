@@ -1,4 +1,4 @@
-{#if account == null}
+{#if account == null || root == null || book == null}
     <p class="fg-dim">Select Account</p>
 {:else}
     <form class="" on:submit|preventDefault={onSubmit}>
@@ -26,7 +26,7 @@
             </div>
             <div class="w-1/2">
                 <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={frm_currencyid}>
-                    {#each currencies as currency}
+                    {#each root.currencies as currency}
                     <option value={currency.currencyid}>{currency.currency}</option>
                     {/each}
                 </select>
@@ -41,17 +41,22 @@
                 {/if}
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
-            <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onMove}>Move...</button>
+            <div class="flex flex-row justify-left">
+                {#if account.accountid != 0}
+                <button class="border border-normal py-1 px-2 bg-input mr-2" on:click|preventDefault={onMove}>Move...</button>
+                {/if}
+                {#if book.booktype == data.SYSTEMBOOK}
+                <button class="border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete...</button>
+                {/if}
             </div>
         </div>
     {:else if mode == "move"}
         <div class="">
-            <p class="mb-2">Move <span class="font-bold">{account.name}</span>:</p>
-            <select class="py-1 px-2 bg-input fg-normal mb-2">
-                <option value="1">My Accounts</option>
-                <option value="2">Other Accounts</option>
-                <option value="3">Work</option>
+            <p class="mb-2">Move <span class="font-bold">{account.name}</span> to:</p>
+            <select class="py-1 px-2 bg-input fg-normal mb-2" id="movebook" name="movebook" bind:value={frm_movebookid}>
+                {#each root.books as b}
+                <option value={b.bookid}>{b.name}</option>
+                {/each}
             </select>
             <div>
                 <button class="border border-normal py-1 px-2 bg-inputok mr-2" on:click|preventDefault={onConfirmMove}>Move</button>
@@ -83,7 +88,7 @@ import * as data from "./data.js";
 
 export let book = null;
 export let account = null;
-export let currencies = [];
+export let root = null;
 
 let svcurl = "/api";
 let mode = "";
@@ -92,6 +97,7 @@ let frm_name = account.name;
 let frm_accounttype = account.accounttype;
 let frm_currencyid = account.currencyid;
 let frm_unitprice = account.unitprice;
+let frm_movebookid = book.bookid;
 
 document.addEventListener("keydown", function(e) {
     if (e.key == "Escape") {
@@ -154,8 +160,26 @@ async function onConfirmDelete(e) {
 }
 
 async function onConfirmMove(e) {
+    if (account.accountid == 0) {
+        mode = "";
+        return;
+    }
+    if (frm_movebookid == 0) {
+        mode = "";
+        return;
+    }
+
+    let sreq = `${svcurl}/account?bookid=${frm_movebookid}`;
+    let method = "PUT";
+    let [_, err] = await submit(sreq, method, account);
+    if (err != null) {
+        console.error(err);
+        status = "server error submitting account";
+        return;
+    }
+
     status = "";
-    dispatch("submit");
+    dispatch("submit", account);
 }
 
 function onCancel(e) {

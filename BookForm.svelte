@@ -5,12 +5,14 @@
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="bookname" id="bookname" type="text" placeholder="Book Name" bind:value={frm_name}>
         </div>
+        {#if book.booktype == data.USERBOOK}
         <div class="mb-2">
             <label class="inline-flex items-center bg-input fg-normal py-1 px-2 w-full" for="bookactive">
                 <input class="fg-normal mr-1" name="bookactive" id="bookactive" type="checkbox" bind:checked={frm_active}>
                 <span class="">Active</span>
             </label>
         </div>
+        {/if}
         {#if mode == ""}
         <div class="flex flex-row justify-between">
             <div>
@@ -71,10 +73,11 @@ async function onSubmit(e) {
 
     let b = {};
     b.bookid = book.bookid;
+    b.booktype = book.booktype;
     b.userid = userid;
     b.name = frm_name;
+
     b.active = 0;
-    console.log(`frm_active = ${frm_active}`);
     if (frm_active == true) {
         b.active = 1;
     }

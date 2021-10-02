@@ -16,6 +16,13 @@ const (
 	StockAccount
 )
 
+type BookType int
+
+const (
+	UserBook BookType = iota
+	SystemBook
+)
+
 type User struct {
 	Userid   int64  `json:"userid"`
 	Username string `json:"username"`
@@ -35,6 +42,7 @@ type Rootdata struct {
 type Book struct {
 	Bookid        int64      `json:"bookid"`
 	Name          string     `json:"name"`
+	BookType      BookType   `json:"booktype"`
 	BankAccounts  []*Account `json:"bankaccounts"`
 	StockAccounts []*Account `json:"stockaccounts"`
 	Userid        int64      `json:"userid"`
@@ -186,8 +194,8 @@ func findRootdata(db *sql.DB, userid int64) (*Rootdata, error) {
 }
 
 func createBook(db *sql.DB, b *Book) (int64, error) {
-	s := "INSERT INTO book (name, user_id, active) VALUES (?, ?, ?)"
-	result, err := sqlexec(db, s, b.Name, b.Userid, b.Active)
+	s := "INSERT INTO book (name, booktype, user_id, active) VALUES (?, ?, ?, ?)"
+	result, err := sqlexec(db, s, b.Name, b.BookType, b.Userid, b.Active)
 	if err != nil {
 		return 0, err
 	}
@@ -198,8 +206,8 @@ func createBook(db *sql.DB, b *Book) (int64, error) {
 	return id, nil
 }
 func editBook(db *sql.DB, b *Book) error {
-	s := "UPDATE book SET name = ?, user_id = ?, active = ? WHERE book_id = ?"
-	_, err := sqlexec(db, s, b.Name, b.Userid, b.Active, b.Bookid)
+	s := "UPDATE book SET name = ?, booktype = ?, user_id = ?, active = ? WHERE book_id = ?"
+	_, err := sqlexec(db, s, b.Name, b.BookType, b.Userid, b.Active, b.Bookid)
 	if err != nil {
 		return err
 	}
@@ -229,10 +237,10 @@ func assignBookAccounts(b *Book, aa []*Account) {
 }
 
 func findBook(db *sql.DB, bookid int64) (*Book, error) {
-	s := "SELECT book_id, name, active FROM book WHERE book_id = ?"
+	s := "SELECT book_id, name, booktype, user_id, active FROM book WHERE book_id = ?"
 	row := db.QueryRow(s, bookid)
 	var b Book
-	err := row.Scan(&b.Bookid, &b.Name, &b.Active)
+	err := row.Scan(&b.Bookid, &b.Name, &b.BookType, &b.Userid, &b.Active)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -250,7 +258,7 @@ func findBook(db *sql.DB, bookid int64) (*Book, error) {
 }
 
 func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
-	s := fmt.Sprintf("SELECT book_id, name, active FROM book WHERE user_id = ? AND %s", swhere)
+	s := fmt.Sprintf("SELECT book_id, name, booktype, user_id, active FROM book WHERE user_id = ? AND %s", swhere)
 	rows, err := db.Query(s, userid)
 	if err != nil {
 		return nil, err
@@ -258,7 +266,7 @@ func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
 	bb := []*Book{}
 	for rows.Next() {
 		var b Book
-		rows.Scan(&b.Bookid, &b.Name, &b.Active)
+		rows.Scan(&b.Bookid, &b.Name, &b.BookType, &b.Userid, &b.Active)
 
 		aa, err := findAllAccountsByType(db, b.Bookid)
 		if err != nil {
@@ -270,7 +278,7 @@ func findBooks(db *sql.DB, userid int64, swhere string) ([]*Book, error) {
 	return bb, nil
 }
 func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
-	return findBooks(db, userid, "1=1 ORDER BY active, book_id")
+	return findBooks(db, userid, "1=1 ORDER BY booktype, active, book_id")
 }
 
 //** Account functions **
@@ -308,8 +316,42 @@ func delAccount(db *sql.DB, accountid int64) error {
 		return err
 	}
 
-	s = "DELETE FROM bookaccount where account_id = ?"
+	s = "DELETE FROM bookaccount WHERE account_id = ?"
 	_, err = sqlexec(db, s, accountid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func assignAccountToBook(db *sql.DB, accountid, bookid int64) error {
+	b, err := findBook(db, bookid)
+	if err != nil {
+		return err
+	}
+	if b == nil {
+		return sql.ErrNoRows
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	s := "DELETE FROM bookaccount WHERE account_id = ?"
+	_, err = txexec(tx, s, accountid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	s = "INSERT INTO bookaccount (book_id, account_id) VALUES (?, ?)"
+	_, err = txexec(tx, s, bookid, accountid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
