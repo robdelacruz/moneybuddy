@@ -199,7 +199,7 @@ func createBook(db *sql.DB, b *Book) (int64, error) {
 }
 func editBook(db *sql.DB, b *Book) error {
 	s := "UPDATE book SET name = ?, user_id = ?, active = ? WHERE book_id = ?"
-	_, err := sqlexec(db, s, b.Name, b.Userid, b.Bookid, b.Active)
+	_, err := sqlexec(db, s, b.Name, b.Userid, b.Active, b.Bookid)
 	if err != nil {
 		return err
 	}
