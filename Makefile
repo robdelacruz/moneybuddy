@@ -4,25 +4,29 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
+NODE_VER = 16
+
 JSFILES = index.js helpers.js data.js
 JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte
 JSFILES3 = Tablinks.svelte Journal.svelte Report.svelte SummaryRpt.svelte Setup.svelte 
 JSFILES4 = UserLogin.svelte UserSignup.svelte UserPassword.svelte UserDel.svelte
 JSFILES5 = SetupBooks.svelte BookForm.svelte SetupCurrencies.svelte CurrencyForm.svelte SetupUser.svelte
 
-SRCS = t.go util.go web.go user.go
+SRCS = ab.go util.go web.go user.go
 SRCS2 = db.go dbdata.go dbrptdata.go
 
-all: t static/style.css static/bundle.js
+all: ab static/style.css static/bundle.js
 
 dep:
-	sudo apt update
 	sudo apt install curl software-properties-common
-	curl -sL https://deb.nodesource.com/setup_13.x | sudo bash -
-	sudo apt install nodejs
+	curl -fsSL https://deb.nodesource.com/setup_$(NODE_VER).x | sudo bash -
+	sudo apt install -y nodejs
 	sudo npm --force install -g npx
-	go get -u github.com/mattn/go-sqlite3
-	go get -u golang.org/x/crypto/bcrypt
+
+depgo:
+	go env -w GO111MODULE=auto
+	#go get -u github.com/mattn/go-sqlite3
+	#go get -u golang.org/x/crypto/bcrypt
 
 webtools:
 	npm install --save-dev tailwindcss
@@ -41,11 +45,11 @@ static/style.css: twsrc.css
 static/bundle.js: $(JSFILES) $(JSFILES2) $(JSFILES3) $(JSFILES4) $(JSFILES5)
 	npx rollup -c
 
-t: $(SRCS) $(SRCS2)
-	go build -o t $(SRCS) $(SRCS2) $(SRCS3)
+ab: $(SRCS) $(SRCS2)
+	go build -o ab $(SRCS) $(SRCS2) $(SRCS3)
 
 clean:
-	rm -rf t static/*.js static/*.css static/*.map
+	rm -rf ab static/*.js static/*.css static/*.map
 
 serve:
 	python -m SimpleHTTPServer

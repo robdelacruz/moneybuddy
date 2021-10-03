@@ -68,6 +68,55 @@ type Txn struct {
 	Amt       float64 `json:"amt"`
 }
 
+func createTables(newfile string) {
+	if fileExists(newfile) {
+		s := fmt.Sprintf("File '%s' already exists. Can't initialize it.\n", newfile)
+		fmt.Printf(s)
+		return
+	}
+
+	db, err := sql.Open("sqlite3", newfile)
+	if err != nil {
+		fmt.Printf("Error opening '%s' (%s)\n", newfile, err)
+		return
+	}
+
+	ss := []string{
+		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
+		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
+		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
+		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
+		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
+		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
+		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Printf("DB error (%s)\n", err)
+		return
+	}
+	for _, s := range ss {
+		_, err := txexec(tx, s)
+		if err != nil {
+			tx.Rollback()
+			fmt.Printf("DB error (%s)\n", err)
+			return
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		fmt.Printf("DB error (%s)\n", err)
+		return
+	}
+
+	fmt.Printf("Creating user1's test data...\n")
+	initTestData(db, "rob")
+	fmt.Printf("Creating user2's test data...\n")
+	initTestData(db, "user2")
+	fmt.Printf("Done\n")
+}
+
 func findAccountUserid(db *sql.DB, accountid int64) (int64, error) {
 	s := `SELECT IFNULL(b.user_id, 0) 
 FROM account a
