@@ -287,14 +287,6 @@ func rootdataHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func getbookid(r *http.Request) int64 {
-	qbookid := idtoi(r.FormValue("bookid"))
-	if qbookid == 0 {
-		qbookid = 1 // Default to first book if not specified.
-	}
-	return qbookid
-}
-
 func currencyHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requser := validateApiUser(db, r)
@@ -590,7 +582,11 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			P("%s", jsonstr(a))
 			return
 		} else if r.Method == "POST" {
-			qbookid := getbookid(r)
+			qbookid := idtoi(r.FormValue("bookid"))
+			if qbookid == 0 {
+				http.Error(w, "Needs bookid", 401)
+				return
+			}
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				handleErr(w, err, "POST accountHandler")
@@ -603,12 +599,16 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 			// Check if requester user has access.
-			accountUserid, err := findAccountUserid(db, a.Accountid)
+			b, err := findBook(db, qbookid)
 			if err != nil {
 				handleErr(w, err, "POST accountHandler")
 				return
 			}
-			if accountUserid != requser.Userid {
+			if b == nil {
+				http.Error(w, "Book doesn't exist", 401)
+				return
+			}
+			if b.Userid != requser.Userid {
 				http.Error(w, "Invalid user", 401)
 				return
 			}
@@ -628,7 +628,6 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			P("%s", jsonstr(a))
 			return
 		} else if r.Method == "PUT" {
-			qbookid := getbookid(r)
 			bs, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				handleErr(w, err, "PUT accountHandler")
@@ -657,6 +656,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
+			qbookid := idtoi(r.FormValue("bookid"))
 			if qbookid > 0 {
 				err = assignAccountToBook(db, a.Accountid, qbookid)
 				if err != nil {
@@ -755,12 +755,12 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 			// Check if requester user has access.
-			txnUserid, err := findTxnUserid(db, t.Txnid)
+			accountUserid, err := findAccountUserid(db, t.Accountid)
 			if err != nil {
 				handleErr(w, err, "POST txnHandler")
 				return
 			}
-			if txnUserid != requser.Userid {
+			if accountUserid != requser.Userid {
 				http.Error(w, "Invalid user", 401)
 				return
 			}

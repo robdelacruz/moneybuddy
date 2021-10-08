@@ -1,7 +1,7 @@
 {#if account == null || root == null || book == null}
     <p class="fg-dim">Select Account</p>
 {:else}
-    <form class="" on:submit|preventDefault={onSubmit}>
+    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
     {#if mode == ""}
         {#if frm_accounttype == 0}
         <div class="mb-2">

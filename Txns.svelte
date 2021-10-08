@@ -1,4 +1,4 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
+<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 40rem; max-width: 40rem;">
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
@@ -27,7 +27,7 @@
     {/if}
     {#if editid == 0}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={newtxn} accounttype={displayaccount.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={newtxn} account={displayaccount} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
@@ -62,7 +62,7 @@
         {/if}
         {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
-            <TxnForm txn={t} accounttype={displayaccount.accounttype} on:submit={txnform_done} on:cancel={txnform_done} />
+            <TxnForm txn={t} account={displayaccount} on:submit={txnform_done} on:cancel={txnform_done} />
         </div>
         {/if}
     {/each}
@@ -185,11 +185,14 @@ function onaccountchange(e) {
     if (a == null) {
         return;
     }
+    selid = 0;
+    editid = -1;
     dispatch("selectaccount", a);
 }
 
 export function reset() {
     selid = 0;
+    editid = -1;
 }
 
 function onseltxn(txn) {

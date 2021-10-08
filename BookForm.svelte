@@ -1,7 +1,7 @@
 {#if book == null}
     <p class="fg-dim">Select Book</p>
 {:else}
-    <form class="" on:submit|preventDefault={onSubmit}>
+    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="bookname" id="bookname" type="text" placeholder="Book Name" bind:value={frm_name}>
         </div>

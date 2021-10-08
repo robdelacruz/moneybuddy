@@ -1,7 +1,7 @@
 {#if txn == null}
     <p class="fg-dim">Select Txn</p>
 {:else}
-    <form class="" on:submit|preventDefault={onSubmit}>
+    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="flex flex-row mb-2 justify-between">
             <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
             <input class="bg-input fg-normal py-1 px-2 cell-date" name="date" id="date" type="date" bind:value={frm_date}>
@@ -58,8 +58,8 @@ let dispatch = createEventDispatcher();
 import {find, submit, del} from "./helpers.js";
 import * as data from "./data.js";
 
+export let account = null;
 export let txn = null;
-export let accounttype = 1;
 
 let svcurl = "/api";
 let ui = {};
@@ -77,7 +77,7 @@ if (txn.amt != null) {
 
 let option_plus;
 let option_minus;
-if (accounttype == 0) {
+if (account.accounttype == 0) {
     option_plus = "Deposit";
     option_minus = "Withdraw";
 } else {
@@ -119,6 +119,9 @@ async function onSubmit(e) {
     let t = {};
     t.txnid = txn.txnid;
     t.accountid = txn.accountid;
+    if (t.accountid == 0) {
+        t.accountid = account.accountid;
+    }
     t.date = frm_date;
     t.ref = frm_ref;
     t.desc = frm_desc;

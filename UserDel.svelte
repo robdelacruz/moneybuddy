@@ -1,7 +1,7 @@
 {#if userid == 0}
     <p class="fg-dim">Select User</p>
 {:else}
-    <form class="" on:submit|preventDefault={onSubmit}>
+    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
         </div>

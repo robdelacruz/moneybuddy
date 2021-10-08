@@ -1,4 +1,4 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 20rem;">
+<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem; max-width: 20rem;">
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}
@@ -169,6 +169,8 @@ function filterAccounts(book, sfilter) {
 }
 
 function onbookchange(e) {
+    selid = 0;
+    editid = -1;
     dispatch("selectbookid", bookid);
 }
 

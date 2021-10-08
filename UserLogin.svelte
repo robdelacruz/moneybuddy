@@ -1,6 +1,6 @@
 <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 15rem;">
     <h1 class="text-sm font-bold fg-h1 mb-4">User Login</h1>
-    <form class="" on:submit|preventDefault={onSubmit}>
+    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
         </div>
