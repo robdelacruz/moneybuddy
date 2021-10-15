@@ -1,6 +1,6 @@
 <div class="flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
     <div>
-        <h1 class="inline text-sm ml-1 mr-2"><a href="/">Accounts Buddy</a></h1>
+        <h1 class="inline text-sm ml-1 mr-2"><a href="/">Money Buddy</a></h1>
         <a href="about.html" class="mr-2">About</a>
     </div>
     <div>

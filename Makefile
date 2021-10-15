@@ -12,10 +12,10 @@ JSFILES3 = Tablinks.svelte Journal.svelte Report.svelte SummaryRpt.svelte Setup.
 JSFILES4 = UserLogin.svelte UserSignup.svelte UserPassword.svelte UserDel.svelte
 JSFILES5 = SetupBooks.svelte BookForm.svelte SetupCurrencies.svelte CurrencyForm.svelte SetupUser.svelte
 
-SRCS = ab.go util.go web.go user.go
+SRCS = mb.go util.go web.go user.go
 SRCS2 = db.go dbdata.go dbrptdata.go
 
-all: ab static/style.css static/bundle.js
+all: mb static/style.css static/bundle.js
 
 dep:
 	sudo apt install curl software-properties-common
@@ -46,14 +46,14 @@ static/style.css: twsrc.css
 static/bundle.js: $(JSFILES) $(JSFILES2) $(JSFILES3) $(JSFILES4) $(JSFILES5)
 	npx rollup -c
 
-ab: $(SRCS) $(SRCS2)
-	go build -o ab $(SRCS) $(SRCS2) $(SRCS3)
+mb: $(SRCS) $(SRCS2)
+	go build -o mb $(SRCS) $(SRCS2) $(SRCS3)
 
 importer: importer.go dbdata.go db.go util.go
 	go build -o importer importer.go dbdata.go db.go util.go
 
 clean:
-	rm -rf ab static/*.js static/*.css static/*.map
+	rm -rf mb static/*.js static/*.css static/*.map
 
 serve:
 	python -m SimpleHTTPServer
