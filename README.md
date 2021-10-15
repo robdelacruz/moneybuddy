@@ -1,6 +1,6 @@
-## jstest
+## Money Buddy
 
-A simplified frontend web development template.
+Web-based app for keeping track of your money. Manage bank accounts, stocks.
 
 Uses the following web tools:
 - [Tailwind CSS](https://tailwindcss.com)
@@ -16,17 +16,26 @@ Uses the following web tools:
 Run once:
 
     $ make dep
+    $ make depgo
     $ make webtools
 
 Build and test:
 
     $ make clean
     $ make
-    $ make serve
 
 See the comments in *Makefile*.
 
+Create a new database file:
+
+    $ mb -i myaccounts.db
+
+Start webserver:
+
+    $ mb myaccounts.db
+
+
 ## Contact
-    Twitter: @robdelacruz
-    Source: http://github.com/robdelacruz
+    Email: robdelacruz@protonmail.com
+    Source: http://github.com/robdelacruz/moneybuddy
 
