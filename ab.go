@@ -49,7 +49,10 @@ func run(args []string) error {
 	// [-i new_file]  Create and initialize db file
 	if sw["i"] != "" {
 		dbfile := sw["i"]
-		createTables(dbfile)
+		db := createTables(dbfile)
+		if db != nil {
+			createTestData(db)
+		}
 		return nil
 	}
 
@@ -124,57 +127,6 @@ func fileExists(file string) bool {
 	return true
 }
 
-func initTestData(db *sql.DB, username string) {
-	u := User{
-		Username: username,
-	}
-	userid, err := createUser(db, &u)
-	if err != nil {
-		panic(err)
-	}
-	u.Userid = userid
-
-	err = initUserData(db, &u)
-	if err != nil {
-		panic(err)
-	}
-
-	bb, err := findUserBooks(db, userid)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, b := range bb {
-		if b.BookType == SystemBook {
-			continue
-		}
-
-		naccounts := 5 + rand.Intn(10)
-		fmt.Printf("Creating %d random bank accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
-		for i := 0; i < naccounts; i++ {
-			_, err := createRandomBankAccount(db, b.Bookid)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		stocks := []string{"IBM", "CAT", "GE", "AMZN", "AAPL", "MSFT"}
-		unitprices := []float64{143.59, 217.71, 103.35, 3298.99, 151.12, 294.60}
-		naccounts = rand.Intn(len(stocks)+1) + 2
-		if naccounts > len(stocks) {
-			naccounts = len(stocks)
-		}
-		fmt.Printf("Creating %d random stock accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
-		for i := 0; i < naccounts; i++ {
-			_, err := createRandomStockAccount(db, b.Bookid, stocks[i], unitprices[i])
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
-
-}
-
 func parseArgs(args []string) (map[string]string, []string) {
 	switches := map[string]string{}
 	parms := []string{}
@@ -240,6 +192,64 @@ func jsonstr(v interface{}) string {
 		return ""
 	}
 	return string(bs)
+}
+
+func createTestData(db *sql.DB) {
+	fmt.Printf("Creating user1's test data...\n")
+	initTestData(db, "rob")
+	fmt.Printf("Creating user2's test data...\n")
+	initTestData(db, "user2")
+	fmt.Printf("Done\n")
+}
+func initTestData(db *sql.DB, username string) {
+	u := User{
+		Username: username,
+	}
+	userid, err := createUser(db, &u)
+	if err != nil {
+		panic(err)
+	}
+	u.Userid = userid
+
+	err = initUserData(db, &u)
+	if err != nil {
+		panic(err)
+	}
+
+	bb, err := findUserBooks(db, userid)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, b := range bb {
+		if b.BookType == SystemBook {
+			continue
+		}
+
+		naccounts := 5 + rand.Intn(10)
+		fmt.Printf("Creating %d random bank accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
+		for i := 0; i < naccounts; i++ {
+			_, err := createRandomBankAccount(db, b.Bookid)
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		stocks := []string{"IBM", "CAT", "GE", "AMZN", "AAPL", "MSFT"}
+		unitprices := []float64{143.59, 217.71, 103.35, 3298.99, 151.12, 294.60}
+		naccounts = rand.Intn(len(stocks)+1) + 2
+		if naccounts > len(stocks) {
+			naccounts = len(stocks)
+		}
+		fmt.Printf("Creating %d random stock accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
+		for i := 0; i < naccounts; i++ {
+			_, err := createRandomStockAccount(db, b.Bookid, stocks[i], unitprices[i])
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 }
 
 func indexHandler(db *sql.DB) http.HandlerFunc {

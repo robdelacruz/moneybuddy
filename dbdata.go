@@ -68,17 +68,17 @@ type Txn struct {
 	Amt       float64 `json:"amt"`
 }
 
-func createTables(newfile string) {
+func createTables(newfile string) *sql.DB {
 	if fileExists(newfile) {
 		s := fmt.Sprintf("File '%s' already exists. Can't initialize it.\n", newfile)
 		fmt.Printf(s)
-		return
+		return nil
 	}
 
 	db, err := sql.Open("sqlite3", newfile)
 	if err != nil {
 		fmt.Printf("Error opening '%s' (%s)\n", newfile, err)
-		return
+		return nil
 	}
 
 	ss := []string{
@@ -94,27 +94,23 @@ func createTables(newfile string) {
 	tx, err := db.Begin()
 	if err != nil {
 		fmt.Printf("DB error (%s)\n", err)
-		return
+		return nil
 	}
 	for _, s := range ss {
 		_, err := txexec(tx, s)
 		if err != nil {
 			tx.Rollback()
 			fmt.Printf("DB error (%s)\n", err)
-			return
+			return nil
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		fmt.Printf("DB error (%s)\n", err)
-		return
+		return nil
 	}
 
-	fmt.Printf("Creating user1's test data...\n")
-	initTestData(db, "rob")
-	fmt.Printf("Creating user2's test data...\n")
-	initTestData(db, "user2")
-	fmt.Printf("Done\n")
+	return db
 }
 
 func findAccountUserid(db *sql.DB, accountid int64) (int64, error) {
@@ -263,8 +259,42 @@ func editBook(db *sql.DB, b *Book) error {
 	return nil
 }
 func delBook(db *sql.DB, bookid int64) error {
-	s := "DELETE FROM book WHERE book_id = ?"
-	_, err := sqlexec(db, s, bookid)
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Delete book's accounts' transactions.
+	s := "DELETE FROM txn WHERE account_id IN (SELECT account_id FROM bookaccount WHERE book_id = ?)"
+	_, err = txexec(tx, s, bookid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Delete this book's accounts.
+	s = "DELETE FROM account WHERE account_id IN (SELECT account_id FROM bookaccount WHERE book_id = ?)"
+	_, err = txexec(tx, s, bookid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	s = "DELETE FROM bookaccount WHERE book_id = ?"
+	_, err = txexec(tx, s, bookid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	s = "DELETE FROM book WHERE book_id = ?"
+	_, err = txexec(tx, s, bookid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
@@ -359,14 +389,35 @@ func editAccount(db *sql.DB, a *Account) error {
 	return nil
 }
 func delAccount(db *sql.DB, accountid int64) error {
-	s := "DELETE FROM account WHERE account_id = ?"
-	_, err := sqlexec(db, s, accountid)
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 
+	// Delete account's transactions.
+	s := "DELETE FROM txn WHERE account_id = ?"
+	_, err = txexec(tx, s, accountid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Remove account from book.
 	s = "DELETE FROM bookaccount WHERE account_id = ?"
-	_, err = sqlexec(db, s, accountid)
+	_, err = txexec(tx, s, accountid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	s = "DELETE FROM account WHERE account_id = ?"
+	_, err = txexec(tx, s, accountid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}

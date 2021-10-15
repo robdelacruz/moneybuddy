@@ -27,6 +27,7 @@ depgo:
 	go env -w GO111MODULE=auto
 	#go get -u github.com/mattn/go-sqlite3
 	#go get -u golang.org/x/crypto/bcrypt
+	#go get -u github.com/xuri/excelize
 
 webtools:
 	npm install --save-dev tailwindcss
@@ -47,6 +48,9 @@ static/bundle.js: $(JSFILES) $(JSFILES2) $(JSFILES3) $(JSFILES4) $(JSFILES5)
 
 ab: $(SRCS) $(SRCS2)
 	go build -o ab $(SRCS) $(SRCS2) $(SRCS3)
+
+importer: importer.go dbdata.go db.go util.go
+	go build -o importer importer.go dbdata.go db.go util.go
 
 clean:
 	rm -rf ab static/*.js static/*.css static/*.map
