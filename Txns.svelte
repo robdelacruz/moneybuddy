@@ -6,7 +6,11 @@
         <div class="flex flex-row">
             <select class="text-sm font-bold fg-h1 bg-normal pr-2 mr-2" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
                 {#each bookaccounts as a}
-                <option value={a.accountid}>{a.name}</option>
+                    {#if a.accountid == accountid}
+                    <option selected value={a.accountid}>{a.name}</option>
+                    {:else}
+                    <option value={a.accountid}>{a.name}</option>
+                    {/if}
                 {/each}
             </select>
             {#if displayaccount.balance >= 0}
@@ -78,7 +82,7 @@ import TxnForm from "./TxnForm.svelte";
 
 export let root = null;
 export let bookid = 1;
-export let accountid = null;
+export let accountid = 0;
 
 let svcurl = "/api";
 let selid = 0;
@@ -141,7 +145,7 @@ function getBookAccounts(book) {
 }
 
 function getBookAccount(book, accountid) {
-    if (book == null || accountid == null) {
+    if (book == null || accountid == 0) {
         return null;
     }
     for (let i=0; i < book.bankaccounts.length; i++) {
@@ -209,7 +213,7 @@ function onedittxn(txn) {
     editid = txn.txnid;
 }
 function oncreate(e) {
-    if (accountid == null) {
+    if (accountid == 0) {
         return;
     }
     newtxn.accountid = accountid;

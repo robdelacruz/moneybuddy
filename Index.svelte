@@ -25,16 +25,16 @@
 {:else if mode == "login"}
 <Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
     {#if tabsel == "login"}
-    <UserLogin bind:this={wuserlogin} on:submit={reset} />
+    <UserLogin bind:this={wuserlogin} on:submit={resetlogin} />
     {:else if tabsel == "signup"}
-    <UserSignup bind:this={wusersignup} on:submit={reset} />
+    <UserSignup bind:this={wusersignup} on:submit={resetlogin} />
     {/if}
 {/if}
 
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, subscribe} from "./helpers.js";
+import {find, submit, subscribe, getls, setls} from "./helpers.js";
 import * as data from "./data.js";
 import Tablinks from "./Tablinks.svelte";
 import Journal from "./Journal.svelte";
@@ -51,7 +51,7 @@ let wusersignup;
 
 let root = null;
 let tablinks;
-let tabsel = "journal";
+let tabsel = "";
 let mode = "";
 
 let userid = 0;
@@ -61,10 +61,14 @@ let sig = "";
 let currencies = [];
 $: if (root != null) currencies = root.currencies;
 
-reset();
+[userid, username, sig] = currentSession();
 
 $: resetTabs(userid);
 $: subscribeRootdata(userid);
+
+// Remember selections when changed.
+$: setls("tabsel", "Index", tabsel);
+
 
 async function subscribeRootdata(userid) {
     if (userid == 0) {
@@ -106,7 +110,7 @@ function getqs(q) {
     return v;
 }
 
-// Returns [username, sig]
+// Returns [userid, username, sig]
 // Reads user cookie of the format:
 //   user=<username>|<user signature>;
 //   Ex: user=robdelacruz|abc123
@@ -160,7 +164,8 @@ function onlogout(e) {
     tabsel = "login";
 }
 
-function reset() {
+function resetlogin() {
+    localStorage.clear();
     [userid, username, sig] = currentSession();
 }
 
@@ -172,9 +177,9 @@ function resetTabs(userid) {
         return;
     }
 
-    // Logged in, show journal tabs.
+    // Logged in, show previously selected tab ("journal" is default).
     mode = "";
-    tabsel = "journal";
+    tabsel = getls("tabsel", "Index", "journal");
 }
 
 </script>

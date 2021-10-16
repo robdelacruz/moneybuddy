@@ -1,4 +1,20 @@
-function readCookie(name) {
+// Return v if v is not null/undefined/false, else return altv.
+export function ifnull(v, altv) {
+    if (v) return v;
+    return altv;
+}
+// Return localstorage item of key: "<ns>_<k>"
+export function getls(k, ns, vdefault) {
+    let lskey = `${ns}_${k}`;
+    return ifnull(localStorage.getItem(lskey), vdefault);
+}
+// Set localstorage item to key: "<ns>_<k>"
+export function setls(k, ns, v) {
+    let lskey = `${ns}_${k}`;
+    localStorage.setItem(lskey, v);
+}
+
+export function readCookie(name) {
     let cookies = document.cookie.split(";");
     for (let i=0; i < cookies.length; i++) {
         let cookie = cookies[i].trim();

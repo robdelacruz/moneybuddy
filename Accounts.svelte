@@ -6,7 +6,11 @@
         <div class="">
             <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
             {#each root.books as b}
+                {#if b.bookid == bookid}
+                <option selected value={b.bookid}>{b.name}</option>
+                {:else}
                 <option value={b.bookid}>{b.name}</option>
+                {/if}
             {/each}
             </select>
         </div>
@@ -16,7 +20,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-4">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter} bind:this={input_filter}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="accountfilter" type="text" placeholder="Filter" bind:value={frm_filter}>
             </form>
         </div>
     {/if}
@@ -95,14 +99,15 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit} from "./helpers.js";
+import {find, submit, ifnull, getls, setls} from "./helpers.js";
 import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
 export let root = null;
 export let bookid = 0;
+export let selaccountid = 0;
 
-let selid = 0;
+let selid = selaccountid;
 let editid = -1;
 let newaccount = {
     accountid: 0,
@@ -113,7 +118,6 @@ let newaccount = {
 };
 
 let frm_filter = "";
-let input_filter = null;
 
 let selbook = null;
 let display_bb = []; // bankaccounts to display
@@ -168,9 +172,41 @@ function filterAccounts(book, sfilter) {
     return [bb, ss];
 }
 
+/*
+function restorePrevSelectedAccount() {
+    let selid = getls("selid", "Accounts", 0);
+    if (selid == 0) {
+        return;
+    }
+
+    console.log(bookid);
+    let b = getSelectedBook(root, bookid);
+    if (b == null) {
+        return;
+    }
+    console.log(b.bankaccounts);
+    for (let i=0; i < b.bankaccounts.length; i++) {
+        let a = b.bankaccounts[i];
+        if (a.accountid == selid) {
+            dispatch("selectaccount", a);
+            return;
+        }
+    }
+    console.log(b.stockaccounts);
+    for (let i=0; i < b.stockaccounts.length; i++) {
+        let a = b.stockaccounts[i];
+        if (a.accountid == selid) {
+            dispatch("selectaccount", a);
+            return;
+        }
+    }
+}
+*/
+
 function onbookchange(e) {
     selid = 0;
     editid = -1;
+
     dispatch("selectbookid", bookid);
 }
 

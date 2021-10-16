@@ -7,19 +7,31 @@
             <div>
                 <select class="text-xs fg-normal bg-normal pr-1 mr-4" id="rpttype" name="rpttype" placeholder="Select Report" bind:value={selrptid}>
                     {#each menurpts as menurpt}
-                    <option value={menurpt.id}>{menurpt.name}</option>
+                        {#if menurpt.id == selrptid}
+                        <option selected value={menurpt.id}>{menurpt.name}</option>
+                        {:else}
+                        <option value={menurpt.id}>{menurpt.name}</option>
+                        {/if}
                     {/each}
                 </select>
                 <select class="text-xs fg-normal bg-normal pr-1" id="book" name="book" placeholder="Select Book" bind:value={selbookid}>
                     {#each rptdata.bookrpts as bookrpt}
-                    <option value={bookrpt.bookid}>{bookrpt.bookname}</option>
+                        {#if bookrpt.bookid == selbookid}
+                        <option selected value={bookrpt.bookid}>{bookrpt.bookname}</option>
+                        {:else}
+                        <option value={bookrpt.bookid}>{bookrpt.bookname}</option>
+                        {/if}
                     {/each}
                 </select>
             </div>
             <div>
                 <select class="text-xs fg-normal bg-normal pr-1" id="currency" name="currency" placeholder="Select Currency" bind:value={selcurrencyid}>
                     {#each currencies as c}
-                    <option value={c.currencyid}>{c.currency}</option>
+                        {#if c.currencyid == selcurrencyid}
+                        <option selected value={c.currencyid}>{c.currency}</option>
+                        {:else}
+                        <option value={c.currencyid}>{c.currency}</option>
+                        {/if}
                     {/each}
                 </select>
             </div>
@@ -42,6 +54,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
+import {find, submit, getls, setls} from "./helpers.js";
 import * as data from "./data.js";
 import SummaryRpt from "./SummaryRpt.svelte";
 
@@ -55,13 +68,14 @@ let menurpts = [
     {id: "robrpt", name: "Rob Report"}
 ];
 
-let selbookid = 0;
-let selrptid = menurpts[0].id;
-let selcurrencyid = 1;
+let selbookid = getls("selbookid", "Report", firstbookid(rptdata));
+let selrptid = getls("selrptid", "Report", menurpts[0].id);
+let selcurrencyid = getls("selcurrencyid", "Report", firstcurrencyid(currencies));
 
-$: if (selbookid == 0 && rptdata != null) {
-    selbookid = firstbookid(rptdata);
-}
+// Remember selections when changed.
+$: setls("selbookid", "Report", selbookid);
+$: setls("selrptid", "Report", selrptid);
+$: setls("selcurrencyid", "Report", selcurrencyid);
 
 function firstbookid(rptdata) {
     if (rptdata == null || rptdata.bookrpts.length == 0) {
@@ -70,6 +84,12 @@ function firstbookid(rptdata) {
     return rptdata.bookrpts[0].bookid;
 }
 
+function firstcurrencyid(currencies) {
+    if (currencies == null || currencies.length == 0) {
+        return 0;
+    }
+    return currencies[0].currencyid;
+}
 
 $: init(userid, selcurrencyid);
 

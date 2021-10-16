@@ -1,5 +1,5 @@
 <div class="flex flex-row">
-    <Accounts bind:this={waccounts} root={root} bookid={selbookid} on:selectbookid={accounts_selectbookid} on:selectaccount={accounts_selectaccount} />
+    <Accounts bind:this={waccounts} root={root} bookid={selbookid} selaccountid={selaccountid} on:selectbookid={accounts_selectbookid} on:selectaccount={accounts_selectaccount} />
     <Txns bind:this={wtxns} root={root} bookid={selbookid} accountid={selaccountid} on:selectaccount={txns_selectaccount}/>
 
     <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
@@ -12,6 +12,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
+import {find, submit, getls, setls} from "./helpers.js";
 
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
@@ -20,11 +21,12 @@ export let root = null;
 let waccounts;
 let wtxns;
 
-let selbookid = 0;
-let selaccountid = null;
+let selbookid = getls("selbookid", "Journal", 0);
+let selaccountid = getls("selaccountid", "Journal", 0);
 
 $: if (selbookid == 0 && root != null) {
     selbookid = firstbookid(root);
+    setls("selbookid", "Journal", selbookid);
 }
 
 function firstbookid(rootdata) {
@@ -44,17 +46,24 @@ function firstbookid(rootdata) {
 
 function accounts_selectbookid(e) {
     selbookid = e.detail;
-    selaccountid = null;
+    selaccountid = 0;
     wtxns.reset();
+
+    setls("selbookid", "Journal", selbookid);
+    setls("selaccountid", "Journal", selaccountid);
 }
 
 function accounts_selectaccount(e) {
     let a = e.detail;
     selaccountid = a.accountid;
+    setls("selaccountid", "Journal", selaccountid);
 }
 
 function txns_selectaccount(e) {
     let a = e.detail;
+    selaccountid = a.accountid;
+    setls("selaccountid", "Journal", selaccountid);
+
     waccounts.selectAccount(a);
 }
 

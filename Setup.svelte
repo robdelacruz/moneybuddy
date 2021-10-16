@@ -6,7 +6,11 @@
         <div class="flex flex-row border-b border-cell mb-4">
             <select class="text-xs fg-normal bg-normal pr-1" id="setupmenu" name="setupmenu" placeholder="Select" bind:value={selmenuid}>
                 {#each menuitems as menuitem}
-                <option value={menuitem.id}>{menuitem.name}</option>
+                    {#if menuitem.id == selmenuid}
+                    <option selected value={menuitem.id}>{menuitem.name}</option>
+                    {:else}
+                    <option value={menuitem.id}>{menuitem.name}</option>
+                    {/if}
                 {/each}
             </select>
         </div>
@@ -29,6 +33,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
+import {find, submit, getls, setls} from "./helpers.js";
 import * as data from "./data.js";
 import SetupBooks from "./SetupBooks.svelte";
 import SetupCurrencies from "./SetupCurrencies.svelte";
@@ -43,7 +48,10 @@ let menuitems = [
     {id: "user", name: "User"}
 ];
 
-let selmenuid = menuitems[0].id;
+let selmenuid = getls("selmenuid", "Setup", menuitems[0].id);
+
+// Remember selections when changed.
+$: setls("selmenuid", "Setup", selmenuid);
 
 </script>
 
