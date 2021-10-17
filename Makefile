@@ -4,7 +4,7 @@
 # 'make' to build css and js into static/
 # 'make serve' to start dev webserver
 
-NODE_VER = 16
+NODE_VER = 14
 
 JSFILES = index.js helpers.js data.js
 JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte
@@ -25,9 +25,9 @@ dep:
 
 depgo:
 	go env -w GO111MODULE=auto
-	#go get -u github.com/mattn/go-sqlite3
-	#go get -u golang.org/x/crypto/bcrypt
-	#go get -u github.com/xuri/excelize
+	go get -u github.com/mattn/go-sqlite3
+	go get -u golang.org/x/crypto/bcrypt
+	go get -u github.com/xuri/excelize
 
 webtools:
 	npm install --save-dev tailwindcss
