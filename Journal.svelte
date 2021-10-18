@@ -12,7 +12,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, getls, setls} from "./helpers.js";
+import {find, submit, getlsInt, setlsInt} from "./helpers.js";
 
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
@@ -21,13 +21,10 @@ export let root = null;
 let waccounts;
 let wtxns;
 
-let selbookid = getls("selbookid", "Journal", 0);
-let selaccountid = getls("selaccountid", "Journal", 0);
+let selbookid = getlsInt("Journal", "selbookid", firstbookid(root));
+let selaccountid = getlsInt("Journal", "selaccountid", 0);
 
-$: if (selbookid == 0 && root != null) {
-    selbookid = firstbookid(root);
-    setls("selbookid", "Journal", selbookid);
-}
+$: selbookid = getlsInt("Journal", "selbookid", firstbookid(root));
 
 function firstbookid(rootdata) {
     if (rootdata == null || rootdata.books.length == 0) {
@@ -49,20 +46,20 @@ function accounts_selectbookid(e) {
     selaccountid = 0;
     wtxns.reset();
 
-    setls("selbookid", "Journal", selbookid);
-    setls("selaccountid", "Journal", selaccountid);
+    setlsInt("Journal", "selbookid", selbookid);
+    setlsInt("Journal", "selaccountid", selaccountid);
 }
 
 function accounts_selectaccount(e) {
     let a = e.detail;
     selaccountid = a.accountid;
-    setls("selaccountid", "Journal", selaccountid);
+    setlsInt("Journal", "selaccountid", selaccountid);
 }
 
 function txns_selectaccount(e) {
     let a = e.detail;
     selaccountid = a.accountid;
-    setls("selaccountid", "Journal", selaccountid);
+    setlsInt("Journal", "selaccountid", selaccountid);
 
     waccounts.selectAccount(a);
 }

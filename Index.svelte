@@ -67,7 +67,7 @@ $: resetTabs(userid);
 $: subscribeRootdata(userid);
 
 // Remember selections when changed.
-$: setls("tabsel", "Index", tabsel);
+$: setls("Index", "tabsel", tabsel);
 
 
 async function subscribeRootdata(userid) {
@@ -179,7 +179,7 @@ function resetTabs(userid) {
 
     // Logged in, show previously selected tab ("journal" is default).
     mode = "";
-    tabsel = getls("tabsel", "Index", "journal");
+    tabsel = getls("Index", "tabsel", "journal");
 }
 
 </script>

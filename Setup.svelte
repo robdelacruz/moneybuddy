@@ -48,10 +48,10 @@ let menuitems = [
     {id: "user", name: "User"}
 ];
 
-let selmenuid = getls("selmenuid", "Setup", menuitems[0].id);
+let selmenuid = getls("Setup", "selmenuid", menuitems[0].id);
 
 // Remember selections when changed.
-$: setls("selmenuid", "Setup", selmenuid);
+$: setls("Setup", "selmenuid", selmenuid);
 
 </script>
 

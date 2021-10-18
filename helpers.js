@@ -3,15 +3,27 @@ export function ifnull(v, altv) {
     if (v) return v;
     return altv;
 }
+function lskey(ns, k) {
+    return `${ns}_${k}`;
+}
 // Return localstorage item of key: "<ns>_<k>"
-export function getls(k, ns, vdefault) {
-    let lskey = `${ns}_${k}`;
-    return ifnull(localStorage.getItem(lskey), vdefault);
+export function getls(ns, k, vdefault) {
+    return ifnull(localStorage.getItem(lskey(ns, k)), vdefault);
 }
 // Set localstorage item to key: "<ns>_<k>"
-export function setls(k, ns, v) {
-    let lskey = `${ns}_${k}`;
-    localStorage.setItem(lskey, v);
+export function setls(ns, k, v) {
+    localStorage.setItem(lskey(ns, k), v);
+}
+
+export function getlsInt(ns, k, vdefault) {
+    let v = localStorage.getItem(lskey(ns, k));
+    if (v == null) {
+        return vdefault;
+    }
+    return parseInt(v, 10);
+}
+export function setlsInt(ns, k, v) {
+    localStorage.setItem(lskey(ns, k), v.toString());
 }
 
 export function readCookie(name) {

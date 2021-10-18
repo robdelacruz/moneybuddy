@@ -54,7 +54,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, getls, setls} from "./helpers.js";
+import {find, submit, getls, getlsInt, setls, setlsInt} from "./helpers.js";
 import * as data from "./data.js";
 import SummaryRpt from "./SummaryRpt.svelte";
 
@@ -68,14 +68,22 @@ let menurpts = [
     {id: "robrpt", name: "Rob Report"}
 ];
 
-let selbookid = getls("selbookid", "Report", firstbookid(rptdata));
-let selrptid = getls("selrptid", "Report", menurpts[0].id);
-let selcurrencyid = getls("selcurrencyid", "Report", firstcurrencyid(currencies));
+let selrptid = getls("Report", "selrptid", menurpts[0].id);
+let selbookid = 0;
+let selcurrencyid = getlsInt("Report", "selcurrencyid", firstcurrencyid(currencies));
 
 // Remember selections when changed.
-$: setls("selbookid", "Report", selbookid);
-$: setls("selrptid", "Report", selrptid);
-$: setls("selcurrencyid", "Report", selcurrencyid);
+$: setls("Report", "selrptid", selrptid);
+$: if (selbookid != 0) setlsInt("Report", "selbookid", selbookid);
+$: setlsInt("Report", "selcurrencyid", selcurrencyid);
+
+$: loadrptdata(userid, selcurrencyid);
+
+async function loadrptdata(userid, currencyid) {
+    let [d, err] = await data.loadRptdata(userid, currencyid);
+    rptdata = d;
+    selbookid = getlsInt("Report", "selbookid", firstbookid(rptdata));
+}
 
 function firstbookid(rptdata) {
     if (rptdata == null || rptdata.bookrpts.length == 0) {
@@ -89,13 +97,6 @@ function firstcurrencyid(currencies) {
         return 0;
     }
     return currencies[0].currencyid;
-}
-
-$: init(userid, selcurrencyid);
-
-async function init(userid, currencyid) {
-    let [d, err] = await data.loadRptdata(userid, currencyid);
-    rptdata = d;
 }
 
 </script>

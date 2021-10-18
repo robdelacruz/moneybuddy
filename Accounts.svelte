@@ -172,37 +172,6 @@ function filterAccounts(book, sfilter) {
     return [bb, ss];
 }
 
-/*
-function restorePrevSelectedAccount() {
-    let selid = getls("selid", "Accounts", 0);
-    if (selid == 0) {
-        return;
-    }
-
-    console.log(bookid);
-    let b = getSelectedBook(root, bookid);
-    if (b == null) {
-        return;
-    }
-    console.log(b.bankaccounts);
-    for (let i=0; i < b.bankaccounts.length; i++) {
-        let a = b.bankaccounts[i];
-        if (a.accountid == selid) {
-            dispatch("selectaccount", a);
-            return;
-        }
-    }
-    console.log(b.stockaccounts);
-    for (let i=0; i < b.stockaccounts.length; i++) {
-        let a = b.stockaccounts[i];
-        if (a.accountid == selid) {
-            dispatch("selectaccount", a);
-            return;
-        }
-    }
-}
-*/
-
 function onbookchange(e) {
     selid = 0;
     editid = -1;
