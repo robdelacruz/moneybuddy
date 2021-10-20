@@ -541,7 +541,7 @@ func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {
 	return bal, nil
 }
 
-func createRandomBankAccount(db *sql.DB, bookid int64) (int64, error) {
+func createRandomBankAccount(db *sql.DB, bookid int64, currencyid int64) (int64, error) {
 	banks := []string{"BPI", "Security", "Wells Fargo", "Bank of America", "FirstTech", "MetroBank"}
 	descs := []string{"Savings", "Checking", "Time Deposit", "Money Market", "Individual", "COD", "Maxi"}
 	opts := []string{"", "Cash", "Ext", "Other"}
@@ -556,7 +556,7 @@ func createRandomBankAccount(db *sql.DB, bookid int64) (int64, error) {
 		Name:        name,
 		AccountType: BankAccount,
 		Unitprice:   1.0,
-		Currencyid:  1,
+		Currencyid:  currencyid,
 	}
 	accountid, err := createAccount(db, &a, bookid)
 	if err != nil {
@@ -573,13 +573,13 @@ func createRandomBankAccount(db *sql.DB, bookid int64) (int64, error) {
 	return accountid, nil
 }
 
-func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice float64) (int64, error) {
+func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice float64, currencyid int64) (int64, error) {
 	a := Account{
 		Code:        "",
 		Name:        ticker,
 		AccountType: StockAccount,
 		Unitprice:   unitprice,
-		Currencyid:  1,
+		Currencyid:  currencyid,
 	}
 	accountid, err := createAccount(db, &a, bookid)
 	if err != nil {

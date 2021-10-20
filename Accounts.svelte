@@ -89,7 +89,7 @@
         {/if}
         {#if editid == a.accountid}
         <div class="p-2 border-b border-cell">
-            <AccountForm book={selbook} account={a} currencies={root.currencies} on:submit={accountform_done} on:cancel={accountform_done} />
+            <AccountForm book={selbook} account={a} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
         {/if}
     {/each}

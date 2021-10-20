@@ -221,6 +221,15 @@ func initTestData(db *sql.DB, username string) {
 		panic(err)
 	}
 
+	userCurrencies, err := findUserCurrencies(db, userid)
+	if err != nil {
+		panic(err)
+	}
+	if len(userCurrencies) == 0 {
+		panic(fmt.Errorf("user currency error"))
+	}
+	usdcur := userCurrencies[0]
+
 	for _, b := range bb {
 		if b.BookType == SystemBook {
 			continue
@@ -229,7 +238,7 @@ func initTestData(db *sql.DB, username string) {
 		naccounts := 5 + rand.Intn(10)
 		fmt.Printf("Creating %d random bank accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
 		for i := 0; i < naccounts; i++ {
-			_, err := createRandomBankAccount(db, b.Bookid)
+			_, err := createRandomBankAccount(db, b.Bookid, usdcur.Currencyid)
 			if err != nil {
 				panic(err)
 			}
@@ -243,7 +252,7 @@ func initTestData(db *sql.DB, username string) {
 		}
 		fmt.Printf("Creating %d random stock accounts for book %d: %s...\n", naccounts, b.Bookid, b.Name)
 		for i := 0; i < naccounts; i++ {
-			_, err := createRandomStockAccount(db, b.Bookid, stocks[i], unitprices[i])
+			_, err := createRandomStockAccount(db, b.Bookid, stocks[i], unitprices[i], usdcur.Currencyid)
 			if err != nil {
 				panic(err)
 			}
