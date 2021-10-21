@@ -32,7 +32,9 @@
                 <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
             <div>
+                {#if txn.txnid != 0}
                 <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
+                {/if}
             </div>
         </div>
         {:else if mode == "delete"}
