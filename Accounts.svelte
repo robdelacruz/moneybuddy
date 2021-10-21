@@ -14,7 +14,7 @@
             {/each}
             </select>
         </div>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Account</a>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>New</a>
     </div>
     {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->
@@ -202,6 +202,7 @@ function oneditaccount(account) {
 }
 function oncreate(e) {
     editid = 0;
+    selid = 0;
 }
 function accountform_done(e) {
     editid = -1;

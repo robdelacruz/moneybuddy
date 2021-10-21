@@ -3,7 +3,7 @@
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <h2 class="text-sm font-bold fg-h1 bg-normal">Setup Currencies</h2>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Currency</a>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>New</a>
     </div>
     {#if editid == 0}
         <div class="p-2 border-b border-cell mb-2">
@@ -69,6 +69,7 @@ function onedit(c) {
 }
 function oncreate(c) {
     editid = 0;
+    selid = 0;
 }
 function currencyform_done(e) {
     editid = -1;

@@ -19,7 +19,7 @@
             <p class="text-sm self-end fg-number-minus">{displayaccount.fmtbalance}</p>
             {/if}
         </div>
-        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>Add Transaction</a>
+        <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>New</a>
     </div>
     {#if editid != 0}
     <!-- Don't show filter when Create form is visible. -->
@@ -219,6 +219,7 @@ function oncreate(e) {
     newtxn.accountid = accountid;
     newtxn.date = new Date().toISOString(),
     editid = 0;
+    selid = 0;
 }
 function txnform_done(e) {
     editid = -1;
