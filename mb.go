@@ -266,9 +266,6 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/html")
 		P := makeFprintf(w)
 		printHtmlOpen(P, "Website Title", []string{"/static/bundle.js"})
-		printContainerOpen(P)
-
-		printContainerClose(P)
 		printHtmlClose(P)
 	}
 }

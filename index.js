@@ -1,6 +1,6 @@
 import Index from "./Index.svelte";
 const index = new Index({
-    target: document.querySelector("#container"),
+    target: document.querySelector("body"),
     props: {
     }
 });
