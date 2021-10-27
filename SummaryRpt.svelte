@@ -10,11 +10,11 @@
             <div class="flex flex-row py-2">
             </div>
         {:else if ri.caption.startsWith("# ")}
-            <div class="flex flex-row flex-start p-1">
+            <div class="flex flex-row p-1">
                 <h2 class="cell-desc font-bold fg-h2">{ri.caption.substring(2)}</h2>
             </div>
         {:else}
-        <div class="flex flex-row flex-start p-1 border-b border-cell">
+        <div class="flex flex-row justify-between p-1 border-b border-cell">
             <p class="cell-desc">{ri.caption}</p>
             {#if ri.val >= 0}
             <p class="whitespace-nowrap fg-number-plus text-right cell-amt">{data.formattedAmt(ri.val, rptdata.currency.currency)}</p>

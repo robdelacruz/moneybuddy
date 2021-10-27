@@ -1,5 +1,5 @@
-<div class="flex flex-row">
-    <div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="width: 40rem;">
+<div class="report flex flex-row">
+    <div class="w-full bg-normal fg-normal mb-2 mr-2 py-2 px-4">
     {#if rptdata == null || rptdata.bookrpts.length == 0}
         <p class="fg-dim">No data</p>
     {:else}
@@ -43,11 +43,6 @@
             <p>something else</p>
         {/if}
     {/if}
-    </div>
-
-    <div class="dim bg-normal fg-normal mb-2 py-2 px-4" style="width: 20rem;">
-        <h1 class="text-sm font-bold mb-2">Lorem Ipsum</h1>
-        <p class="mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis consequat est eget est accumsan, eu iaculis tellus fermentum. Nunc pharetra ante feugiat maximus dapibus. Sed dui sapien, hendrerit vel viverra ut, maximus vitae risus. Nunc scelerisque bibendum magna, a faucibus nunc. Suspendisse sapien eros, tincidunt ac ultrices at, hendrerit ac purus. Aliquam erat volutpat. Suspendisse aliquam accumsan ornare. Sed ac leo vitae enim fringilla tristique at sit amet odio. Nunc vel sollicitudin est, vitae commodo purus. Nunc sit amet tellus tincidunt, ultrices quam a, cursus mi. Maecenas sollicitudin vehicula arcu, ut eleifend purus luctus vel. Integer scelerisque mi quis tincidunt laoreet. Fusce dapibus vulputate arcu, eu sollicitudin orci efficitur vel.</p>
     </div>
 </div>
 

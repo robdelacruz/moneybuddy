@@ -1,35 +1,43 @@
-<div class="flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
-    <div>
-        <h1 class="inline text-sm ml-1 mr-2"><a href="/">Money Buddy</a></h1>
-        <a href="about.html" class="mr-2">About</a>
+<div class="container">
+    <div class="header flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
+        <div>
+            <h1 class="inline text-sm ml-1 mr-2"><a href="/">Money Buddy</a></h1>
+            <a href="about.html" class="mr-2">About</a>
+        </div>
+        <div>
+            {#if username != ""}
+            <a class="inline mr-1" href="/">{username}</a>
+            <a class="inline mr-1" href="/" on:click|preventDefault={onlogout}>Logout</a>
+            {:else}
+            <a class="inline mr-1" href="/" on:click|preventDefault={onlogin}>Login</a>
+            {/if}
+        </div>
     </div>
-    <div>
-        {#if username != ""}
-        <a class="inline mr-1" href="/">{username}</a>
-        <a class="inline mr-1" href="/" on:click|preventDefault={onlogout}>Logout</a>
-        {:else}
-        <a class="inline mr-1" href="/" on:click|preventDefault={onlogin}>Login</a>
+
+    <div class="main">
+    {#if mode == ""}
+        <Tablinks bind:this={tablinks} links="journal|Journal;report|Report;setup|Setup" bind:sel={tabsel} />
+        {#if tabsel == "journal"}
+            <Journal bind:this={wjournal} root={root} />
+        {:else if tabsel == "report"}
+            <Report bind:this={wreport} userid={userid} currencies={currencies} />
+        {:else if tabsel == "setup"}
+            <Setup bind:this={wsetup} userid={userid} root={root} />
         {/if}
+    {:else if mode == "login"}
+        <Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
+        {#if tabsel == "login"}
+            <UserLogin bind:this={wuserlogin} on:submit={resetlogin} />
+        {:else if tabsel == "signup"}
+            <UserSignup bind:this={wusersignup} on:submit={resetlogin} />
+        {/if}
+    {/if}
+    </div>
+
+    <div class="footer">
+        footer
     </div>
 </div>
-
-{#if mode == ""}
-<Tablinks bind:this={tablinks} links="journal|Journal;report|Report;setup|Setup" bind:sel={tabsel} />
-    {#if tabsel == "journal"}
-        <Journal bind:this={wjournal} root={root} />
-    {:else if tabsel == "report"}
-        <Report bind:this={wreport} userid={userid} currencies={currencies} />
-    {:else if tabsel == "setup"}
-        <Setup bind:this={wsetup} userid={userid} root={root} />
-    {/if}
-{:else if mode == "login"}
-<Tablinks bind:this={tablinks} links="login|Login;signup|Sign Up" bind:sel={tabsel} />
-    {#if tabsel == "login"}
-    <UserLogin bind:this={wuserlogin} on:submit={resetlogin} />
-    {:else if tabsel == "signup"}
-    <UserSignup bind:this={wusersignup} on:submit={resetlogin} />
-    {/if}
-{/if}
 
 <script>
 import {onMount, createEventDispatcher} from "svelte";

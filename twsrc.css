@@ -4,6 +4,35 @@
 
 @tailwind utilities;
 
+.container {
+    max-width: 1200px;
+    padding: 10px;
+}
+
+.journal-container {
+    display: grid;
+    grid-template-columns: 20rem 40rem;
+    grid-template-areas:
+        "accounts txns";
+}
+
+.report {
+    max-width: 600px;
+}
+
+.setup {
+    max-width: 20rem;
+}
+
+@media only screen and (max-width: 800px) {
+    .journal-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "accounts"
+            "txns";
+    }
+}
+
 .bg-page {@apply bg-gray-900;}
 
 .fg-normal {@apply text-gray-200;}

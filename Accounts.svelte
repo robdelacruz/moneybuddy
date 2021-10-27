@@ -1,4 +1,4 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 20rem; max-width: 20rem;">
+<div class="accounts bg-normal fg-normal mb-2 mr-2 py-2 px-4">
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}

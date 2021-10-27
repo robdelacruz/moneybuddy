@@ -1,4 +1,4 @@
-<div class="bg-normal fg-normal mb-2 mr-2 py-2 px-4" style="min-width: 40rem; max-width: 40rem;">
+<div class="txns bg-normal fg-normal mb-2 mr-2 py-2 px-4">
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
