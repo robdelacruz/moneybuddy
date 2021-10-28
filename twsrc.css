@@ -9,19 +9,45 @@
     padding: 10px;
 }
 
+.accounts {
+    grid-area: accounts;
+}
+.txns {
+    grid-area: txns;
+}
 .journal-container {
     display: grid;
-    grid-template-columns: 20rem 40rem;
+    grid-template-columns: 20rem 50rem;
     grid-template-areas:
         "accounts txns";
 }
 
 .report {
+    grid-area: report;
     max-width: 600px;
 }
-
 .setup {
+    grid-area: setup;
     max-width: 20rem;
+}
+
+.txnform-desc {grid-area: txnform-desc;}
+.txnform-date {grid-area: txnform-date;}
+.txnform-action {grid-area: txnform-action;}
+.txnform-amt {grid-area: txnform-amt;}
+.txnform-refno {grid-area: txnform-refno;}
+.txnform-btns {grid-area: txnform-btns;}
+.txnform-status {grid-area: txnform-status;}
+.txnform {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas:
+        "txnform-desc txnform-desc txnform-desc txnform-date"
+        "txnform-action txnform-amt txnform-refno txnform-refno"
+        "txnform-btns txnform-btns txnform-btns txnform-btns"
+        "txnform-status txnform-status txnform-status txnform-status"; 
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
 }
 
 @media only screen and (max-width: 800px) {
@@ -30,6 +56,17 @@
         grid-template-areas:
             "accounts"
             "txns";
+    }
+    .txnform {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "txnform-desc"
+        "txnform-date"
+        "txnform-action"
+        "txnform-amt"
+        "txnform-refno"
+        "txnform-btns"
+        "txnform-status"; 
     }
 }
 

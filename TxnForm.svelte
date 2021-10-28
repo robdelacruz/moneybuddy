@@ -1,31 +1,20 @@
 {#if txn == null}
     <p class="fg-dim">Select Txn</p>
 {:else}
-    <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
-        <div class="flex flex-row mb-2 justify-between">
-            <input class="bg-input fg-normal py-1 px-2 mr-1 flex-grow" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
-            <input class="bg-input fg-normal py-1 px-2 cell-date" name="date" id="date" type="date" bind:value={frm_date}>
-        </div>
-        <div class="flex flex-row mb-2">
-            <div class="flex flex-row mr-1 w-1/2">
-                <select class="py-1 px-2 bg-input fg-normal mr-1" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
-                    <option value="plus">{option_plus}</option>
-                    <option value="minus">{option_minus}</option>
-                </select>
-                <input class="block bg-input fg-normal py-1 px-2 mr-1 input-amt flex-grow" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
-            </div>
-            <div class="w-1/2">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
-            </div>
-        </div>
-        <div class="hidden flex flex-row mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="memo" id="memo" type="text" placeholder="Memo" bind:value={frm_memo}>
-        </div>
+    <form class="txnform" autocomplete="off" on:submit|preventDefault={onSubmit}>
+        <input class="txnform-desc bg-input fg-normal py-1 px-2" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
+        <input class="txnform-date bg-input fg-normal py-1 px-2" name="date" id="date" type="date" bind:value={frm_date}>
+        <select class="txnform-action py-1 px-2 bg-input fg-normal" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
+            <option value="plus">{option_plus}</option>
+            <option value="minus">{option_minus}</option>
+        </select>
+        <input class="txnform-amt bg-input fg-normal py-1 px-2" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
+        <input class="txnform-refno bg-input fg-normal py-1 px-2" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
         {#if mode == ""}
-        <div class="flex flex-row justify-between">
+        <div class="txnform-btns flex flex-row justify-between">
             <div>
                 {#if txn.txnid == 0}
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
+                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Submit</button>
                 {:else}
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
                 {/if}
@@ -38,7 +27,7 @@
             </div>
         </div>
         {:else if mode == "delete"}
-        <div class="flex flex-row justify-left">
+        <div class="txnform-btns flex flex-row justify-left">
             <p class="self-center uppercase italic text-xs mr-4">Delete this transaction?</p>
             <div>
                 <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
@@ -47,7 +36,7 @@
         </div>
         {/if}
         {#if status != ""}
-        <div class="">
+        <div class="txnform-status">
             <p class="uppercase italic text-xs">{status}</p>
         </div>
         {/if}
@@ -70,7 +59,6 @@ let status = "";
 
 let frm_desc = txn.desc;
 let frm_ref = txn.ref;
-let frm_memo = null;
 
 let frm_amt = null;
 if (txn.amt != null) {
@@ -113,9 +101,6 @@ async function onSubmit(e) {
 
     if (frm_ref == null) {
         frm_ref = "";
-    }
-    if (frm_memo == null) {
-        frm_memo = "";
     }
 
     let t = {};
