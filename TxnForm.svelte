@@ -8,7 +8,7 @@
             <option value="plus">{option_plus}</option>
             <option value="minus">{option_minus}</option>
         </select>
-        <input class="txnform-amt bg-input fg-normal py-1 px-2" name="amt" id="amt" type="number" placeholder="Amount" step="any" min="0.0" bind:value={frm_amt}>
+        <input class="txnform-amt bg-input fg-normal py-1 px-2" name="amt" id="amt" type="text" placeholder="Amount" bind:value={frm_amt} on:blur="{e => frm_amt = formatnum(frm_amt)}">
         <input class="txnform-refno bg-input fg-normal py-1 px-2" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
         {#if mode == ""}
         <div class="txnform-btns flex flex-row justify-between">
@@ -46,7 +46,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, del} from "./helpers.js";
+import {find, submit, del, formatnum} from "./helpers.js";
 import * as data from "./data.js";
 
 export let account = null;
@@ -60,9 +60,9 @@ let status = "";
 let frm_desc = txn.desc;
 let frm_ref = txn.ref;
 
-let frm_amt = null;
+let frm_amt = "";
 if (txn.amt != null) {
-    frm_amt = Math.abs(txn.amt);
+    frm_amt = formatnum(Math.abs(txn.amt).toString());
 }
 
 let option_plus;
@@ -113,12 +113,12 @@ async function onSubmit(e) {
     t.ref = frm_ref;
     t.desc = frm_desc;
 
-    if (frm_amt == null) {
+    if (frm_amt == "") {
         status = "please enter an amount";
         return;
     }
 
-    t.amt = Math.abs(frm_amt);
+    t.amt = Math.abs(parseFloat(frm_amt));
     if (frm_action == "minus") {
         t.amt = -t.amt;
     }

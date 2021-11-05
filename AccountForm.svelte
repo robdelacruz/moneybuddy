@@ -13,7 +13,7 @@
                 <input class="block bg-input fg-normal py-1 px-2 w-full" name="accountname" id="accountname" type="text" placeholder="Stock Name" bind:value={frm_name}>
             </div>
             <div class="w-1/2">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="unitprice" id="unitprice" type="number" placeholder="Unit Price" step="any" min="0.0" bind:value={frm_unitprice}>
+                <input class="block bg-input fg-normal py-1 px-2 w-full" name="unitprice" id="unitprice" type="text" placeholder="Unit Price" bind:value={frm_unitprice} on:blur="{e => frm_unitprice = formatnum(frm_unitprice)}">
             </div>
         </div>
         {/if}
@@ -83,7 +83,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, del} from "./helpers.js";
+import {find, submit, del, formatnum} from "./helpers.js";
 import * as data from "./data.js";
 
 export let book = null;
@@ -96,7 +96,10 @@ let status = "";
 let frm_name = account.name;
 let frm_accounttype = account.accounttype;
 let frm_currencyid = account.currencyid;
-let frm_unitprice = account.unitprice;
+let frm_unitprice = "";
+if (account.unitprice != null) {
+    frm_unitprice = formatnum(account.unitprice.toString());
+}
 let frm_movebookid = book.bookid;
 
 document.addEventListener("keydown", function(e) {
@@ -108,13 +111,17 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     status = "processing";
 
+    if (frm_unitprice == "") {
+        frm_unitprice = "0.00";
+    }
+
     let a = {};
     a.accountid = account.accountid;
     a.code = account.code;
     a.name = frm_name;
     a.accounttype = frm_accounttype
     a.currencyid = frm_currencyid;
-    a.unitprice = frm_unitprice;
+    a.unitprice = parseFloat(frm_unitprice);
 
     let sreq = `${svcurl}/account?bookid=${book.bookid}`;
     let method = "PUT";

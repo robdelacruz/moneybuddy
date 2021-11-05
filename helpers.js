@@ -183,3 +183,26 @@ export async function subscribe(sreq, fmt, respCB) {
     }, waitms);
 }
 
+export function formatnum(snum) {
+    let rx = /^\s*(\d*)\.?(\d*)\s*$/;
+    let matches = snum.match(rx);
+
+    // Ex. "123.45"
+    // matches: ["123.45", "123", "45"]
+
+    if (matches == null || matches.length == 1) {
+        return "0.00";
+    }
+    let sleft = matches[1];
+    let sright = matches[2];
+    if (sleft == "") {
+        sleft = "0";
+    }
+    if (sright == "") {
+        sright = "00";
+    } else if (sright.length == 1) {
+        sright = `${sright}0`;
+    }
+    return `${sleft}.${sright}`;
+}
+
