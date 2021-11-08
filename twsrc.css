@@ -52,7 +52,7 @@
 
 @media only screen and (max-width: 800px) {
     .journal-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 100%;
         grid-template-areas:
             "accounts"
             "txns";
@@ -97,9 +97,9 @@
 .focus {@apply opacity-100 border-2 border-normal;}
 
 
-.cell-date {flex-basis: 10rem;}
-.cell-desc {flex-basis: 40rem;}
-.cell-amt {flex-basis: 12rem;}
+.cell-date {flex-basis: 10ch;}
+.cell-desc {flex-basis: 0; @apply flex-grow}
+.cell-amt {flex-basis: 12ch;}
 
 .input-amt {width: 8rem;}
 
