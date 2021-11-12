@@ -37,29 +37,29 @@
     {#each displaytxns as t (t.txnid)}
         {#if selid == t.txnid && selid != editid}
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
-            <div class="flex flex-row flex-start p-1 border-b border-cell highlight-1">
+            <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
-                <p class="text-right cell-amt mr-1">{t.fmtamt}</p>
-                <p class="text-right cell-amt mr-1"></p>
+                <p class="text-right cell-amt">{t.fmtamt}</p>
+                <p class="text-right cell-amt"></p>
                 {:else}
-                <p class="text-right cell-amt mr-1"></p>
-                <p class="text-right cell-amt mr-1">{t.fmtamt}</p>
+                <p class="text-right cell-amt"></p>
+                <p class="text-right cell-amt">{t.fmtamt}</p>
                 {/if}
             </div>
         </a>
         {:else}
         <a href="/" on:click|preventDefault="{e => onseltxn(t)}">
-            <div class="flex flex-row flex-start p-1 border-b border-cell">
+            <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell">
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
-                <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
-                <p class="fg-dim text-right cell-amt mr-1"></p>
+                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt"></p>
                 {:else}
-                <p class="fg-dim text-right cell-amt mr-1"></p>
-                <p class="fg-dim text-right cell-amt mr-1">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt"></p>
+                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
                 {/if}
             </div>
         </a>
