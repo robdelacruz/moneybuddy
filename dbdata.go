@@ -66,6 +66,7 @@ type Txn struct {
 	Ref       string  `json:"ref"`
 	Desc      string  `json:"desc"`
 	Amt       float64 `json:"amt"`
+	Memo      string  `json:"memo"`
 }
 
 func createTables(newfile string) *sql.DB {
@@ -598,8 +599,8 @@ func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice
 
 //** Txn functions **
 func createTxn(db *sql.DB, t *Txn) (int64, error) {
-	s := "INSERT INTO txn (account_id, date, ref, desc, amt) VALUES (?, ?, ?, ?, ?)"
-	result, err := sqlexec(db, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
+	s := "INSERT INTO txn (account_id, date, ref, desc, amt, memo) VALUES (?, ?, ?, ?, ?, ?)"
+	result, err := sqlexec(db, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt, t.Memo)
 	if err != nil {
 		return 0, err
 	}
@@ -610,8 +611,8 @@ func createTxn(db *sql.DB, t *Txn) (int64, error) {
 	return id, nil
 }
 func editTxn(db *sql.DB, t *Txn) error {
-	s := "UPDATE txn SET date = ?, ref = ?, desc = ?, amt = ? WHERE txn_id = ?"
-	_, err := sqlexec(db, s, t.Date, t.Ref, t.Desc, t.Amt, t.Txnid)
+	s := "UPDATE txn SET date = ?, ref = ?, desc = ?, amt = ?, memo = ? WHERE txn_id = ?"
+	_, err := sqlexec(db, s, t.Date, t.Ref, t.Desc, t.Amt, t.Memo, t.Txnid)
 	if err != nil {
 		return err
 	}
@@ -627,10 +628,10 @@ func delTxn(db *sql.DB, txnid int64) error {
 }
 
 func findTxn(db *sql.DB, txnid int64) (*Txn, error) {
-	s := "SELECT txn_id, account_id, date, ref, desc, amt FROM txn WHERE txn_id = ?"
+	s := "SELECT txn_id, account_id, date, ref, desc, amt, memo FROM txn WHERE txn_id = ?"
 	row := db.QueryRow(s, txnid)
 	var t Txn
-	err := row.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt)
+	err := row.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt, &t.Memo)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -640,7 +641,7 @@ func findTxn(db *sql.DB, txnid int64) (*Txn, error) {
 	return &t, nil
 }
 func findTxns(db *sql.DB, swhere string) ([]*Txn, error) {
-	s := fmt.Sprintf("SELECT txn_id, account_id, date, ref, desc, amt FROM txn WHERE %s", swhere)
+	s := fmt.Sprintf("SELECT txn_id, account_id, date, ref, desc, amt, memo FROM txn WHERE %s", swhere)
 	rows, err := db.Query(s)
 	if err != nil {
 		return nil, err
@@ -648,13 +649,13 @@ func findTxns(db *sql.DB, swhere string) ([]*Txn, error) {
 	tt := []*Txn{}
 	for rows.Next() {
 		var t Txn
-		rows.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt)
+		rows.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt, &t.Memo)
 		tt = append(tt, &t)
 	}
 	return tt, nil
 }
 func findTxnsOfAccount(db *sql.DB, accountid int64, swhere string) ([]*Txn, error) {
-	s := fmt.Sprintf("SELECT txn_id, account_id, date, ref, desc, amt FROM txn WHERE account_id = ? AND %s", swhere)
+	s := fmt.Sprintf("SELECT txn_id, account_id, date, ref, desc, amt, memo FROM txn WHERE account_id = ? AND %s", swhere)
 	rows, err := db.Query(s, accountid)
 	if err != nil {
 		return nil, err
@@ -662,7 +663,7 @@ func findTxnsOfAccount(db *sql.DB, accountid int64, swhere string) ([]*Txn, erro
 	tt := []*Txn{}
 	for rows.Next() {
 		var t Txn
-		rows.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt)
+		rows.Scan(&t.Txnid, &t.Accountid, &t.Date, &t.Ref, &t.Desc, &t.Amt, &t.Memo)
 		tt = append(tt, &t)
 	}
 	return tt, nil
@@ -693,7 +694,7 @@ func createRandomTxns(db *sql.DB, accountid int64, ntxns int) error {
 	if err != nil {
 		return err
 	}
-	s := "INSERT INTO txn (account_id, date, ref, desc, amt) VALUES (?, ?, ?, ?, ?)"
+	s := "INSERT INTO txn (account_id, date, ref, desc, amt, memo) VALUES (?, ?, ?, ?, ?, ?)"
 
 	for i := 0; i < ntxns; i++ {
 		amt := float64(rand.Intn(5000000))/100.0 - 25000
@@ -703,8 +704,9 @@ func createRandomTxns(db *sql.DB, accountid int64, ntxns int) error {
 			Ref:       "",
 			Desc:      createRandomWords(words),
 			Amt:       amt,
+			Memo:      createRandomWords(words),
 		}
-		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
+		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt, t.Memo)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -725,7 +727,7 @@ func createRandomStockTxns(db *sql.DB, accountid int64, ntxns int) error {
 	if err != nil {
 		return err
 	}
-	s := "INSERT INTO txn (account_id, date, ref, desc, amt) VALUES (?, ?, ?, ?, ?)"
+	s := "INSERT INTO txn (account_id, date, ref, desc, amt, memo) VALUES (?, ?, ?, ?, ?, ?)"
 
 	for i := 0; i < ntxns; i++ {
 		desc := "sell"
@@ -740,8 +742,9 @@ func createRandomStockTxns(db *sql.DB, accountid int64, ntxns int) error {
 			Ref:       "",
 			Desc:      desc,
 			Amt:       amt,
+			Memo:      "",
 		}
-		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt)
+		_, err := txexec(tx, s, t.Accountid, t.Date, t.Ref, t.Desc, t.Amt, t.Memo)
 		if err != nil {
 			tx.Rollback()
 			return err

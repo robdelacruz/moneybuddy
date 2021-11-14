@@ -10,6 +10,7 @@
         </select>
         <input class="txnform-amt bg-input fg-normal py-1 px-2" name="amt" id="amt" type="text" placeholder="Amount" bind:value={frm_amt} on:blur="{e => frm_amt = formatnum(frm_amt)}">
         <input class="txnform-refno bg-input fg-normal py-1 px-2" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
+        <textarea class="txnform-memo bg-input fg-normal py-1 px-2" name="memo" id="memo" placeholder="Memo" rows="4" bind:value={frm_memo}></textarea>
         {#if mode == ""}
         <div class="txnform-btns flex flex-row justify-between">
             <div>
@@ -59,6 +60,7 @@ let status = "";
 
 let frm_desc = txn.desc;
 let frm_ref = txn.ref;
+let frm_memo = txn.memo;
 
 let frm_amt = "";
 if (txn.amt != null) {
@@ -99,10 +101,6 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     status = "processing";
 
-    if (frm_ref == null) {
-        frm_ref = "";
-    }
-
     let t = {};
     t.txnid = txn.txnid;
     t.accountid = txn.accountid;
@@ -110,8 +108,9 @@ async function onSubmit(e) {
         t.accountid = account.accountid;
     }
     t.date = frm_date;
-    t.ref = frm_ref;
     t.desc = frm_desc;
+    t.ref = frm_ref;
+    t.memo = frm_memo;
 
     if (frm_amt == "") {
         status = "please enter an amount";

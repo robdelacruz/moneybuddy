@@ -95,12 +95,7 @@ function addCurrencyFormattedAmts(account) {
 
     for (let i=0; i < account.txns.length; i++) {
         let t = account.txns[i];
-        if (t.amt >= 0) {
-            t.fmtamt = formatter.format(t.amt);
-        } else {
-            // Show negative amt as "(123.45)"
-            t.fmtamt = `(${formatter.format(Math.abs(t.amt))})`;
-        }
+        t.fmtamt = formatter.format(t.amt);
     }
 }
 // Add 'fmtamt' property showing non-currency amount.
@@ -110,10 +105,7 @@ function addUnitFormattedAmts(account) {
 
     for (let i=0; i < account.txns.length; i++) {
         let t = account.txns[i];
-        t.fmtamt = Math.abs(t.amt).toLocaleString("en-US", {minimumFractionDigits: 2});
-        if (t.amt < 0) {
-            t.fmtamt = `(${t.fmtamt})`;
-        }
+        t.fmtamt = t.amt.toLocaleString("en-US", {minimumFractionDigits: 2});
     }
 }
 

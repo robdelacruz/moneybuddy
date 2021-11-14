@@ -7,7 +7,7 @@
 NODE_VER = 14
 
 JSFILES = index.js helpers.js data.js
-JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte
+JSFILES2 = Index.svelte Accounts.svelte Txns.svelte AccountForm.svelte TxnForm.svelte TxnDetail.svelte
 JSFILES3 = Tablinks.svelte Journal.svelte Report.svelte SummaryRpt.svelte Setup.svelte 
 JSFILES4 = UserLogin.svelte UserSignup.svelte UserPassword.svelte UserDel.svelte
 JSFILES5 = SetupBooks.svelte BookForm.svelte SetupCurrencies.svelte CurrencyForm.svelte SetupUser.svelte

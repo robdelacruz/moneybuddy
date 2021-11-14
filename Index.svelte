@@ -1,4 +1,4 @@
-<div class="container">
+<div class="main">
     <div class="header flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
         <div>
             <h1 class="inline text-sm ml-1 mr-2"><a href="/">Money Buddy</a></h1>

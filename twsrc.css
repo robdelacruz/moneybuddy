@@ -4,8 +4,8 @@
 
 @tailwind utilities;
 
-.container {
-    max-width: 1200px;
+.main {
+    1max-width: 1200px;
     padding: 10px;
 }
 
@@ -15,11 +15,15 @@
 .txns {
     grid-area: txns;
 }
+.txndetail {
+    grid-area: txndetail;
+}
 .journal-container {
     display: grid;
-    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: 1rem;
+    grid-template-columns: 20rem minmax(0, 1fr) 20rem;
     grid-template-areas:
-        "accounts txns";
+        "accounts txns txndetail";
 }
 
 .report {
@@ -36,18 +40,40 @@
 .txnform-action {grid-area: txnform-action;}
 .txnform-amt {grid-area: txnform-amt;}
 .txnform-refno {grid-area: txnform-refno;}
+.txnform-memo {grid-area: txnform-memo;}
 .txnform-btns {grid-area: txnform-btns;}
 .txnform-status {grid-area: txnform-status;}
 .txnform {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-areas:
         "txnform-desc txnform-desc txnform-desc txnform-date"
         "txnform-action txnform-amt txnform-refno txnform-refno"
+        "txnform-memo txnform-memo txnform-memo txnform-memo" 
         "txnform-btns txnform-btns txnform-btns txnform-btns"
         "txnform-status txnform-status txnform-status txnform-status"; 
     column-gap: 0.5rem;
     row-gap: 0.5rem;
+}
+
+@media only screen and (max-width: 1400px) {
+    .txnform {
+        grid-template-areas:
+            "txnform-desc txnform-desc txnform-date txnform-date"
+            "txnform-action txnform-amt txnform-refno txnform-refno"
+            "txnform-memo txnform-memo txnform-memo txnform-memo" 
+            "txnform-btns txnform-btns txnform-btns txnform-btns"
+            "txnform-status txnform-status txnform-status txnform-status"; 
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    .journal-container {
+        grid-template-columns: 20rem minmax(0, 1fr);
+        grid-template-areas:
+            "accounts  txns"
+            "txndetail ....";
+    }
 }
 
 @media only screen and (max-width: 800px) {
@@ -55,18 +81,20 @@
         grid-template-columns: 100%;
         grid-template-areas:
             "accounts"
-            "txns";
+            "txns"
+            "txndetail";
     }
     .txnform {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-        "txnform-desc"
-        "txnform-date"
-        "txnform-action"
-        "txnform-amt"
-        "txnform-refno"
-        "txnform-btns"
-        "txnform-status"; 
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "txnform-desc"
+            "txnform-date"
+            "txnform-action"
+            "txnform-amt"
+            "txnform-refno"
+            "txnform-memo"
+            "txnform-btns"
+            "txnform-status"; 
     }
 }
 
@@ -103,4 +131,6 @@
 
 .action {@apply border-b border-normal;}
 .pill {@apply fg-reverse bg-reverse rounded-md px-2;}
+
+.memo p:not(:last-child) {@apply mb-1;}
 

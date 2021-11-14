@@ -1,4 +1,4 @@
-<div class="txns bg-normal fg-normal mb-2 mr-2 py-2 px-4">
+<div class="txns bg-normal fg-normal py-2 px-4">
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
@@ -41,11 +41,9 @@
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
-                <p class="text-right cell-amt">{t.fmtamt}</p>
-                <p class="text-right cell-amt"></p>
+                <p class="text-right cell-amt fg-number-minus">{t.fmtamt}</p>
                 {:else}
-                <p class="text-right cell-amt"></p>
-                <p class="text-right cell-amt">{t.fmtamt}</p>
+                <p class="text-right cell-amt fg-number-plus">{t.fmtamt}</p>
                 {/if}
             </div>
         </a>
@@ -55,11 +53,9 @@
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
-                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
-                <p class="fg-dim text-right cell-amt"></p>
+                <p class="fg-dim text-right cell-amt fg-number-minus">{t.fmtamt}</p>
                 {:else}
-                <p class="fg-dim text-right cell-amt"></p>
-                <p class="fg-dim text-right cell-amt">{t.fmtamt}</p>
+                <p class="fg-dim text-right cell-amt fg-number-plus">{t.fmtamt}</p>
                 {/if}
             </div>
         </a>
@@ -91,9 +87,10 @@ let newtxn = {
     txnid: 0,
     accountid: 0,
     date: "",
-    ref: "",
     desc: "",
     amt: null,
+    ref: "",
+    memo: "",
 };
 
 let frm_filter = "";

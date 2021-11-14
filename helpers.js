@@ -206,3 +206,21 @@ export function formatnum(snum) {
     return `${sleft}.${sright}`;
 }
 
+export function textToHtml(s) {
+    let ss = escapehtml(s.trim()).split("\n");
+    return "<p>" + ss.join("</p><p>") + "</p>";
+}
+// Thanks to https://stackoverflow.com/questions/2794137/sanitizing-user-input-before-adding-it-to-the-dom-in-javascript
+export function escapehtml(s) {
+    let m = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#x27;",
+        "/": "&#x2F;",
+    };
+    let rx = /[&<>"'/]/ig;
+    return s.replace(rx, match => m[match]);
+}
+
