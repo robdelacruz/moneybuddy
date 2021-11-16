@@ -39,6 +39,12 @@
         <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
             <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell highlight-1">
                 <p class="cell-date">{t.date.substring(0, 10)}</p>
+                <p class="fg-dim italic truncate cell-refno">{t.ref}</p>
+                <a class="cell-tag fg-dim self-center px-1" href="/">
+                {#if t.memo != ""}
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+                {/if}
+                </a>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
                 <p class="text-right cell-amt fg-number-minus">{t.fmtamt}</p>
@@ -51,6 +57,12 @@
         <a href="/" on:click|preventDefault="{e => onseltxn(t)}">
             <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell">
                 <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
+                <p class="fg-dim italic truncate cell-refno">{t.ref}</p>
+                <a class="cell-tag text-yellow-300 self-center px-1" href="/" on:click="{e => alert('click')}">
+                {#if t.memo != ""}
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+                {/if}
+                </a>
                 <p class="truncate cell-desc">{t.desc}</p>
                 {#if t.amt < 0}
                 <p class="fg-dim text-right cell-amt fg-number-minus">{t.fmtamt}</p>

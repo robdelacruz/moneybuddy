@@ -126,8 +126,10 @@
 
 
 .cell-date {flex: 0 0 10ch;}
+.cell-refno {flex: 0 0 12ch;}
 .cell-desc {flex: 1 1 0ch;}
 .cell-amt {flex: 0 0 12ch;}
+.cell-tag {flex: 0 0 2.5ch;}
 
 .action {@apply border-b border-normal;}
 .pill {@apply fg-reverse bg-reverse rounded-md px-2;}
