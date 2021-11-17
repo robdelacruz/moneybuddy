@@ -110,6 +110,7 @@
 .bg-reverse {@apply bg-gray-300;}
 .highlight {@apply fg-reverse bg-reverse;}
 .highlight-1 {@apply fg-reverse bg-green-200;}
+.highlight-2 {@apply fg-reverse bg-green-400;}
 
 .bg-input {@apply bg-gray-700;}
 .bg-inputok {@apply bg-green-700;}
@@ -135,4 +136,20 @@
 .pill {@apply fg-reverse bg-reverse rounded-md px-2;}
 
 .memo p:not(:last-child) {@apply mb-1;}
+
+.txnrow {@apply flex flex-row gap-1 p-1 border-b border-cell;}
+/*.txnrow:hover {@apply fg-h1;}*/
+.txnrow.sel {@apply highlight-1;}
+
+.txnrow .cell-date {@apply truncate fg-dim;}
+.txnrow .cell-refno {@apply truncate fg-dim;}
+.txnrow .cell-tag {@apply self-center px-1 fg-dim;}
+.txnrow .cell-desc {@apply truncate;}
+.txnrow .cell-amt {@apply text-right;}
+.txnrow .cell-tag:hover {@apply text-yellow-300;}
+
+.txnrow.sel .cell-date,
+.txnrow.sel .cell-refno,
+.txnrow.sel .cell-amt {color: inherit;}
+
 

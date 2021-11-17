@@ -35,43 +35,21 @@
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
-        {#if selid == t.txnid && selid != editid}
-        <a href="/" on:click|preventDefault="{e => onedittxn(t)}">
-            <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell highlight-1">
-                <p class="cell-date">{t.date.substring(0, 10)}</p>
-                <p class="fg-dim italic truncate cell-refno">{t.ref}</p>
-                <a class="cell-tag fg-dim self-center px-1" href="/">
-                {#if t.memo != ""}
-                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
-                {/if}
-                </a>
-                <p class="truncate cell-desc">{t.desc}</p>
-                {#if t.amt < 0}
-                <p class="text-right cell-amt fg-number-minus">{t.fmtamt}</p>
-                {:else}
-                <p class="text-right cell-amt fg-number-plus">{t.fmtamt}</p>
-                {/if}
-            </div>
+        <a class="txnrow" class:sel="{selid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
+            <p class="cell-date">{t.date.substring(0, 10)}</p>
+            <p class="cell-refno">{t.ref}</p>
+            <a class="cell-tag" href="/">
+            {#if t.memo != ""}
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+            {/if}
+            </a>
+            <p class="cell-desc">{t.desc}</p>
+            {#if t.amt < 0}
+            <p class="cell-amt fg-number-minus">{t.fmtamt}</p>
+            {:else}
+            <p class="cell-amt fg-number-plus">{t.fmtamt}</p>
+            {/if}
         </a>
-        {:else}
-        <a href="/" on:click|preventDefault="{e => onseltxn(t)}">
-            <div class="flex flex-row flex-start gap-1 p-1 border-b border-cell">
-                <p class="fg-dim cell-date">{t.date.substring(0, 10)}</p>
-                <p class="fg-dim italic truncate cell-refno">{t.ref}</p>
-                <a class="cell-tag text-yellow-300 self-center px-1" href="/" on:click="{e => alert('click')}">
-                {#if t.memo != ""}
-                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
-                {/if}
-                </a>
-                <p class="truncate cell-desc">{t.desc}</p>
-                {#if t.amt < 0}
-                <p class="fg-dim text-right cell-amt fg-number-minus">{t.fmtamt}</p>
-                {:else}
-                <p class="fg-dim text-right cell-amt fg-number-plus">{t.fmtamt}</p>
-                {/if}
-            </div>
-        </a>
-        {/if}
         {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
             <TxnForm txn={t} account={displayaccount} on:submit={txnform_done} on:cancel={txnform_done} />
@@ -124,6 +102,19 @@ $: displayaccount = getBookAccount(selbook, accountid);
 
 // displayaccount + frm_filter --> displaytxns
 $: displaytxns = filterTxns(displayaccount, frm_filter);
+
+document.addEventListener("keydown", function(e) {
+    if (e.key == "Escape") {
+        // If there's a selection, signal that it has been deselected.
+        if (selid != 0 && editid == -1) {
+            dispatch("selecttxn", null);
+        }
+        // Don't remove the selection if edit form is active.
+        if (editid == -1) {
+            reset();
+        }
+    }
+});
 
 function getSelectedBook(rootdata, bookid) {
     if (rootdata == null) {
@@ -208,7 +199,15 @@ export function reset() {
     editid = -1;
 }
 
-function onseltxn(txn) {
+function onclicktxn(txn) {
+    // If txn already selected, edit it.
+    if (selid == txn.txnid && selid != editid) {
+        editid = txn.txnid;
+        return;
+    }
+
+    // txn not selected
+
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
@@ -217,9 +216,6 @@ function onseltxn(txn) {
 
     selid = txn.txnid;
     dispatch("selecttxn", txn);
-}
-function onedittxn(txn) {
-    editid = txn.txnid;
 }
 function oncreate(e) {
     if (accountid == 0) {
