@@ -109,7 +109,6 @@ function txns_selectaccount(e) {
 function txns_selecttxn(e) {
     let t = e.detail;
     seltxn = t;
-    //console.log(seltxn);
 }
 
 </script>
