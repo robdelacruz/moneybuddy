@@ -50,6 +50,19 @@
             <p class="cell-amt fg-number-plus">{t.fmtamt}</p>
             {/if}
         </a>
+        {#if t.memo != ""}
+        <div class="txnrow">
+            <p class="cell-date"></p>
+            <p class="cell-refno"></p>
+            <p class="cell-tag" href="/"></p>
+            <div class="cell-desc">
+                <div class="memonote memo">
+                    {@html textToHtml(t.memo)}
+                </div>
+            </div>
+            <p class="cell-amt"></p>
+        </div>
+        {/if}
         {#if editid == t.txnid}
         <div class="p-2 border-b border-cell">
             <TxnForm txn={t} account={displayaccount} on:submit={txnform_done} on:cancel={txnform_done} />
@@ -62,7 +75,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit} from "./helpers.js";
+import {find, submit, textToHtml} from "./helpers.js";
 import * as data from "./data.js";
 import TxnForm from "./TxnForm.svelte";
 

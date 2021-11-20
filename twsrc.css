@@ -152,4 +152,5 @@
 .txnrow.sel .cell-refno,
 .txnrow.sel .cell-amt {color: inherit;}
 
+.txnrow .memonote {@apply border border-cell p-4 m-2 break-normal whitespace-normal fg-reverse bg-yellow-100 max-h-40 overflow-auto;}
 
