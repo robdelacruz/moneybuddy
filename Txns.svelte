@@ -191,8 +191,10 @@ function filterTxns(account, sfilter) {
     let tt = [];
     for (let i=0; i < account.txns.length; i++) {
         let t = account.txns[i];
-        if (t.desc.toLowerCase().includes(sfilter)) {
-            tt.push(t);
+        if (t.desc.toLowerCase().includes(sfilter) || 
+            t.ref.toLowerCase().includes(sfilter)  ||
+            t.memo.toLowerCase().includes(sfilter)) {
+                tt.push(t);
         }
     }
     return tt;

@@ -265,7 +265,7 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		P := makeFprintf(w)
-		printHtmlOpen(P, "Website Title", []string{"/static/bundle.js"})
+		printHtmlOpen(P, "Money Buddy", []string{"/static/bundle.js"})
 		printHtmlClose(P)
 	}
 }

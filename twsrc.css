@@ -4,10 +4,6 @@
 
 @tailwind utilities;
 
-.main {
-    padding: 10px;
-}
-
 .accounts {
     grid-area: accounts;
 }

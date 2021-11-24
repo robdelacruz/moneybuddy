@@ -1,7 +1,6 @@
 <div class="journal-container">
     <Accounts bind:this={waccounts} root={root} bookid={selbookid} selaccountid={selaccountid} on:selectbookid={accounts_selectbookid} on:selectaccount={accounts_selectaccount} />
     <Txns bind:this={wtxns} root={root} bookid={selbookid} accountid={selaccountid} on:selectaccount={txns_selectaccount} on:selecttxn={txns_selecttxn} />
-    <TxnDetail txn={seltxn} />
 </div>
 
 <script>

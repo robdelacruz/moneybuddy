@@ -81,6 +81,7 @@ func printHtmlOpen(P PrintFunc, title string, jsurls []string) {
 	P("<meta charset=\"utf-8\">\n")
 	P("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
 	P("<title>%s</title>\n", title)
+	P("<link rel=\"icon\" href=\"/static/currency-dollar.svg\">\n")
 	P("<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\">\n")
 	for _, jsurl := range jsurls {
 		P("<script defer src=\"%s\"></script>\n", jsurl)
