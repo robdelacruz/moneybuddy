@@ -38,9 +38,9 @@
         <a class="txnrow" class:sel="{selid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
             <p class="cell-date">{t.date.substring(0, 10)}</p>
             <p class="cell-refno">{t.ref}</p>
-            <a class="cell-tag" href="/">
+            <a class="cell-tag" class:sel="{selnoteid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktag(e, t)}">
             {#if t.memo != ""}
-                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
             {/if}
             </a>
             <p class="cell-desc">{t.desc}</p>
@@ -50,7 +50,7 @@
             <p class="cell-amt fg-number-plus">{t.fmtamt}</p>
             {/if}
         </a>
-        {#if t.memo != ""}
+        {#if selnoteid == t.txnid && t.memo != ""}
         <div class="txnrow">
             <p class="cell-date"></p>
             <p class="cell-refno"></p>
@@ -86,6 +86,7 @@ export let accountid = 0;
 let svcurl = "/api";
 let selid = 0;
 let editid = -1;
+let selnoteid = 0;
 let newtxn = {
     txnid: 0,
     accountid: 0,
@@ -210,6 +211,7 @@ function onaccountchange(e) {
 export function reset() {
     selid = 0;
     editid = -1;
+    selnoteid = 0;
 }
 
 function onclicktxn(txn) {
@@ -241,6 +243,15 @@ function oncreate(e) {
 }
 function txnform_done(e) {
     editid = -1;
+}
+
+function onclicktag(e, txn) {
+    e.stopPropagation();
+    if (selnoteid == txn.txnid) {
+        selnoteid = 0;
+        return;
+    }
+    selnoteid = txn.txnid;
 }
 
 </script>

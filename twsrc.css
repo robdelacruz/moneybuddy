@@ -5,7 +5,6 @@
 @tailwind utilities;
 
 .main {
-    1max-width: 1200px;
     padding: 10px;
 }
 
@@ -119,6 +118,10 @@
 .fg-number-plus {@apply text-green-500;}
 .fg-number-minus {@apply text-red-500;}
 
+.fg-tag {@apply text-yellow-300;}
+.fg-note {@apply text-gray-800;}
+.bg-note {@apply bg-yellow-100;}
+
 .border-normal {@apply border-gray-500;}
 .border-cell {@apply border-gray-700;}
 
@@ -146,11 +149,11 @@
 .txnrow .cell-tag {@apply self-center px-1 fg-dim;}
 .txnrow .cell-desc {@apply truncate;}
 .txnrow .cell-amt {@apply text-right;}
-.txnrow .cell-tag:hover {@apply text-yellow-300;}
+.txnrow .cell-tag:hover, .txnrow .cell-tag.sel {@apply fg-tag;}
 
 .txnrow.sel .cell-date,
 .txnrow.sel .cell-refno,
 .txnrow.sel .cell-amt {color: inherit;}
 
-.txnrow .memonote {@apply border border-cell p-4 m-2 break-normal whitespace-normal fg-reverse bg-yellow-100 max-h-40 overflow-auto;}
+.txnrow .memonote {@apply border border-cell p-2 my-2 break-normal whitespace-normal fg-note bg-note max-h-40 overflow-auto;}
 
