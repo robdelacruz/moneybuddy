@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -55,6 +56,8 @@ type Account struct {
 	AccountType AccountType `json:"accounttype"`
 	Unitprice   float64     `json:"unitprice"`
 	Currencyid  int64       `json:"currencyid"`
+	Ref         string      `json:"ref"`
+	Memo        string      `json:"memo"`
 	Currency    *Currency   `json:"currency"`
 	Balance     float64     `json:"balance"`
 	Txns        []*Txn      `json:"txns"`
@@ -86,7 +89,7 @@ func createTables(newfile string) *sql.DB {
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
-		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0);",
+		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
 		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
@@ -363,8 +366,8 @@ func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
 
 //** Account functions **
 func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
-	s := "INSERT INTO account (code, name, accounttype, currency_id, unitprice) VALUES (?, ?, ?, ?, ?)"
-	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice)
+	s := "INSERT INTO account (code, name, accounttype, currency_id, unitprice, ref, memo) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo)
 	if err != nil {
 		return 0, err
 	}
@@ -382,8 +385,8 @@ func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
 	return id, nil
 }
 func editAccount(db *sql.DB, a *Account) error {
-	s := "UPDATE account SET code = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ? WHERE account_id = ?"
-	_, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Accountid)
+	s := "UPDATE account SET code = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ?, ref = ?, memo = ? WHERE account_id = ?"
+	_, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo, a.Accountid)
 	if err != nil {
 		return err
 	}
@@ -468,7 +471,7 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 
 	// txn shares is recorded in txn.amount field
 
-	s := `SELECT account_id, code, name, accounttype, a.unitprice, a.currency_id, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
+	s := `SELECT account_id, code, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -477,7 +480,7 @@ WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
 	var c Currency
-	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &c.Currency, &c.Usdrate, &a.Balance)
+	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -496,7 +499,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.code, a.name, a.accounttype, a.unitprice, a.currency_id, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
+SELECT a.account_id, a.code, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -511,7 +514,7 @@ WHERE ba.book_id = ? AND %s`, swhere)
 	for rows.Next() {
 		var a Account
 		var c Currency
-		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &c.Currency, &c.Usdrate, &a.Balance)
+		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 		a.Currencyid = c.Currencyid
 		a.Currency = &c
 
@@ -558,6 +561,8 @@ func createRandomBankAccount(db *sql.DB, bookid int64, currencyid int64) (int64,
 		AccountType: BankAccount,
 		Unitprice:   1.0,
 		Currencyid:  currencyid,
+		Ref:         strconv.Itoa(rand.Intn(999999999999999)),
+		Memo:        "",
 	}
 	accountid, err := createAccount(db, &a, bookid)
 	if err != nil {
@@ -581,6 +586,8 @@ func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice
 		AccountType: StockAccount,
 		Unitprice:   unitprice,
 		Currencyid:  currencyid,
+		Ref:         strconv.Itoa(rand.Intn(999999999999999)),
+		Memo:        "",
 	}
 	accountid, err := createAccount(db, &a, bookid)
 	if err != nil {

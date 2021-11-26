@@ -29,64 +29,54 @@
             <AccountForm book={selbook} account={newaccount} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
         </div>
     {/if}
-    {#if display_bb.length > 0}
+    {#if display_aa.length > 0}
     <div class="mb-1">
         <h2 class="font-bold fg-h2">Bank Accounts</h2>
     </div>
     {/if}
-    {#each display_bb as a (a.accountid)}
-        {#if selid == a.accountid && selid != editid}
-        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
-            <p class="flex-grow truncate mr-2">{a.name}</p>
-            {#if a.balance >= 0}
-            <p class="whitespace-nowrap text-right mr-1">{a.fmtbalance}</p>
-            {:else}
-            <p class="whitespace-nowrap text-right mr-1">{a.fmtbalance}</p>
-            {/if}
-        </a>
-        {:else}
-        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselectaccount(a)}">
-            <p class="flex-grow truncate mr-2">{a.name}</p>
-            {#if a.balance >= 0}
-            <p class="whitespace-nowrap fg-number-plus text-right mr-1">{a.fmtbalance}</p>
-            {:else}
-            <p class="whitespace-nowrap fg-number-minus text-right mr-1">{a.fmtbalance}</p>
-            {/if}
-        </a>
-        {/if}
-        {#if editid == a.accountid}
-        <div class="p-2 border-b border-cell">
-            <AccountForm book={selbook} account={a} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
+    {#each display_aa as a, i (a.accountid)}
+        {#if i == ifirststock}
+        <div class="mt-4 mb-1">
+            <h2 class="font-bold fg-h2">Securities</h2>
         </div>
         {/if}
-    {/each}
-    <div class="mb-4">
-    </div>
-    {#if display_ss.length > 0}
-    <div class="mb-1">
-        <h2 class="font-bold fg-h2">Stocks</h2>
-    </div>
-    {/if}
-    {#each display_ss as a (a.accountid)}
-        {#if selid == a.accountid && selid != editid}
-        <a class="flex flex-row justify-between p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => oneditaccount(a)}">
-            <p class="flex-grow truncate mr-2">{a.name}</p>
+        <a class="accountrow" class:sel="{selid == a.accountid}" class:detail="{seldetailid == a.accountid}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
+            <p class="cell-desc">{a.name}</p>
             {#if a.balance >= 0}
-            <p class="text-right mr-1">{a.fmtbalance}</p>
+            <p class="cell-amt" class:fg-number-plus="{selid != a.accountid}">{a.fmtbalance}</p>
             {:else}
-            <p class="text-right mr-1">{a.fmtbalance}</p>
+            <p class="cell-amt" class:fg-number-minus="{selid != a.accountid}">{a.fmtbalance}</p>
+            {/if}
+            {#if a.ref != "" || a.memo != ""}
+            <a class="cell-detailicon" href="/" on:click|preventDefault="{e => onclickdetail(e, a)}">
+                {#if seldetailid == a.accountid}
+                <!-- chevron up arrow -->
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.707 7.05L10 6.343 4.343 12l1.414 1.414L10 9.172l4.243 4.242L15.657 12z"/></svg>
+                {:else}
+                <!-- chevron down arrow -->
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                {/if}
+            </a>
+            {:else}
+            <p class="cell-detailicon"></p>
             {/if}
         </a>
-        {:else}
-        <a class="flex flex-row justify-between p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselectaccount(a)}">
-            <p class="flex-grow truncate mr-2">{a.name}</p>
-            {#if a.balance >= 0}
-            <p class="fg-number-plus text-right mr-1">{a.fmtbalance}</p>
-            {:else}
-            <p class="fg-number-minus text-right mr-1">{a.fmtbalance}</p>
-            {/if}
-        </a>
+
+        {#if seldetailid == a.accountid && (a.ref != "" || a.memo != "")}
+        <div class="accountrow">
+            <div class="flex-grow flex-shrink">
+                {#if a.ref != ""}
+                <p class="fg-dim mb-1">{a.ref}</p>
+                {/if}
+                {#if a.memo != ""}
+                <div class="memonote memo">
+                    {@html textToHtml(a.memo)}
+                </div>
+                {/if}
+            </div>
+        </div>
         {/if}
+
         {#if editid == a.accountid}
         <div class="p-2 border-b border-cell">
             <AccountForm book={selbook} account={a} root={root} on:submit={accountform_done} on:cancel={accountform_done} />
@@ -99,7 +89,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, ifnull, getls, setls} from "./helpers.js";
+import {find, submit, ifnull, getls, setls, textToHtml} from "./helpers.js";
 import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
@@ -109,25 +99,28 @@ export let selaccountid = 0;
 
 let selid = selaccountid;
 let editid = -1;
+let seldetailid = 0;
 let newaccount = {
     accountid: 0,
     code: "",
     name: "",
     accounttype: 0,
     currencyid: 0,
+    ref: "",
+    memo: "",
 };
 
 let frm_filter = "";
 
 let selbook = null;
-let display_bb = []; // bankaccounts to display
-let display_ss = []; // stockaccounts to display
+let display_aa = []; // bankaccounts and stockaccounts matching filter
+let ifirststock = 0;
 
 // root + bookid --> selbook
-// selbook + frm_filter --> display_bb, display_ss
+// selbook + frm_filter --> display_aa
 
 $: selbook = getSelectedBook(root, bookid);
-$: [display_bb, display_ss] = filterAccounts(selbook, frm_filter);
+$: [display_aa, ifirststock] = filterAccounts(selbook, frm_filter);
 
 function getSelectedBook(rootdata, bookid) {
     if (rootdata == null) {
@@ -142,34 +135,47 @@ function getSelectedBook(rootdata, bookid) {
     }
     return b
 }
-// Returns [bankaccounts, stockaccounts] where account.name matches sfilter
+// Returns matching accounts where name, ref, or memo matches sfilter
+// [aa, i] returned where:
+//   aa = array of matching accounts
+//   i  = index within aa of first stock account
+//        (if no stock accounts, index returned will be out of range of aa)
 function filterAccounts(book, sfilter) {
-    let bb = [];
-    let ss = [];
+    let aa = [];
+    let ifirststock = 0;
     if (book == null) {
-        return [bb, ss];
+        return [aa, ifirststock];
     }
     if (book.bankaccounts == null || book.stockaccounts == null) {
-        return [bb, ss];
+        return [aa, ifirststock];
     }
     sfilter = sfilter.trim().toLowerCase();
     if (sfilter == "") {
-        return [book.bankaccounts, book.stockaccounts];
+        aa = aa.concat(book.bankaccounts, book.stockaccounts);
+        ifirststock = book.bankaccounts.length;
+        return [aa, ifirststock];
     }
 
     for (let i=0; i < book.bankaccounts.length; i++) {
         let a = book.bankaccounts[i];
-        if (a.name.toLowerCase().includes(sfilter)) {
-            bb.push(a);
+        if (a.name.toLowerCase().includes(sfilter) ||
+            a.ref.toLowerCase().includes(sfilter) ||
+            a.memo.toLowerCase().includes(sfilter)) {
+            aa.push(a);
         }
     }
+
+    ifirststock = aa.length;
+
     for (let i=0; i < book.stockaccounts.length; i++) {
         let a = book.stockaccounts[i];
-        if (a.name.toLowerCase().includes(sfilter)) {
-            ss.push(a);
+        if (a.name.toLowerCase().includes(sfilter) ||
+            a.ref.toLowerCase().includes(sfilter) ||
+            a.memo.toLowerCase().includes(sfilter)) {
+            aa.push(a);
         }
     }
-    return [bb, ss];
+    return [aa, ifirststock];
 }
 
 function onbookchange(e) {
@@ -182,23 +188,31 @@ function onbookchange(e) {
 export function reset() {
     selid = 0;
     editid = -1;
+    seldetailid = 0;
 }
 
-export function selectAccount(account) {
+export function selectAccount(a) {
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
         return;
     }
 
-    selid = account.accountid;
+    selid = a.accountid;
 }
-function onselectaccount(account) {
-    selectAccount(account);
-    dispatch("selectaccount", account);
+function onclickaccount(a) {
+    // If account already selected, edit it.
+    if (selid == a.accountid && selid != editid) {
+        editid = a.accountid;
+        seldetailid = 0;
+        return;
+    }
+
+    selectAccount(a);
+    dispatch("selectaccount", a);
 }
-function oneditaccount(account) {
-    editid = account.accountid;
+function oneditaccount(a) {
+    editid = a.accountid;
 }
 function oncreate(e) {
     editid = 0;
@@ -206,6 +220,15 @@ function oncreate(e) {
 }
 function accountform_done(e) {
     editid = -1;
+}
+
+function onclickdetail(e, a) {
+    e.stopPropagation();
+    if (seldetailid == a.accountid) {
+        seldetailid = 0;
+        return;
+    }
+    seldetailid = a.accountid;
 }
 
 </script>

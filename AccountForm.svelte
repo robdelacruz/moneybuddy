@@ -32,6 +32,13 @@
                 </select>
             </div>
         </div>
+        <div class="mb-2">
+            <input class="py-1 px-2 bg-input fg-normal w-full" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
+        </div>
+        <div class="mb-2">
+        <textarea class="py-1 px-2 bg-input fg-normal w-full" name="memo" id="memo" placeholder="Memo" rows="4" bind:value={frm_memo}></textarea>
+        </div>
+
         <div class="flex flex-row justify-between items-center">
             <div>
                 {#if account.accountid == 0}
@@ -100,6 +107,8 @@ let frm_unitprice = "";
 if (account.unitprice != null) {
     frm_unitprice = formatnum(account.unitprice.toString());
 }
+let frm_ref = account.ref;
+let frm_memo = account.memo;
 let frm_movebookid = book.bookid;
 
 document.addEventListener("keydown", function(e) {
@@ -122,6 +131,8 @@ async function onSubmit(e) {
     a.accounttype = frm_accounttype
     a.currencyid = frm_currencyid;
     a.unitprice = parseFloat(frm_unitprice);
+    a.ref = frm_ref;
+    a.memo = frm_memo;
 
     let sreq = `${svcurl}/account?bookid=${book.bookid}`;
     let method = "PUT";

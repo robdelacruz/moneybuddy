@@ -4,7 +4,7 @@
 {:else}
     <div class="flex flex-row justify-between items-end mb-2">
         <div class="flex flex-row">
-            <select class="text-sm font-bold fg-h1 bg-normal pr-2 mr-2" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
+            <select class="text-sm font-bold fg-h1 bg-normal mr-2 max-w-xs truncate" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
                 {#each bookaccounts as a}
                     {#if a.accountid == accountid}
                     <option selected value={a.accountid}>{a.name}</option>
@@ -35,7 +35,7 @@
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
-        <a class="txnrow" class:sel="{selid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
+        <a class="txnrow" class:sel="{selid == t.txnid}" class:detail="{seldetailid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
             <p class="cell-date">{t.date.substring(0, 10)}</p>
             <p class="cell-refno">{t.ref}</p>
             <p class="cell-desc">{t.desc}</p>
@@ -46,7 +46,7 @@
             {/if}
 
             {#if t.memo != ""}
-            <a class="cell-detailicon h-full" href="/" on:click|preventDefault="{e => onclickdetail(e, t)}">
+            <a class="cell-detailicon" href="/" on:click|preventDefault="{e => onclickdetail(e, t)}">
                 {#if seldetailid == t.txnid}
                 <!-- chevron up arrow -->
                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.707 7.05L10 6.343 4.343 12l1.414 1.414L10 9.172l4.243 4.242L15.657 12z"/></svg>
@@ -63,13 +63,13 @@
         <div class="txnrow">
             <p class="cell-date"></p>
             <p class="cell-refno"></p>
-            <p class="cell-tag" href="/"></p>
             <div class="cell-desc">
                 <div class="memonote memo">
                     {@html textToHtml(t.memo)}
                 </div>
             </div>
             <p class="cell-amt"></p>
+            <p class="cell-detailicon"></p>
         </div>
         {/if}
         {#if editid == t.txnid}
