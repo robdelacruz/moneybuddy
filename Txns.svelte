@@ -38,19 +38,28 @@
         <a class="txnrow" class:sel="{selid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
             <p class="cell-date">{t.date.substring(0, 10)}</p>
             <p class="cell-refno">{t.ref}</p>
-            <a class="cell-tag" class:sel="{selnoteid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktag(e, t)}">
-            {#if t.memo != ""}
-            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 10V2l2-2h8l10 10-10 10L0 10zm4.5-4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
-            {/if}
-            </a>
             <p class="cell-desc">{t.desc}</p>
             {#if t.amt < 0}
             <p class="cell-amt fg-number-minus">{t.fmtamt}</p>
             {:else}
             <p class="cell-amt fg-number-plus">{t.fmtamt}</p>
             {/if}
+
+            {#if t.memo != ""}
+            <a class="cell-detailicon h-full" href="/" on:click|preventDefault="{e => onclickdetail(e, t)}">
+                {#if seldetailid == t.txnid}
+                <!-- chevron up arrow -->
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.707 7.05L10 6.343 4.343 12l1.414 1.414L10 9.172l4.243 4.242L15.657 12z"/></svg>
+                {:else}
+                <!-- chevron down arrow -->
+                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                {/if}
+            </a>
+            {:else}
+            <p class="cell-detailicon"></p>
+            {/if}
         </a>
-        {#if selnoteid == t.txnid && t.memo != ""}
+        {#if seldetailid == t.txnid && t.memo != ""}
         <div class="txnrow">
             <p class="cell-date"></p>
             <p class="cell-refno"></p>
@@ -86,7 +95,7 @@ export let accountid = 0;
 let svcurl = "/api";
 let selid = 0;
 let editid = -1;
-let selnoteid = 0;
+let seldetailid = 0;
 let newtxn = {
     txnid: 0,
     accountid: 0,
@@ -213,13 +222,14 @@ function onaccountchange(e) {
 export function reset() {
     selid = 0;
     editid = -1;
-    selnoteid = 0;
+    seldetailid = 0;
 }
 
 function onclicktxn(txn) {
     // If txn already selected, edit it.
     if (selid == txn.txnid && selid != editid) {
         editid = txn.txnid;
+        seldetailid = 0;
         return;
     }
 
@@ -247,13 +257,13 @@ function txnform_done(e) {
     editid = -1;
 }
 
-function onclicktag(e, txn) {
+function onclickdetail(e, txn) {
     e.stopPropagation();
-    if (selnoteid == txn.txnid) {
-        selnoteid = 0;
+    if (seldetailid == txn.txnid) {
+        seldetailid = 0;
         return;
     }
-    selnoteid = txn.txnid;
+    seldetailid = txn.txnid;
 }
 
 </script>

@@ -114,9 +114,9 @@
 .fg-number-plus {@apply text-green-500;}
 .fg-number-minus {@apply text-red-500;}
 
-.fg-tag {@apply text-yellow-300;}
+.fg-hoverhighlight {@apply text-yellow-300;}
 .fg-note {@apply text-gray-800;}
-.bg-note {@apply bg-yellow-100;}
+.bg-note {@apply bg-yellow-50;}
 
 .border-normal {@apply border-gray-500;}
 .border-cell {@apply border-gray-700;}
@@ -129,23 +129,24 @@
 .cell-refno {flex: 0 0 12ch;}
 .cell-desc {flex: 1 1 0ch;}
 .cell-amt {flex: 0 0 12ch;}
-.cell-tag {flex: 0 0 2.5ch;}
+.cell-detailicon {flex: 0 0 3ch;}
 
 .action {@apply border-b border-normal;}
 .pill {@apply fg-reverse bg-reverse rounded-md px-2;}
 
 .memo p:not(:last-child) {@apply mb-1;}
 
-.txnrow {@apply flex flex-row gap-1 p-1 border-b border-cell;}
+.txnrow {@apply flex flex-row items-center gap-1 p-1 border-b border-cell;}
 /*.txnrow:hover {@apply fg-h1;}*/
 .txnrow.sel {@apply highlight-1;}
 
 .txnrow .cell-date {@apply truncate fg-dim;}
 .txnrow .cell-refno {@apply truncate fg-dim;}
-.txnrow .cell-tag {@apply self-center px-1 fg-dim;}
 .txnrow .cell-desc {@apply truncate;}
 .txnrow .cell-amt {@apply text-right;}
-.txnrow .cell-tag:hover, .txnrow .cell-tag.sel {@apply fg-tag;}
+.txnrow .cell-detailicon {@apply self-center px-1 fg-dim;}
+.txnrow .cell-detailicon:hover {@apply fg-hoverhighlight;}
+.txnrow.sel .cell-detailicon:hover {@apply fg-reverse;}
 
 .txnrow.sel .cell-date,
 .txnrow.sel .cell-refno,
