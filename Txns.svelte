@@ -35,7 +35,7 @@
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
-        <a class="txnrow" class:sel="{selid == t.txnid}" class:detail="{seldetailid == t.txnid}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
+        <a class="txnrow" class:sel="{selid == t.txnid}" class:detail="{expandids.has(t.txnid)}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
             <p class="cell-date">{t.date.substring(0, 10)}</p>
             <p class="cell-refno">{t.ref}</p>
             <p class="cell-desc">{t.desc}</p>
@@ -47,7 +47,7 @@
 
             {#if t.memo != ""}
             <a class="cell-detailicon" href="/" on:click|preventDefault="{e => onclickdetail(e, t)}">
-                {#if seldetailid == t.txnid}
+                {#if expandids.has(t.txnid)}
                 <!-- chevron up arrow -->
                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.707 7.05L10 6.343 4.343 12l1.414 1.414L10 9.172l4.243 4.242L15.657 12z"/></svg>
                 {:else}
@@ -59,7 +59,7 @@
             <p class="cell-detailicon"></p>
             {/if}
         </a>
-        {#if seldetailid == t.txnid && t.memo != ""}
+        {#if expandids.has(t.txnid) && t.memo != ""}
         <div class="txnrow">
             <p class="cell-date"></p>
             <p class="cell-refno"></p>
@@ -95,7 +95,7 @@ export let accountid = 0;
 let svcurl = "/api";
 let selid = 0;
 let editid = -1;
-let seldetailid = 0;
+let expandids = new Set();
 let newtxn = {
     txnid: 0,
     accountid: 0,
@@ -222,14 +222,13 @@ function onaccountchange(e) {
 export function reset() {
     selid = 0;
     editid = -1;
-    seldetailid = 0;
+    expandids.clear();
 }
 
 function onclicktxn(txn) {
     // If txn already selected, edit it.
     if (selid == txn.txnid && selid != editid) {
         editid = txn.txnid;
-        seldetailid = 0;
         return;
     }
 
@@ -259,11 +258,13 @@ function txnform_done(e) {
 
 function onclickdetail(e, txn) {
     e.stopPropagation();
-    if (seldetailid == txn.txnid) {
-        seldetailid = 0;
+    if (expandids.has(txn.txnid)) {
+        expandids.delete(txn.txnid);
+        expandids = expandids;
         return;
     }
-    seldetailid = txn.txnid;
+    expandids.add(txn.txnid);
+    expandids = expandids;
 }
 
 </script>

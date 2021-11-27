@@ -40,7 +40,7 @@
             <h2 class="font-bold fg-h2">Securities</h2>
         </div>
         {/if}
-        <a class="accountrow" class:sel="{selid == a.accountid}" class:detail="{seldetailid == a.accountid}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
+        <a class="accountrow" class:sel="{selid == a.accountid}" class:detail="{expandids.has(a.accountid)}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
             <p class="cell-desc">{a.name}</p>
             {#if a.balance >= 0}
             <p class="cell-amt" class:fg-number-plus="{selid != a.accountid}">{a.fmtbalance}</p>
@@ -49,7 +49,7 @@
             {/if}
             {#if a.ref != "" || a.memo != ""}
             <a class="cell-detailicon" href="/" on:click|preventDefault="{e => onclickdetail(e, a)}">
-                {#if seldetailid == a.accountid}
+                {#if expandids.has(a.accountid)}
                 <!-- chevron up arrow -->
                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.707 7.05L10 6.343 4.343 12l1.414 1.414L10 9.172l4.243 4.242L15.657 12z"/></svg>
                 {:else}
@@ -62,7 +62,7 @@
             {/if}
         </a>
 
-        {#if seldetailid == a.accountid && (a.ref != "" || a.memo != "")}
+        {#if expandids.has(a.accountid) && (a.ref != "" || a.memo != "")}
         <div class="accountrow">
             <div class="flex-grow flex-shrink">
                 {#if a.ref != ""}
@@ -99,7 +99,7 @@ export let selaccountid = 0;
 
 let selid = selaccountid;
 let editid = -1;
-let seldetailid = 0;
+let expandids = new Set();
 let newaccount = {
     accountid: 0,
     code: "",
@@ -188,7 +188,7 @@ function onbookchange(e) {
 export function reset() {
     selid = 0;
     editid = -1;
-    seldetailid = 0;
+    expandids.clear();
 }
 
 export function selectAccount(a) {
@@ -204,7 +204,6 @@ function onclickaccount(a) {
     // If account already selected, edit it.
     if (selid == a.accountid && selid != editid) {
         editid = a.accountid;
-        seldetailid = 0;
         return;
     }
 
@@ -224,11 +223,13 @@ function accountform_done(e) {
 
 function onclickdetail(e, a) {
     e.stopPropagation();
-    if (seldetailid == a.accountid) {
-        seldetailid = 0;
+    if (expandids.has(a.accountid)) {
+        expandids.delete(a.accountid);
+        expandids = expandids;
         return;
     }
-    seldetailid = a.accountid;
+    expandids.add(a.accountid);
+    expandids = expandids;
 }
 
 </script>
