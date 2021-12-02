@@ -40,7 +40,7 @@
             <h2 class="font-bold fg-h2">Securities</h2>
         </div>
         {/if}
-        <a class="accountrow" class:sel="{selid == a.accountid}" class:detail="{expandids.has(a.accountid)}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
+        <a class="accountrow" draggable="true" data-accountid="{a.accountid}" data-seq="{a.seq}" class:sel="{selid == a.accountid}" class:detail="{expandids.has(a.accountid)}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
             <p class="cell-desc">{a.name}</p>
             {#if a.balance >= 0}
             <p class="cell-amt" class:fg-number-plus="{selid != a.accountid}">{a.fmtbalance}</p>
@@ -121,6 +121,39 @@ let ifirststock = 0;
 
 $: selbook = getSelectedBook(root, bookid);
 $: [display_aa, ifirststock] = filterAccounts(selbook, frm_filter);
+
+document.addEventListener("dragstart", function(e) {
+    let el = e.target;
+    if (!el.classList.contains("accountrow")) {
+        return;
+    }
+    e.dataTransfer.setData("text/plain", el.dataset.accountid);
+    console.log(`dragstart: ${el.dataset.accountid}`);
+});
+document.addEventListener("dragover", function(e) {
+    e.preventDefault();
+
+    let el = e.target.closest(".accountrow");
+    if (el == null) {
+        e.dataTransfer.dropEffect = "none";
+        return;
+    }
+    e.dataTransfer.dropEffect = "move";
+});
+document.addEventListener("drop", function(e) {
+    e.preventDefault();
+
+    let el = e.target.closest(".accountrow");
+    if (el == null) {
+        return;
+    }
+
+    let saccountid = e.dataTransfer.getData("text/plain");
+    let accountid = parseInt(saccountid, 10);
+    let targetseq = parseInt(el.dataset.seq, 10);
+    console.log(`dropped ${accountid} to ${targetseq}`);
+});
+
 
 function getSelectedBook(rootdata, bookid) {
     if (rootdata == null) {

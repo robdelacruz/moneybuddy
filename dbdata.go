@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type AccountType int
+type AccountType int64
 
 const (
 	BankAccount AccountType = iota
@@ -52,6 +52,7 @@ type Book struct {
 type Account struct {
 	Accountid   int64       `json:"accountid"`
 	Code        string      `json:"code"`
+	Seq         int64       `json:"seq"`
 	Name        string      `json:"name"`
 	AccountType AccountType `json:"accounttype"`
 	Unitprice   float64     `json:"unitprice"`
@@ -89,7 +90,7 @@ func createTables(newfile string) *sql.DB {
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
-		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
+		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', seq INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
 		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
 		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
@@ -366,7 +367,7 @@ func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
 
 //** Account functions **
 func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
-	s := "INSERT INTO account (code, name, accounttype, currency_id, unitprice, ref, memo) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	s := fmt.Sprintf("INSERT INTO account (code, name, accounttype, currency_id, unitprice, ref, memo, seq) VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT IFNULL(MAX(seq), 0)+1 FROM account WHERE accounttype = %d))", a.AccountType)
 	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo)
 	if err != nil {
 		return 0, err
@@ -385,8 +386,8 @@ func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
 	return id, nil
 }
 func editAccount(db *sql.DB, a *Account) error {
-	s := "UPDATE account SET code = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ?, ref = ?, memo = ? WHERE account_id = ?"
-	_, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo, a.Accountid)
+	s := "UPDATE account SET code = ?, seq = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ?, ref = ?, memo = ? WHERE account_id = ?"
+	_, err := sqlexec(db, s, a.Code, a.Seq, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo, a.Accountid)
 	if err != nil {
 		return err
 	}
@@ -471,7 +472,7 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 
 	// txn shares is recorded in txn.amount field
 
-	s := `SELECT account_id, code, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
+	s := `SELECT account_id, code, seq, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -480,7 +481,7 @@ WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
 	var c Currency
-	err := row.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+	err := row.Scan(&a.Accountid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -499,7 +500,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.code, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
+SELECT a.account_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -514,7 +515,7 @@ WHERE ba.book_id = ? AND %s`, swhere)
 	for rows.Next() {
 		var a Account
 		var c Currency
-		rows.Scan(&a.Accountid, &a.Code, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+		rows.Scan(&a.Accountid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 		a.Currencyid = c.Currencyid
 		a.Currency = &c
 
@@ -531,7 +532,7 @@ func findAllAccounts(db *sql.DB, bookid int64) ([]*Account, error) {
 	return findAccounts(db, bookid, "1=1 ORDER BY name")
 }
 func findAllAccountsByType(db *sql.DB, bookid int64) ([]*Account, error) {
-	return findAccounts(db, bookid, "1=1 ORDER BY accounttype, name")
+	return findAccounts(db, bookid, "1=1 ORDER BY accounttype, seq, name")
 }
 
 func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {
@@ -543,6 +544,43 @@ func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {
 		return 0.0, err
 	}
 	return bal, nil
+}
+
+// Move accountid to seq:newseq and shift right all accounts >= newseq
+func resequenceAccounts(db *sql.DB, bookid, accounttype, accountid, newseq int64) error {
+	// Shift all accounts on or after newseq to the right by 1 seq.
+	s := `
+SELECT a.account_id 
+FROM account a 
+INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
+WHERE ba.book_id = ? AND a.accounttype = ? AND a.seq >= ?`
+	rows, err := db.Query(s, bookid, accounttype, newseq)
+	if err != nil {
+		return err
+	}
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	rightseq := newseq + 1
+	for _, id := range ids {
+		s = "UPDATE account SET seq = ? WHERE account_id = ?"
+		_, err = sqlexec(db, s, rightseq, id)
+		if err != nil {
+			return err
+		}
+		rightseq++
+	}
+
+	// Move account into position.
+	s = "UPDATE account SET seq = ? WHERE account_id = ?"
+	_, err = sqlexec(db, s, newseq, accountid)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func createRandomBankAccount(db *sql.DB, bookid int64, currencyid int64) (int64, error) {
