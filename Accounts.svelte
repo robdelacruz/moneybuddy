@@ -89,7 +89,7 @@
 <script>
 import {onMount, createEventDispatcher} from "svelte";
 let dispatch = createEventDispatcher();
-import {find, submit, ifnull, getls, setls, textToHtml} from "./helpers.js";
+import {exec, ifnull, getls, setls, textToHtml} from "./helpers.js";
 import * as data from "./data.js";
 import AccountForm from "./AccountForm.svelte";
 
@@ -97,6 +97,7 @@ export let root = null;
 export let bookid = 0;
 export let selaccountid = 0;
 
+let svcurl = "/api";
 let selid = selaccountid;
 let editid = -1;
 let expandids = new Set();
@@ -112,6 +113,7 @@ let newaccount = {
 };
 
 let frm_filter = "";
+let status = "";
 
 let selbook = null;
 let display_aa = []; // bankaccounts and stockaccounts matching filter
@@ -129,7 +131,6 @@ document.addEventListener("dragstart", function(e) {
         return;
     }
     e.dataTransfer.setData("text/plain", el.dataset.accountid);
-    console.log(`dragstart: ${el.dataset.accountid}`);
 });
 document.addEventListener("dragover", function(e) {
     e.preventDefault();
@@ -141,7 +142,7 @@ document.addEventListener("dragover", function(e) {
     }
     e.dataTransfer.dropEffect = "move";
 });
-document.addEventListener("drop", function(e) {
+document.addEventListener("drop", async function(e) {
     e.preventDefault();
 
     let el = e.target.closest(".accountrow");
@@ -152,7 +153,7 @@ document.addEventListener("drop", function(e) {
     let saccountid = e.dataTransfer.getData("text/plain");
     let accountid = parseInt(saccountid, 10);
     let targetseq = parseInt(el.dataset.seq, 10);
-    console.log(`dropped ${accountid} to ${targetseq}`);
+    submitResequence(accountid, targetseq);
 });
 
 
@@ -265,6 +266,21 @@ function onclickdetail(e, a) {
     expandids.add(a.accountid);
     expandids = expandids;
 }
+
+async function submitResequence(accountid, targetseq) {
+    status = "processing";
+
+    let sreq = `${svcurl}/resequenceaccount?accountid=${accountid}&seq=${targetseq}`;
+    let err = await exec(sreq, null);
+    if (err != null) {
+        console.error(err);
+        status = "server error reordering account";
+        return;
+    }
+
+    status = "";
+}
+
 
 </script>
 

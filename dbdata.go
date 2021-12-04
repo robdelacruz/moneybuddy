@@ -511,7 +511,8 @@ func resequenceAccounts(db *sql.DB, accounttype AccountType, accountid, newseq i
 SELECT a.account_id 
 FROM account a 
 WHERE a.book_id = (SELECT book_id FROM account WHERE account_id = %d) 
-AND a.accounttype = ? AND a.seq >= ?`, accountid)
+AND a.accounttype = ? AND a.seq >= ? 
+ORDER BY a.seq`, accountid)
 	rows, err := db.Query(s, accounttype, newseq)
 	if err != nil {
 		return err

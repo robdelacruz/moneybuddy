@@ -94,6 +94,7 @@ func run(args []string) error {
 	http.HandleFunc("/api/txn", txnHandler(db))
 	http.HandleFunc("/api/subscriberoot", subscriberootHandler(db))
 	http.HandleFunc("/api/rptdata", rptdataHandler(db))
+	http.HandleFunc("/api/resequenceaccount", resequenceaccountHandler(db))
 
 	http.HandleFunc("/api/login", loginHandler(db))
 	http.HandleFunc("/api/signup", signupHandler(db))
@@ -969,6 +970,60 @@ func closeSubs(ds *DataSync, userid int64) {
 func signalAndCloseSubs(ds *DataSync, userid int64) {
 	signalSubs(ds, userid)
 	closeSubs(ds, userid)
+}
+
+func resequenceaccountHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Use POST", 401)
+			return
+		}
+		requser := validateApiUser(db, r)
+		if requser == nil {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
+		qaccountid := idtoi(r.FormValue("accountid"))
+		if qaccountid == 0 {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+		qseq := idtoi(r.FormValue("seq"))
+		if qseq == 0 {
+			http.Error(w, "seq should be > 0", 401)
+			return
+		}
+		a, err := findAccount(db, qaccountid)
+		if err != nil {
+			handleErr(w, err, "POST reseqaccountHandler")
+			return
+		}
+		if a == nil {
+			http.Error(w, "Not found.", 404)
+			return
+		}
+
+		// Check if requester user has access.
+		accountUserid, err := findAccountUserid(db, qaccountid)
+		if err != nil {
+			handleErr(w, err, "GET reseqaccountHandler")
+			return
+		}
+		if accountUserid != requser.Userid {
+			http.Error(w, "Invalid user", 401)
+			return
+		}
+
+		err = resequenceAccounts(db, a.AccountType, qaccountid, qseq)
+		if err != nil {
+			handleErr(w, err, "POST reseqaccountHandler")
+			return
+		}
+
+		// Inform all data subscribers that a data change occured.
+		signalAndCloseSubs(&_datasync, requser.Userid)
+	}
 }
 
 type LoginResult struct {

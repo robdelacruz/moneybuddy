@@ -131,11 +131,18 @@ export async function submit(sreq, method, item) {
 // Returns err if an error occured, or null if successful.
 export async function exec(sreq, item) {
     try {
-        let res = await fetch(sreq, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(item),
-        });
+        let res;
+        if (item) {
+            res = await fetch(sreq, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(item),
+            });
+        } else {
+            res = await fetch(sreq, {
+                method: "POST",
+            });
+        }
         if (!res.ok) {
             let s = await res.text();
             let err = new Error(s);
