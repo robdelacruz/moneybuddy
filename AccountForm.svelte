@@ -126,6 +126,7 @@ async function onSubmit(e) {
 
     let a = {};
     a.accountid = account.accountid;
+    a.bookid = account.bookid;
     a.code = account.code;
     a.name = frm_name;
     a.accounttype = frm_accounttype

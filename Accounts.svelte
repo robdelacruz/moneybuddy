@@ -102,6 +102,7 @@ let editid = -1;
 let expandids = new Set();
 let newaccount = {
     accountid: 0,
+    bookid: bookid,
     code: "",
     name: "",
     accounttype: 0,

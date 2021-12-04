@@ -51,6 +51,7 @@ type Book struct {
 }
 type Account struct {
 	Accountid   int64       `json:"accountid"`
+	Bookid      int64       `json:"bookid"`
 	Code        string      `json:"code"`
 	Seq         int64       `json:"seq"`
 	Name        string      `json:"name"`
@@ -90,8 +91,7 @@ func createTables(newfile string) *sql.DB {
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
 		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
-		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, code TEXT DEFAULT '', seq INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
-		"CREATE TABLE bookaccount (book_id INTEGER NOT NULL, account_id INTEGER NOT NULL);",
+		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, book_id INTEGER NOT NULL, code TEXT DEFAULT '', seq INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
 		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
 	}
@@ -121,8 +121,7 @@ func createTables(newfile string) *sql.DB {
 func findAccountUserid(db *sql.DB, accountid int64) (int64, error) {
 	s := `SELECT IFNULL(b.user_id, 0) 
 FROM account a
-INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
-INNER JOIN book b ON b.book_id = ba.book_id 
+INNER JOIN book b ON b.book_id = a.book_id 
 WHERE a.account_id = ?`
 	rows, err := db.Query(s, accountid)
 	if err != nil {
@@ -141,8 +140,7 @@ func findTxnUserid(db *sql.DB, txnid int64) (int64, error) {
 	s := `SELECT IFNULL(b.user_id, 0) 
 FROM txn t
 INNER JOIN account a ON a.account_id = t.account_id
-INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
-INNER JOIN book b ON b.book_id = ba.book_id 
+INNER JOIN book b ON b.book_id = a.book_id 
 WHERE t.txn_id = ?`
 	rows, err := db.Query(s, txnid)
 	if err != nil {
@@ -270,7 +268,7 @@ func delBook(db *sql.DB, bookid int64) error {
 	}
 
 	// Delete book's accounts' transactions.
-	s := "DELETE FROM txn WHERE account_id IN (SELECT account_id FROM bookaccount WHERE book_id = ?)"
+	s := "DELETE FROM txn WHERE account_id IN (SELECT account_id FROM account WHERE book_id = ?)"
 	_, err = txexec(tx, s, bookid)
 	if err != nil {
 		tx.Rollback()
@@ -278,14 +276,7 @@ func delBook(db *sql.DB, bookid int64) error {
 	}
 
 	// Delete this book's accounts.
-	s = "DELETE FROM account WHERE account_id IN (SELECT account_id FROM bookaccount WHERE book_id = ?)"
-	_, err = txexec(tx, s, bookid)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	s = "DELETE FROM bookaccount WHERE book_id = ?"
+	s = "DELETE FROM account WHERE book_id = ?"
 	_, err = txexec(tx, s, bookid)
 	if err != nil {
 		tx.Rollback()
@@ -367,8 +358,8 @@ func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
 
 //** Account functions **
 func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
-	s := fmt.Sprintf("INSERT INTO account (code, name, accounttype, currency_id, unitprice, ref, memo, seq) VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT IFNULL(MAX(seq), 0)+1 FROM account WHERE accounttype = %d))", a.AccountType)
-	result, err := sqlexec(db, s, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo)
+	s := fmt.Sprintf("INSERT INTO account (book_id, code, name, accounttype, currency_id, unitprice, ref, memo, seq) VALUES (?, ?, ?, ?, ?, ?, ?, ?, (SELECT IFNULL(MAX(seq), 0)+1 FROM account WHERE accounttype = %d))", a.AccountType)
+	result, err := sqlexec(db, s, bookid, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo)
 	if err != nil {
 		return 0, err
 	}
@@ -377,17 +368,11 @@ func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
 		return 0, err
 	}
 
-	s = "INSERT INTO bookaccount (book_id, account_id) VALUES (?, ?)"
-	_, err = sqlexec(db, s, bookid, id)
-	if err != nil {
-		return 0, err
-	}
-
 	return id, nil
 }
 func editAccount(db *sql.DB, a *Account) error {
-	s := "UPDATE account SET code = ?, seq = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ?, ref = ?, memo = ? WHERE account_id = ?"
-	_, err := sqlexec(db, s, a.Code, a.Seq, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo, a.Accountid)
+	s := "UPDATE account SET book_id = ?, code = ?, seq = ?, name = ?, accounttype = ?, currency_id = ?, unitprice = ?, ref = ?, memo = ? WHERE account_id = ?"
+	_, err := sqlexec(db, s, a.Bookid, a.Code, a.Seq, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo, a.Accountid)
 	if err != nil {
 		return err
 	}
@@ -401,14 +386,6 @@ func delAccount(db *sql.DB, accountid int64) error {
 
 	// Delete account's transactions.
 	s := "DELETE FROM txn WHERE account_id = ?"
-	_, err = txexec(tx, s, accountid)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// Remove account from book.
-	s = "DELETE FROM bookaccount WHERE account_id = ?"
 	_, err = txexec(tx, s, accountid)
 	if err != nil {
 		tx.Rollback()
@@ -437,26 +414,8 @@ func assignAccountToBook(db *sql.DB, accountid, bookid int64) error {
 		return sql.ErrNoRows
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	s := "DELETE FROM bookaccount WHERE account_id = ?"
-	_, err = txexec(tx, s, accountid)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	s = "INSERT INTO bookaccount (book_id, account_id) VALUES (?, ?)"
-	_, err = txexec(tx, s, bookid, accountid)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	err = tx.Commit()
+	s := "UPDATE account SET book_id = ? WHERE account_id = ?"
+	_, err = sqlexec(db, s, bookid, accountid)
 	if err != nil {
 		return err
 	}
@@ -472,7 +431,7 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 
 	// txn shares is recorded in txn.amount field
 
-	s := `SELECT account_id, code, seq, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
+	s := `SELECT account_id, book_id, code, seq, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -481,7 +440,7 @@ WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
 	var c Currency
-	err := row.Scan(&a.Accountid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+	err := row.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -500,13 +459,12 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
+SELECT a.account_id, a.book_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
 LEFT OUTER JOIN currency cur ON cur.currency_id = a.currency_id 
-INNER JOIN bookaccount ba ON ba.account_id = a.account_id
-WHERE ba.book_id = ? AND %s`, swhere)
+WHERE a.book_id = ? AND %s`, swhere)
 	rows, err := db.Query(s, bookid)
 	if err != nil {
 		return nil, err
@@ -515,7 +473,7 @@ WHERE ba.book_id = ? AND %s`, swhere)
 	for rows.Next() {
 		var a Account
 		var c Currency
-		rows.Scan(&a.Accountid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+		rows.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
 		a.Currencyid = c.Currencyid
 		a.Currency = &c
 
@@ -547,14 +505,14 @@ func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {
 }
 
 // Move accountid to seq:newseq and shift right all accounts >= newseq
-func resequenceAccounts(db *sql.DB, bookid, accounttype, accountid, newseq int64) error {
+func resequenceAccounts(db *sql.DB, accounttype AccountType, accountid, newseq int64) error {
 	// Shift all accounts on or after newseq to the right by 1 seq.
-	s := `
+	s := fmt.Sprintf(`
 SELECT a.account_id 
 FROM account a 
-INNER JOIN bookaccount ba ON ba.account_id = a.account_id 
-WHERE ba.book_id = ? AND a.accounttype = ? AND a.seq >= ?`
-	rows, err := db.Query(s, bookid, accounttype, newseq)
+WHERE a.book_id = (SELECT book_id FROM account WHERE account_id = %d) 
+AND a.accounttype = ? AND a.seq >= ?`, accountid)
+	rows, err := db.Query(s, accounttype, newseq)
 	if err != nil {
 		return err
 	}
@@ -594,6 +552,7 @@ func createRandomBankAccount(db *sql.DB, bookid int64, currencyid int64) (int64,
 	name := strings.TrimSpace(fmt.Sprintf("%s %s %s", banks[ibank], descs[idesc], opts[iopt]))
 
 	a := Account{
+		Bookid:      bookid,
 		Code:        "",
 		Name:        name,
 		AccountType: BankAccount,
@@ -619,6 +578,7 @@ func createRandomBankAccount(db *sql.DB, bookid int64, currencyid int64) (int64,
 
 func createRandomStockAccount(db *sql.DB, bookid int64, ticker string, unitprice float64, currencyid int64) (int64, error) {
 	a := Account{
+		Bookid:      bookid,
 		Code:        "",
 		Name:        ticker,
 		AccountType: StockAccount,
