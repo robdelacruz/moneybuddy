@@ -1,4 +1,4 @@
-<div class="accounts bg-normal fg-normal py-2 px-4">
+div class="accounts bg-normal fg-normal py-2 px-4">
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}
