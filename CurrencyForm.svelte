@@ -3,7 +3,7 @@
 {:else}
     <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="currencyname" id="currencyname" type="text" placeholder="Currency Name" bind:value={frm_currency}>
+            <input class="block bg-input fg-normal py-1 px-2 w-full" name="name" id="name" type="text" placeholder="Currency Name" bind:value={frm_name}>
         </div>
         <div class="mb-2">
             <input class="block bg-input fg-normal py-1 px-2 w-full" name="usdrate" id="usdrate" type="number" placeholder="USD Rate" step="any" min="0.0" bind:value={frm_usdrate}>
@@ -50,10 +50,12 @@ import * as data from "./data.js";
 export let currency = null;
 export let userid = 0;
 
+console.log(currency);
+
 let svcurl = "/api";
 let mode = "";
 let status = "";
-let frm_currency = currency.currency;
+let frm_name = currency.name;
 let frm_usdrate = currency.usdrate;
 
 document.addEventListener("keydown", function(e) {
@@ -65,7 +67,7 @@ document.addEventListener("keydown", function(e) {
 async function onSubmit(e) {
     status = "processing";
 
-    if (frm_currency == "") {
+    if (frm_name == "") {
         status = "enter the currency name (Ex. USD)";
         return;
     }
@@ -76,7 +78,7 @@ async function onSubmit(e) {
 
     let c = {};
     c.currencyid = currency.currencyid;
-    c.currency = frm_currency;
+    c.name = frm_name;
     c.usdrate = frm_usdrate;
     c.userid = userid;
 

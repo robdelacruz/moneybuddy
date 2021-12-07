@@ -107,7 +107,7 @@ let newaccount = {
     code: "",
     name: "",
     accounttype: 0,
-    currencyid: 0,
+    currencyid: 1,
     ref: "",
     memo: "",
 };

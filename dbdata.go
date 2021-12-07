@@ -31,7 +31,7 @@ type User struct {
 }
 type Currency struct {
 	Currencyid int64   `json:"currencyid"`
-	Currency   string  `json:"currency"`
+	Name       string  `json:"name"`
 	Usdrate    float64 `json:"usdrate"`
 	Userid     int64   `json:"userid"`
 }
@@ -90,7 +90,7 @@ func createTables(newfile string) *sql.DB {
 	ss := []string{
 		"CREATE TABLE user (user_id INTEGER PRIMARY KEY NOT NULL, username TEXT UNIQUE, password TEXT);",
 		"CREATE TABLE book (book_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL DEFAULT 'My Accounts', booktype INTEGER NOT NULL, user_id INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1);",
-		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, currency TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
+		"CREATE TABLE currency (currency_id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL, usdrate REAL NOT NULL DEFAULT 1.0, user_id INTEGER NOT NULL);",
 		"CREATE TABLE account (account_id INTEGER PRIMARY KEY NOT NULL, book_id INTEGER NOT NULL, code TEXT DEFAULT '', seq INTEGER NOT NULL DEFAULT 0, name TEXT NOT NULL DEFAULT 'account', accounttype INTEGER NOT NULL, currency_id INTEGER NOT NULL, unitprice REAL NOT NULL DEFAULT 1.0, ref TEXT NOT NULL DEFAULT '', memo TEXT NOT NULL DEFAULT '');",
 		"CREATE TABLE txn (txn_id INTEGER PRIMARY KEY NOT NULL, account_id INTEGER NOT NULL, date TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '', desc TEXT NOT NULL DEFAULT '', amt REAL NOT NULL DEFAULT 0.0, memo TEXT NOT NULL DEFAULT '');",
 		"INSERT INTO user (user_id, username, password) VALUES (1, 'admin', '');",
@@ -157,8 +157,8 @@ WHERE t.txn_id = ?`
 
 //** Currency functions **
 func createCurrency(db *sql.DB, c *Currency) (int64, error) {
-	s := "INSERT INTO currency (currency, usdrate, user_id) VALUES (?, ?, ?)"
-	result, err := sqlexec(db, s, c.Currency, c.Usdrate, c.Userid)
+	s := "INSERT INTO currency (name, usdrate, user_id) VALUES (?, ?, ?)"
+	result, err := sqlexec(db, s, c.Name, c.Usdrate, c.Userid)
 	if err != nil {
 		return 0, err
 	}
@@ -169,8 +169,8 @@ func createCurrency(db *sql.DB, c *Currency) (int64, error) {
 	return id, nil
 }
 func editCurrency(db *sql.DB, c *Currency) error {
-	s := "UPDATE currency SET currency = ?, usdrate = ?, user_id = ? WHERE currency_id = ?"
-	_, err := sqlexec(db, s, c.Currency, c.Usdrate, c.Userid, c.Currencyid)
+	s := "UPDATE currency SET name = ?, usdrate = ?, user_id = ? WHERE currency_id = ?"
+	_, err := sqlexec(db, s, c.Name, c.Usdrate, c.Userid, c.Currencyid)
 	if err != nil {
 		return err
 	}
@@ -186,10 +186,10 @@ func delCurrency(db *sql.DB, currencyid int64) error {
 }
 
 func findCurrency(db *sql.DB, currencyid int64) (*Currency, error) {
-	s := "SELECT currency_id, currency, usdrate, user_id FROM currency WHERE currency_id = ?"
+	s := "SELECT currency_id, name, usdrate, user_id FROM currency WHERE currency_id = ?"
 	row := db.QueryRow(s, currencyid)
 	var c Currency
-	err := row.Scan(&c.Currencyid, &c.Currency, &c.Usdrate, &c.Userid)
+	err := row.Scan(&c.Currencyid, &c.Name, &c.Usdrate, &c.Userid)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -199,7 +199,7 @@ func findCurrency(db *sql.DB, currencyid int64) (*Currency, error) {
 	return &c, nil
 }
 func findCurrencies(db *sql.DB, userid int64, swhere string) ([]*Currency, error) {
-	s := fmt.Sprintf("SELECT currency_id, currency, usdrate, user_id FROM currency WHERE user_id = ? AND %s", swhere)
+	s := fmt.Sprintf("SELECT currency_id, name, usdrate, user_id FROM currency WHERE user_id = ? AND %s", swhere)
 	rows, err := db.Query(s, userid)
 	if err != nil {
 		return nil, err
@@ -207,7 +207,7 @@ func findCurrencies(db *sql.DB, userid int64, swhere string) ([]*Currency, error
 	cc := []*Currency{}
 	for rows.Next() {
 		var c Currency
-		rows.Scan(&c.Currencyid, &c.Currency, &c.Usdrate, &c.Userid)
+		rows.Scan(&c.Currencyid, &c.Name, &c.Usdrate, &c.Userid)
 		cc = append(cc, &c)
 	}
 	return cc, nil
@@ -358,7 +358,7 @@ func findUserBooks(db *sql.DB, userid int64) ([]*Book, error) {
 
 //** Account functions **
 func createAccount(db *sql.DB, a *Account, bookid int64) (int64, error) {
-	s := fmt.Sprintf("INSERT INTO account (book_id, code, name, accounttype, currency_id, unitprice, ref, memo, seq) VALUES (?, ?, ?, ?, ?, ?, ?, ?, (SELECT IFNULL(MAX(seq), 0)+1 FROM account WHERE accounttype = %d))", a.AccountType)
+	s := fmt.Sprintf("INSERT INTO account (book_id, code, name, accounttype, currency_id, unitprice, ref, memo, seq) VALUES (?, ?, ?, ?, ?, ?, ?, ?, (SELECT IFNULL(MAX(seq), 0)+1 FROM account WHERE book_id = %d AND accounttype = %d))", bookid, a.AccountType)
 	result, err := sqlexec(db, s, bookid, a.Code, a.Name, a.AccountType, a.Currencyid, a.Unitprice, a.Ref, a.Memo)
 	if err != nil {
 		return 0, err
@@ -431,7 +431,7 @@ func findAccount(db *sql.DB, accountid int64) (*Account, error) {
 
 	// txn shares is recorded in txn.amount field
 
-	s := `SELECT account_id, book_id, code, seq, name, accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0), 
+	s := `SELECT a.account_id, a.book_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.name, ''), IFNULL(cur.usdrate, 1.0), 
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -440,7 +440,7 @@ WHERE account_id = ?`
 	row := db.QueryRow(s, accountid)
 	var a Account
 	var c Currency
-	err := row.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+	err := row.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Name, &c.Usdrate, &a.Balance)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -459,7 +459,7 @@ WHERE account_id = ?`
 }
 func findAccounts(db *sql.DB, bookid int64, swhere string) ([]*Account, error) {
 	s := fmt.Sprintf(`
-SELECT a.account_id, a.book_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.currency, ''), IFNULL(cur.Usdrate, 1.0),
+SELECT a.account_id, a.book_id, a.code, a.seq, a.name, a.accounttype, a.unitprice, a.currency_id, a.ref, a.memo, IFNULL(cur.name, ''), IFNULL(cur.usdrate, 1.0),
 (SELECT IIF(a.accounttype = 0, IFNULL(SUM(txn.amt), 0.0), IFNULL(SUM(txn.amt)*a.unitprice, 0.0))
   FROM txn WHERE txn.account_id = a.account_id) AS bal
 FROM account a 
@@ -473,7 +473,7 @@ WHERE a.book_id = ? AND %s`, swhere)
 	for rows.Next() {
 		var a Account
 		var c Currency
-		rows.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Currency, &c.Usdrate, &a.Balance)
+		rows.Scan(&a.Accountid, &a.Bookid, &a.Code, &a.Seq, &a.Name, &a.AccountType, &a.Unitprice, &c.Currencyid, &a.Ref, &a.Memo, &c.Name, &c.Usdrate, &a.Balance)
 		a.Currencyid = c.Currencyid
 		a.Currency = &c
 
@@ -487,10 +487,10 @@ WHERE a.book_id = ? AND %s`, swhere)
 	return aa, nil
 }
 func findAllAccounts(db *sql.DB, bookid int64) ([]*Account, error) {
-	return findAccounts(db, bookid, "1=1 ORDER BY name")
+	return findAccounts(db, bookid, "1=1 ORDER BY a.name")
 }
 func findAllAccountsByType(db *sql.DB, bookid int64) ([]*Account, error) {
-	return findAccounts(db, bookid, "1=1 ORDER BY accounttype, seq, name")
+	return findAccounts(db, bookid, "1=1 ORDER BY a.accounttype, a.seq, a.name")
 }
 
 func accountSumAmt(db *sql.DB, accountid int64) (float64, error) {

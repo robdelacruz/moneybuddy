@@ -65,18 +65,18 @@ func signup(db *sql.DB, username, pwd string) (*User, error) {
 // Create initial data set for new user.
 func initUserData(db *sql.DB, u *User) error {
 	c := Currency{
-		Currency: "USD",
-		Usdrate:  1.0,
-		Userid:   u.Userid,
+		Name:    "USD",
+		Usdrate: 1.0,
+		Userid:  u.Userid,
 	}
 	_, err := createCurrency(db, &c)
 	if err != nil {
 		return err
 	}
 	c = Currency{
-		Currency: "PHP",
-		Usdrate:  48.0,
-		Userid:   u.Userid,
+		Name:    "PHP",
+		Usdrate: 48.0,
+		Userid:  u.Userid,
 	}
 	_, err = createCurrency(db, &c)
 	if err != nil {

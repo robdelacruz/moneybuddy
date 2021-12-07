@@ -13,11 +13,11 @@
     {#each root.currencies as c (c.currencyid)}
         {#if selid == c.currencyid && selid != editid}
         <a class="flex flex-row justify-start p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => onedit(c)}">
-            <p class="flex-grow truncate mr-2">{c.currency}</p>
+            <p class="flex-grow truncate mr-2">{c.name}</p>
         </a>
         {:else}
         <a class="flex flex-row justify-start p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselect(c)}">
-            <p class="flex-grow truncate mr-2">{c.currency}</p>
+            <p class="flex-grow truncate mr-2">{c.name}</p>
         </a>
         {/if}
         {#if editid == c.currencyid}
@@ -42,7 +42,7 @@ let selid = 0;
 let editid = -1;
 let newcurrency = {
     currencyid: 0,
-    currency: "",
+    name: "",
     usdrate: null,
     userid: userid,
 };

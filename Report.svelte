@@ -28,9 +28,9 @@
                 <select class="text-xs fg-normal bg-normal pr-1" id="currency" name="currency" placeholder="Select Currency" bind:value={selcurrencyid}>
                     {#each currencies as c}
                         {#if c.currencyid == selcurrencyid}
-                        <option selected value={c.currencyid}>{c.currency}</option>
+                        <option selected value={c.currencyid}>{c.name}</option>
                         {:else}
-                        <option value={c.currencyid}>{c.currency}</option>
+                        <option value={c.currencyid}>{c.name}</option>
                         {/if}
                     {/each}
                 </select>

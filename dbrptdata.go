@@ -32,8 +32,8 @@ type SummaryRptItem struct {
 }
 
 type CurrencyAmt struct {
-	Currency *Currency `json:"currency"`
-	Amt      float64   `json:"amt"`
+	CurrencyName string  `json:"currencyname"`
+	Amt          float64 `json:"amt"`
 }
 
 func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
@@ -74,7 +74,7 @@ func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 	return &rptdata, nil
 }
 
-var EmptyCurrencyAmt = CurrencyAmt{nil, 0.0}
+var EmptyCurrencyAmt = CurrencyAmt{"", 0.0}
 var EmptySummaryRptItem = SummaryRptItem{"", EmptyCurrencyAmt}
 
 func findSummaryRpt(db *sql.DB, b *Book, c *Currency) (*SummaryRpt, error) {
@@ -88,15 +88,15 @@ func findSummaryRpt(db *sql.DB, b *Book, c *Currency) (*SummaryRpt, error) {
 	totalBal = bankBal + stockBal
 
 	var items []*SummaryRptItem
-	items = append(items, &SummaryRptItem{"All Accounts", CurrencyAmt{c, totalBal}})
-	items = append(items, &SummaryRptItem{"Bank Accounts", CurrencyAmt{c, bankBal}})
-	items = append(items, &SummaryRptItem{"Stocks", CurrencyAmt{c, stockBal}})
+	items = append(items, &SummaryRptItem{"All Accounts", CurrencyAmt{c.Name, totalBal}})
+	items = append(items, &SummaryRptItem{"Bank Accounts", CurrencyAmt{c.Name, bankBal}})
+	items = append(items, &SummaryRptItem{"Stocks", CurrencyAmt{c.Name, stockBal}})
 	items = append(items, &EmptySummaryRptItem)
 
 	items = append(items, &SummaryRptItem{"# Bank Accounts", EmptyCurrencyAmt})
 	for _, a := range b.BankAccounts {
 		bankbal := convToCurrency(a.Balance, a.Currency, c)
-		items = append(items, &SummaryRptItem{a.Name, CurrencyAmt{c, bankbal}})
+		items = append(items, &SummaryRptItem{a.Name, CurrencyAmt{c.Name, bankbal}})
 	}
 	items = append(items, &EmptySummaryRptItem)
 
@@ -110,7 +110,7 @@ func findSummaryRpt(db *sql.DB, b *Book, c *Currency) (*SummaryRpt, error) {
 		}
 		stockdesc := p.Sprintf("%s (%.2f shares)", a.Name, nshares)
 		stockbal := convToCurrency(a.Balance, a.Currency, c)
-		items = append(items, &SummaryRptItem{stockdesc, CurrencyAmt{c, stockbal}})
+		items = append(items, &SummaryRptItem{stockdesc, CurrencyAmt{c.Name, stockbal}})
 	}
 
 	var summaryrpt SummaryRpt

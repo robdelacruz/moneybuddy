@@ -27,7 +27,7 @@
             <div class="w-1/2">
                 <select class="py-1 px-2 bg-input fg-normal w-full" id="currency" name="currency" placeholder="Currency" bind:value={frm_currencyid}>
                     {#each root.currencies as currency}
-                    <option value={currency.currencyid}>{currency.currency}</option>
+                    <option value={currency.currencyid}>{currency.name}</option>
                     {/each}
                 </select>
             </div>

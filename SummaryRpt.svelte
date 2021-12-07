@@ -17,9 +17,9 @@
         <div class="flex flex-row justify-between p-1 border-b border-cell">
             <p class="cell-desc">{ri.caption}</p>
             {#if ri.currencyamt.amt >= 0}
-            <p class="whitespace-nowrap fg-number-plus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currency.currency)}</p>
+            <p class="whitespace-nowrap fg-number-plus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currencyname)}</p>
             {:else}
-            <p class="whitespace-nowrap fg-number-minus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currency.currency)}</p>
+            <p class="whitespace-nowrap fg-number-minus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currencyname)}</p>
             {/if}
         </div>
         {/if}
