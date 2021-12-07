@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -15,19 +16,24 @@ type Rptdata struct {
 }
 
 type BookRpt struct {
-	Bookid     int64      `json:"bookid"`
-	Bookname   string     `json:"bookname"`
-	SummaryRpt SummaryRpt `json:"summaryrpt"`
+	Bookid     int64       `json:"bookid"`
+	Bookname   string      `json:"bookname"`
+	SummaryRpt *SummaryRpt `json:"summaryrpt"`
 }
 
 type SummaryRpt struct {
-	Heading string     `json:"heading"`
-	Items   []*RptItem `json:"rptitems"`
+	Heading string            `json:"heading"`
+	Items   []*SummaryRptItem `json:"rptitems"`
 }
 
-type RptItem struct {
-	Caption string  `json:"caption"`
-	Val     float64 `json:"val"`
+type SummaryRptItem struct {
+	Caption     string      `json:"caption"`
+	CurrencyAmt CurrencyAmt `json:"currencyamt"`
+}
+
+type CurrencyAmt struct {
+	Currency *Currency `json:"currency"`
+	Amt      float64   `json:"amt"`
 }
 
 func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
@@ -50,11 +56,15 @@ func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 			continue
 		}
 
-		r, err := findBookRptdata(db, b, c)
+		var r BookRpt
+		r.Bookid = b.Bookid
+		r.Bookname = b.Name
+		summaryrpt, err := findSummaryRpt(db, b, c)
 		if err != nil {
 			return nil, err
 		}
-		rr = append(rr, r)
+		r.SummaryRpt = summaryrpt
+		rr = append(rr, &r)
 	}
 
 	var rptdata Rptdata
@@ -64,9 +74,10 @@ func findRptdata(db *sql.DB, userid, currencyid int64) (*Rptdata, error) {
 	return &rptdata, nil
 }
 
-var EmptyRptItem = RptItem{"", 0.0}
+var EmptyCurrencyAmt = CurrencyAmt{nil, 0.0}
+var EmptySummaryRptItem = SummaryRptItem{"", EmptyCurrencyAmt}
 
-func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
+func findSummaryRpt(db *sql.DB, b *Book, c *Currency) (*SummaryRpt, error) {
 	var bankBal, stockBal, totalBal float64
 	for _, a := range b.BankAccounts {
 		bankBal += convToCurrency(a.Balance, a.Currency, c)
@@ -76,22 +87,22 @@ func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
 	}
 	totalBal = bankBal + stockBal
 
-	var items []*RptItem
-	items = append(items, &RptItem{"All Accounts", totalBal})
-	items = append(items, &RptItem{"Bank Accounts", bankBal})
-	items = append(items, &RptItem{"Stocks", stockBal})
-	items = append(items, &EmptyRptItem)
+	var items []*SummaryRptItem
+	items = append(items, &SummaryRptItem{"All Accounts", CurrencyAmt{c, totalBal}})
+	items = append(items, &SummaryRptItem{"Bank Accounts", CurrencyAmt{c, bankBal}})
+	items = append(items, &SummaryRptItem{"Stocks", CurrencyAmt{c, stockBal}})
+	items = append(items, &EmptySummaryRptItem)
 
-	items = append(items, &RptItem{"# Bank Accounts", 0})
+	items = append(items, &SummaryRptItem{"# Bank Accounts", EmptyCurrencyAmt})
 	for _, a := range b.BankAccounts {
 		bankbal := convToCurrency(a.Balance, a.Currency, c)
-		items = append(items, &RptItem{a.Name, bankbal})
+		items = append(items, &SummaryRptItem{a.Name, CurrencyAmt{c, bankbal}})
 	}
-	items = append(items, &EmptyRptItem)
+	items = append(items, &EmptySummaryRptItem)
 
 	p := message.NewPrinter(language.English)
 
-	items = append(items, &RptItem{"# Stocks", 0})
+	items = append(items, &SummaryRptItem{"# Stocks", EmptyCurrencyAmt})
 	for _, a := range b.StockAccounts {
 		nshares, err := accountSumAmt(db, a.Accountid)
 		if err != nil {
@@ -99,16 +110,11 @@ func findBookRptdata(db *sql.DB, b *Book, c *Currency) (*BookRpt, error) {
 		}
 		stockdesc := p.Sprintf("%s (%.2f shares)", a.Name, nshares)
 		stockbal := convToCurrency(a.Balance, a.Currency, c)
-		items = append(items, &RptItem{stockdesc, stockbal})
+		items = append(items, &SummaryRptItem{stockdesc, CurrencyAmt{c, stockbal}})
 	}
 
 	var summaryrpt SummaryRpt
 	summaryrpt.Heading = fmt.Sprintf("Summary Report for '%s'", b.Name)
 	summaryrpt.Items = items
-
-	var bookrpt BookRpt
-	bookrpt.Bookid = b.Bookid
-	bookrpt.Bookname = b.Name
-	bookrpt.SummaryRpt = summaryrpt
-	return &bookrpt, nil
+	return &summaryrpt, nil
 }
