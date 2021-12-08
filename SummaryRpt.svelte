@@ -6,22 +6,27 @@
     </div>
 
     {#each selbookrpt.summaryrpt.rptitems as ri}
-        {#if ri.caption == ""}
-            <div class="flex flex-row py-2">
-            </div>
-        {:else if ri.caption.startsWith("# ")}
-            <div class="flex flex-row p-1">
-                <h2 class="cell-desc font-bold fg-h2">{ri.caption.substring(2)}</h2>
-            </div>
+        {#if ri.caption == "" && ri.cols.length == 0}
+            <div class="py-2"></div>
         {:else}
-        <div class="flex flex-row justify-between p-1 border-b border-cell">
-            <p class="cell-desc">{ri.caption}</p>
-            {#if ri.currencyamt.amt >= 0}
-            <p class="whitespace-nowrap fg-number-plus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currencyname)}</p>
+            <div class="rptrow flex flex-row justify-between p-1 border-b border-cell w-full">
+            {#if ri.caption.startsWith("# ")}
+                <h2 class="cell-desc font-bold fg-h2">{ri.caption.substring(2)}</h2>
             {:else}
-            <p class="whitespace-nowrap fg-number-minus text-right cell-amt">{data.formattedAmt(ri.currencyamt.amt, ri.currencyamt.currencyname)}</p>
+                <p class="cell-desc">{ri.caption}</p>
             {/if}
-        </div>
+            {#each ri.cols as col}
+                {#if col.amt}
+                    {#if col.amt >= 0}
+                    <p class="cell-amt whitespace-nowrap fg-number-plus">{data.formattedAmt(col.amt, col.currencyname)}</p>
+                    {:else}
+                    <p class="cell-amt whitespace-nowrap fg-number-minus">{data.formattedAmt(col.amt, col.currencyname)}</p>
+                    {/if}
+                {:else if typeof col == "string"}
+                    <p class="cell-caption fg-h3 text-right">{col}</p>
+                {/if}
+            {/each}
+            </div>
         {/if}
     {/each}
 {/if}
