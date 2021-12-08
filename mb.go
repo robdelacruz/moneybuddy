@@ -361,7 +361,7 @@ func currencyHandler(db *sql.DB) http.HandlerFunc {
 			c.Currencyid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -391,7 +391,7 @@ func currencyHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -423,7 +423,7 @@ func currencyHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -489,7 +489,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			b.Bookid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -519,7 +519,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -551,7 +551,7 @@ func bookHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -638,7 +638,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			a.Accountid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -683,7 +683,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -713,7 +713,7 @@ func accountHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -790,7 +790,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			t.Txnid = newid
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -826,7 +826,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			w.Header().Set("Content-Type", "application/json")
 			P := makeFprintf(w)
@@ -856,7 +856,7 @@ func txnHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			// Inform all data subscribers that a data change occured.
-			signalAndCloseSubs(&_datasync, requser.Userid)
+			signalSubs(&_datasync, requser.Userid)
 
 			return
 		}
@@ -928,6 +928,7 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 		sub := make(SignalChan, 1)
 		addSub(&_datasync, quserid, sub)
 		<-sub
+		removeSub(&_datasync, quserid, sub)
 
 		rootdata, err := findRootdata(db, quserid)
 		if err != nil {
@@ -948,7 +949,30 @@ func addSub(ds *DataSync, userid int64, sub SignalChan) {
 	if ds.subs == nil {
 		ds.subs = make(map[int64][]SignalChan)
 	}
+
+	// Look for empty slot first.
+	for i, ch := range ds.subs[userid] {
+		if ch == nil {
+			ds.subs[userid][i] = sub
+			return
+		}
+	}
+
+	// No empty slot, so append it.
 	ds.subs[userid] = append(ds.subs[userid], sub)
+
+}
+func removeSub(ds *DataSync, userid int64, sub SignalChan) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
+
+	for i, ch := range ds.subs[userid] {
+		if ch == sub {
+			ds.subs[userid][i] = nil
+			break
+		}
+	}
+	close(sub)
 }
 func signalSubs(ds *DataSync, userid int64) {
 	ds.mu.RLock()
@@ -957,19 +981,6 @@ func signalSubs(ds *DataSync, userid int64) {
 	for _, ch := range ds.subs[userid] {
 		ch <- struct{}{}
 	}
-}
-func closeSubs(ds *DataSync, userid int64) {
-	ds.mu.Lock()
-	defer ds.mu.Unlock()
-
-	for _, sub := range ds.subs[userid] {
-		close(sub)
-	}
-	ds.subs[userid] = nil
-}
-func signalAndCloseSubs(ds *DataSync, userid int64) {
-	signalSubs(ds, userid)
-	closeSubs(ds, userid)
 }
 
 func resequenceaccountHandler(db *sql.DB) http.HandlerFunc {
@@ -1022,7 +1033,7 @@ func resequenceaccountHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Inform all data subscribers that a data change occured.
-		signalAndCloseSubs(&_datasync, requser.Userid)
+		signalSubs(&_datasync, requser.Userid)
 	}
 }
 

@@ -101,8 +101,7 @@ async function subscribeRootdata(userid) {
             return;
         }
 
-        console.log("Received root data...");
-        console.log(rootdata);
+        console.log("Received new root data.");
 
         for (let i=0; i < rootdata.books.length; i++) {
             let b = rootdata.books[i];
