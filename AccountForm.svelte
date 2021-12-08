@@ -128,6 +128,7 @@ async function onSubmit(e) {
     a.accountid = account.accountid;
     a.bookid = account.bookid;
     a.code = account.code;
+    a.seq = account.seq;
     a.name = frm_name;
     a.accounttype = frm_accounttype
     a.currencyid = frm_currencyid;
