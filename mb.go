@@ -979,7 +979,9 @@ func signalSubs(ds *DataSync, userid int64) {
 	defer ds.mu.RUnlock()
 
 	for _, ch := range ds.subs[userid] {
-		ch <- struct{}{}
+		go func() {
+			ch <- struct{}{}
+		}()
 	}
 }
 
