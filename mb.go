@@ -923,7 +923,7 @@ func subscriberootHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		sub := make(SignalChan, 1)
+		sub := make(SignalChan)
 		Subs = addSub(Subs, &MuSubs, quserid, sub)
 		_, ok := <-sub
 		if !ok {
