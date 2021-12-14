@@ -130,28 +130,18 @@
 
 .memo p:not(:last-child) {@apply mb-1;}
 
-.txnrow {@apply flex flex-row items-center p-1 gap-1 border-b border-cell;}
-.txnrow.detail {@apply border-b-0;}
-.txnrow.sel {@apply highlight-1;}
+.tblrow {@apply flex flex-row items-center p-1 gap-1 border-b border-cell;}
+.tblrow.detail {@apply border-b-0;}
+.tblrow.sel {@apply highlight-1;}
 
-.txnrow .cell-date {flex: 0 0 10ch; @apply truncate fg-dim;}
-.txnrow .cell-refno {flex: 0 0 12ch; @apply truncate fg-dim;}
-.txnrow .cell-desc {flex: 1 1 0ch; @apply truncate;}
-.txnrow .cell-amt {flex: 0 0 12ch; @apply text-right;}
+.tblrow .cell-date {flex: 0 0 10ch; @apply truncate fg-dim;}
+.tblrow .cell-refno {flex: 0 0 12ch; @apply truncate fg-dim;}
+.tblrow .cell-desc {flex: 1 1 0ch; @apply truncate;}
+.tblrow .cell-amt {flex: 0 0 12ch; @apply whitespace-nowrap text-right;}
 
 .cell-detailicon {flex: 0 0 3ch; @apply self-center px-1 fg-dim;}
 .cell-detailicon:hover {@apply fg-hoverhighlight;}
 .sel .cell-detailicon:hover {@apply fg-reverse;}
-
-.txnrow.sel .cell-date,
-.txnrow.sel .cell-refno,
-.txnrow.sel .cell-amt {color: inherit;}
-
-.accountrow {@apply flex flex-row items-center p-1 gap-1 border-b border-cell;}
-.accountrow.detail {@apply border-b-0;}
-.accountrow.sel {@apply highlight;}
-.accountrow .cell-desc {flex: 1 1 0ch; @apply truncate;}
-.accountrow .cell-amt {flex: 0 0 12ch; @apply whitespace-nowrap text-right;}
 
 .memonote {max-height: 15rem; @apply border border-cell p-1 my-1 break-normal whitespace-normal fg-note bg-note overflow-auto;}
 

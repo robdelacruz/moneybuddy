@@ -11,15 +11,9 @@
         </div>
     {/if}
     {#each root.books as b (b.bookid)}
-        {#if selid == b.bookid && selid != editid}
-        <a class="flex flex-row justify-start p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => onedit(b)}">
-            <p class="flex-grow truncate mr-2">{b.name}</p>
+        <a class="tblrow" class:sel="{selid == b.bookid}" href="/" on:click|preventDefault="{e => onclickrow(b, b.bookid)}">
+            <p class="cell-desc">{b.name}</p>
         </a>
-        {:else}
-        <a class="flex flex-row justify-start p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselect(b)}">
-            <p class="flex-grow truncate mr-2">{b.name}</p>
-        </a>
-        {/if}
         {#if editid == b.bookid}
         <div class="p-2 border-b border-cell">
             <BookForm book={b} userid={userid} on:submit={bookform_done} on:cancel={bookform_done} />
@@ -52,20 +46,22 @@ export function reset() {
     editid = -1;
 }
 
-export function select(b) {
+function onclickrow(item, itemid) {
+    // If row already selected, edit it.
+    if (selid == itemid && selid != editid) {
+        editid = itemid;
+        return;
+    }
+
+    // row not selected
+
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
         return;
     }
 
-    selid = b.bookid;
-}
-function onselect(b) {
-    select(b);
-}
-function onedit(b) {
-    editid = b.bookid;
+    selid = itemid;
 }
 function oncreate(e) {
     editid = 0;

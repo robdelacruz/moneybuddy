@@ -40,7 +40,7 @@
             <h2 class="font-bold fg-h2">Securities</h2>
         </div>
         {/if}
-        <a class="accountrow" draggable="true" data-accountid="{a.accountid}" data-seq="{a.seq}" class:sel="{selid == a.accountid}" class:detail="{expandids.has(a.accountid)}" href="/" on:click|preventDefault="{e => onclickaccount(a)}">
+        <a class="tblrow" draggable="true" data-accountid="{a.accountid}" data-seq="{a.seq}" class:sel="{selid == a.accountid}" class:detail="{expandids.has(a.accountid)}" href="/" on:click|preventDefault="{e => onclickrow(a, a.accountid)}">
             <p class="cell-desc">{a.name}</p>
             {#if a.balance >= 0}
             <p class="cell-amt" class:fg-number-plus="{selid != a.accountid}">{a.fmtbalance}</p>
@@ -63,7 +63,7 @@
         </a>
 
         {#if expandids.has(a.accountid) && (a.ref != "" || a.memo != "")}
-        <div class="accountrow">
+        <div class="tblrow">
             <div class="flex-grow flex-shrink">
                 {#if a.ref != ""}
                 <p class="fg-dim mb-1">{a.ref}</p>
@@ -227,26 +227,26 @@ export function reset() {
 }
 
 export function selectAccount(a) {
+    selid = a.accountid;
+}
+
+function onclickrow(item, itemid) {
+    // If row already selected, edit it.
+    if (selid == itemid && selid != editid) {
+        editid = itemid;
+        return;
+    }
+
+    // row not selected
+
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
         return;
     }
 
-    selid = a.accountid;
-}
-function onclickaccount(a) {
-    // If account already selected, edit it.
-    if (selid == a.accountid && selid != editid) {
-        editid = a.accountid;
-        return;
-    }
-
-    selectAccount(a);
-    dispatch("selectaccount", a);
-}
-function oneditaccount(a) {
-    editid = a.accountid;
+    selid = itemid;
+    dispatch("select", item);
 }
 function oncreate(e) {
     editid = 0;

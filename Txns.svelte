@@ -35,7 +35,7 @@
         </div>
     {/if}
     {#each displaytxns as t (t.txnid)}
-        <a class="txnrow" class:sel="{selid == t.txnid}" class:detail="{expandids.has(t.txnid)}" href="/" on:click|preventDefault="{e => onclicktxn(t)}">
+        <a class="tblrow" class:sel="{selid == t.txnid}" class:detail="{expandids.has(t.txnid)}" href="/" on:click|preventDefault="{e => onclickrow(t, t.txnid)}">
             <p class="cell-date">{t.date.substring(0, 10)}</p>
             <p class="cell-refno">{t.ref}</p>
             <p class="cell-desc">{t.desc}</p>
@@ -60,7 +60,7 @@
             {/if}
         </a>
         {#if expandids.has(t.txnid) && t.memo != ""}
-        <div class="txnrow">
+        <div class="tblrow">
             <p class="cell-date"></p>
             <p class="cell-refno"></p>
             <div class="cell-desc">
@@ -225,14 +225,14 @@ export function reset() {
     expandids.clear();
 }
 
-function onclicktxn(txn) {
-    // If txn already selected, edit it.
-    if (selid == txn.txnid && selid != editid) {
-        editid = txn.txnid;
+function onclickrow(item, itemid) {
+    // If row already selected, edit it.
+    if (selid == itemid && selid != editid) {
+        editid = itemid;
         return;
     }
 
-    // txn not selected
+    // row not selected
 
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
@@ -240,8 +240,8 @@ function onclicktxn(txn) {
         return;
     }
 
-    selid = txn.txnid;
-    dispatch("selecttxn", txn);
+    selid = itemid;
+    dispatch("select", item);
 }
 function oncreate(e) {
     if (accountid == 0) {

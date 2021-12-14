@@ -11,15 +11,9 @@
         </div>
     {/if}
     {#each root.currencies as c (c.currencyid)}
-        {#if selid == c.currencyid && selid != editid}
-        <a class="flex flex-row justify-start p-1 border-b border-cell highlight" href="/" on:click|preventDefault="{e => onedit(c)}">
-            <p class="flex-grow truncate mr-2">{c.name}</p>
+        <a class="tblrow" class:sel="{selid == c.currencyid}" href="/" on:click|preventDefault="{e => onclickrow(c, c.currencyid)}">
+            <p class="cell-desc">{c.name}</p>
         </a>
-        {:else}
-        <a class="flex flex-row justify-start p-1 border-b border-cell" href="/" on:click|preventDefault="{e => onselect(c)}">
-            <p class="flex-grow truncate mr-2">{c.name}</p>
-        </a>
-        {/if}
         {#if editid == c.currencyid}
         <div class="p-2 border-b border-cell">
             <CurrencyForm currency={c} userid={userid} on:submit={currencyform_done} on:cancel={currencyform_done} />
@@ -52,20 +46,22 @@ export function reset() {
     editid = -1;
 }
 
-export function select(c) {
+function onclickrow(item, itemid) {
+    // If row already selected, edit it.
+    if (selid == itemid && selid != editid) {
+        editid = itemid;
+        return;
+    }
+
+    // row not selected
+
     // If edit form is open, just cancel edit without selecting anything.
     if (editid != -1) {
         editid = -1;
         return;
     }
 
-    selid = c.currencyid;
-}
-function onselect(c) {
-    select(c);
-}
-function onedit(c) {
-    editid = c.currencyid;
+    selid = itemid;
 }
 function oncreate(c) {
     editid = 0;
