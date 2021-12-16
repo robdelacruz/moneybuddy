@@ -1,28 +1,26 @@
-<div class="setup flex flex-row">
-    <div class="w-full bg-normal fg-normal mb-2 mr-2 py-2 px-4">
-    {#if root == null}
-        <p class="fg-dim">No data</p>
-    {:else}
-        <div class="flex flex-row border-b border-cell mb-4">
-            <select class="text-xs fg-normal bg-normal pr-1" id="setupmenu" name="setupmenu" placeholder="Select" bind:value={selmenuid}>
-                {#each menuitems as menuitem}
-                    {#if menuitem.id == selmenuid}
-                    <option selected value={menuitem.id}>{menuitem.name}</option>
-                    {:else}
-                    <option value={menuitem.id}>{menuitem.name}</option>
-                    {/if}
-                {/each}
-            </select>
-        </div>
-        {#if selmenuid == "books"}
-            <SetupBooks root={root} userid={userid} />
-        {:else if selmenuid == "currencies"}
-            <SetupCurrencies root={root} userid={userid} />
-        {:else if selmenuid == "user"}
-            <SetupUser userid={userid} />
-        {/if}
-    {/if}
+<div class="setup bg-normal fg-normal py-2 px-4">
+{#if root == null}
+    <p class="fg-dim">No data</p>
+{:else}
+    <div class="flexrow border-b border-cell mb-4">
+        <select class="text-xs" id="setupmenu" name="setupmenu" placeholder="Select" bind:value={selmenuid}>
+            {#each menuitems as menuitem}
+                {#if menuitem.id == selmenuid}
+                <option selected value={menuitem.id}>{menuitem.name}</option>
+                {:else}
+                <option value={menuitem.id}>{menuitem.name}</option>
+                {/if}
+            {/each}
+        </select>
     </div>
+    {#if selmenuid == "books"}
+        <SetupBooks root={root} userid={userid} />
+    {:else if selmenuid == "currencies"}
+        <SetupCurrencies root={root} userid={userid} />
+    {:else if selmenuid == "user"}
+        <SetupUser userid={userid} />
+    {/if}
+{/if}
 </div>
 
 <script>

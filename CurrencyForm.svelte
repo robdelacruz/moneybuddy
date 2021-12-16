@@ -3,39 +3,39 @@
 {:else}
     <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="name" id="name" type="text" placeholder="Currency Name" bind:value={frm_name}>
+            <input class="input w-full" name="name" id="name" type="text" placeholder="Currency Name" bind:value={frm_name}>
         </div>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="usdrate" id="usdrate" type="number" placeholder="USD Rate" step="any" min="0.0" bind:value={frm_usdrate}>
+            <input class="input w-full" name="usdrate" id="usdrate" type="number" placeholder="USD Rate" step="any" min="0.0" bind:value={frm_usdrate}>
         </div>
         {#if mode == ""}
-        <div class="flex flex-row justify-between">
+        <div class="flexrow justify-between">
             <div>
                 {#if currency.currencyid == 0}
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Create</button>
+                <button class="btn bg-inputok mr-2">Create</button>
                 {:else}
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
+                <button class="btn bg-inputok mr-2">Update</button>
                 {/if}
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
+                <a href="/" class="action" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
             <div>
                 {#if currency.currencyid != 0}
-                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
+                <button class="btn bg-input" on:click|preventDefault={onDelete}>Delete</button>
                 {/if}
             </div>
         </div>
         {:else if mode == "delete"}
-        <div class="flex flex-row justify-left">
-            <p class="self-center uppercase italic text-xs mr-4">Delete this currency?</p>
+        <div class="">
+            <p class="prompt mb-2">Delete this currency?</p>
             <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+                <button class="btn bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
+                <a href="/" class="action" on:click|preventDefault={onCancelDelete}>Cancel</a>
             </div>
         </div>
         {/if}
         {#if status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{status}</p>
+            <p class="prompt">{status}</p>
         </div>
         {/if}
     </form>

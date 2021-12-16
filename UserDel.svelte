@@ -3,28 +3,28 @@
 {:else}
     <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
+            <input class="input w-full" name="username" id="username" type="text" placeholder="Username" bind:value={frm_username}>
         </div>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="password" id="password" type="password" placeholder="Password" bind:value={frm_password}>
+            <input class="input w-full" name="password" id="password" type="password" placeholder="Password" bind:value={frm_password}>
         </div>
         {#if mode == ""}
-        <div class="flex flex-row justify-left mb-2">
-            <button class="border border-normal py-1 px-2 bg-inputok mr-2" on:click|preventDefault={onDelete}>Delete User</button>
-            <a href="/" class="action self-center" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
+        <div class="flexrow mb-2">
+            <button class="btn bg-inputok mr-2" on:click|preventDefault={onDelete}>Delete User</button>
+            <a href="/" class="action" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
         </div>
         {:else if mode == "delete"}
-        <div class="flex flex-row justify-left">
-            <p class="self-center uppercase italic text-xs mr-4">This cannot be undone. Confirm Delete?</p>
+        <div class="">
+            <p class="prompt mb-2">This cannot be undone. Confirm Delete?</p>
             <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2">Delete</button>
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+                <button class="btn bg-inputdel mr-2">Delete</button>
+                <a href="/" class="action" on:click|preventDefault={onCancelDelete}>Cancel</a>
             </div>
         </div>
         {/if}
         {#if status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{status}</p>
+            <p class="prompt">{status}</p>
         </div>
         {/if}
     </form>

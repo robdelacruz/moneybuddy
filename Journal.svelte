@@ -10,7 +10,6 @@ import {find, submit, getlsInt, setlsInt} from "./helpers.js";
 
 import Accounts from "./Accounts.svelte";
 import Txns from "./Txns.svelte";
-import TxnDetail from "./TxnDetail.svelte";
 
 export let root = null;
 let waccounts;

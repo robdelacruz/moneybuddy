@@ -2,43 +2,43 @@
     <p class="fg-dim">Select Txn</p>
 {:else}
     <form class="txnform" autocomplete="off" on:submit|preventDefault={onSubmit}>
-        <input class="txnform-desc bg-input fg-normal py-1 px-2" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
-        <input class="txnform-date bg-input fg-normal py-1 px-2" name="date" id="date" type="date" bind:value={frm_date}>
-        <select class="txnform-action py-1 px-2 bg-input fg-normal" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
+        <input class="input txnform-desc" name="desc" id="desc" type="text" placeholder="Enter Description" bind:value={frm_desc}>
+        <input class="input txnform-date" name="date" id="date" type="date" bind:value={frm_date}>
+        <select class="input txnform-action" id="action" name="action" placeholder="Deposit/Withdraw" bind:value={frm_action}>
             <option value="plus">{option_plus}</option>
             <option value="minus">{option_minus}</option>
         </select>
-        <input class="txnform-amt bg-input fg-normal py-1 px-2" name="amt" id="amt" type="text" placeholder="Amount" bind:value={frm_amt} on:blur="{e => frm_amt = formatnum(frm_amt)}">
-        <input class="txnform-refno bg-input fg-normal py-1 px-2" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
-        <textarea class="txnform-memo bg-input fg-normal py-1 px-2" name="memo" id="memo" placeholder="Memo" rows="4" bind:value={frm_memo}></textarea>
+        <input class="input txnform-amt" name="amt" id="amt" type="text" placeholder="Amount" bind:value={frm_amt} on:blur="{e => frm_amt = formatnum(frm_amt)}">
+        <input class="input txnform-refno" name="ref" id="ref" type="text" placeholder="Reference No" bind:value={frm_ref}>
+        <textarea class="input txnform-memo" name="memo" id="memo" placeholder="Memo" rows="4" bind:value={frm_memo}></textarea>
         {#if mode == ""}
-        <div class="txnform-btns flex flex-row justify-between">
+        <div class="txnform-btns flexrow justify-between">
             <div>
                 {#if txn.txnid == 0}
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Submit</button>
+                <button class="btn bg-inputok mr-2">Submit</button>
                 {:else}
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
+                <button class="btn bg-inputok mr-2">Update</button>
                 {/if}
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancel}>Cancel</a>
+                <a href="/" class="action" on:click|preventDefault={onCancel}>Cancel</a>
             </div>
             <div>
                 {#if txn.txnid != 0}
-                <button class="mx-auto border border-normal py-1 px-2 bg-input" on:click|preventDefault={onDelete}>Delete</button>
+                <button class="btn" on:click|preventDefault={onDelete}>Delete</button>
                 {/if}
             </div>
         </div>
         {:else if mode == "delete"}
-        <div class="txnform-btns flex flex-row justify-left">
-            <p class="self-center uppercase italic text-xs mr-4">Delete this transaction?</p>
+        <div class="txnform-btns">
+            <p class="prompt mb-2">Delete this transaction?</p>
             <div>
-                <button class="mx-auto border border-normal py-1 px-2 bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
-                <a href="/" class="mx-auto border-b border-normal pt-1" on:click|preventDefault={onCancelDelete}>Cancel</a>
+                <button class="btn bg-inputdel mr-2" on:click|preventDefault={onConfirmDelete}>Delete</button>
+                <a href="/" class="action" on:click|preventDefault={onCancelDelete}>Cancel</a>
             </div>
         </div>
         {/if}
         {#if status != ""}
         <div class="txnform-status">
-            <p class="uppercase italic text-xs">{status}</p>
+            <p class="prompt">{status}</p>
         </div>
         {/if}
     </form>

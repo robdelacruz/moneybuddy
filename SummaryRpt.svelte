@@ -1,7 +1,7 @@
 {#if rptdata == null || selbookrpt == null}
     <p class="fg-dim">No data</p>
 {:else}
-    <div class="flex flex-row justify-between mb-2">
+    <div class="flexrow mb-2">
         <h1 class="text-sm font-bold fg-h2">{selbookrpt.summaryrpt.heading}</h1>
     </div>
 
@@ -9,7 +9,7 @@
         {#if ri.caption == "" && ri.cols.length == 0}
             <div class="py-2"></div>
         {:else}
-            <div class="rptrow flex flex-row justify-between p-1 border-b border-cell w-full">
+            <div class="rptrow">
             {#if ri.caption.startsWith("# ")}
                 <h2 class="cell-desc font-bold fg-h2">{ri.caption.substring(2)}</h2>
             {:else}

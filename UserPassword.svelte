@@ -3,18 +3,18 @@
 {:else}
     <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="password" id="password" type="password" placeholder="Current Password" bind:value={frm_password}>
+            <input class="input w-full" name="password" id="password" type="password" placeholder="Current Password" bind:value={frm_password}>
         </div>
         <div class="mb-2">
-            <input class="block bg-input fg-normal py-1 px-2 w-full" name="newpassword" id="newpassword" type="password" placeholder="New Password" bind:value={frm_newpassword}>
+            <input class="input w-full" name="newpassword" id="newpassword" type="password" placeholder="New Password" bind:value={frm_newpassword}>
         </div>
-        <div class="flex flex-row justify-left mb-2">
-            <button class="border border-normal py-1 px-2 bg-inputok mr-2">Update</button>
-            <a href="/" class="action self-center" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
+        <div class="flexrow mb-2">
+            <button class="btn bg-inputok mr-2">Update</button>
+            <a href="/" class="action" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
         </div>
         {#if status != ""}
         <div class="">
-            <p class="uppercase italic text-xs">{status}</p>
+            <p class="prompt">{status}</p>
         </div>
         {/if}
     </form>

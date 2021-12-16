@@ -4,40 +4,24 @@
 
 @tailwind utilities;
 
-.accounts {
-    grid-area: accounts;
-}
-.txns {
-    grid-area: txns;
-}
-.txndetail {
-    grid-area: txndetail;
-}
+.maincontainer {@apply max-w-screen-xl;}
+
+/* Journal tab */
 .journal-container {
     display: grid;
     gap: 1rem;
-    grid-template-columns: 20rem minmax(0, 1fr) 20rem;
+    grid-template-columns: 20rem minmax(0, 1fr);
     grid-template-areas:
-        "accounts txns txndetail";
+        "accounts txns";
 }
+.accounts {grid-area: accounts;}
+.txns {grid-area: txns;}
 
-.report {
-    grid-area: report;
-    max-width: 600px;
-}
-.setup {
-    grid-area: setup;
-    max-width: 20rem;
-}
+/* Other tabs: Report, Setup */
+.report {max-width: 600px;}
+.setup {max-width: 20rem;}
 
-.txnform-desc {grid-area: txnform-desc;}
-.txnform-date {grid-area: txnform-date;}
-.txnform-action {grid-area: txnform-action;}
-.txnform-amt {grid-area: txnform-amt;}
-.txnform-refno {grid-area: txnform-refno;}
-.txnform-memo {grid-area: txnform-memo;}
-.txnform-btns {grid-area: txnform-btns;}
-.txnform-status {grid-area: txnform-status;}
+/* TxnForm grid */
 .txnform {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -50,8 +34,23 @@
     column-gap: 0.5rem;
     row-gap: 0.5rem;
 }
+.txnform-desc {grid-area: txnform-desc;}
+.txnform-date {grid-area: txnform-date;}
+.txnform-action {grid-area: txnform-action;}
+.txnform-amt {grid-area: txnform-amt;}
+.txnform-refno {grid-area: txnform-refno;}
+.txnform-memo {grid-area: txnform-memo;}
+.txnform-btns {grid-area: txnform-btns;}
+.txnform-status {grid-area: txnform-status;}
 
-@media only screen and (max-width: 1400px) {
+/* small screen */
+@media only screen and (max-width: 1024px) {
+    .journal-container {
+        grid-template-columns: 20rem minmax(0, 1fr);
+        grid-template-areas:
+            "accounts txns";
+    }
+
     .txnform {
         grid-template-areas:
             "txnform-desc txnform-desc txnform-date txnform-date"
@@ -62,15 +61,7 @@
     }
 }
 
-@media only screen and (max-width: 1024px) {
-    .journal-container {
-        grid-template-columns: 20rem minmax(0, 1fr);
-        grid-template-areas:
-            "accounts  txns"
-            "txndetail ....";
-    }
-}
-
+/* phone screen */
 @media only screen and (max-width: 800px) {
     .journal-container {
         grid-template-columns: 100%;
@@ -93,58 +84,62 @@
     }
 }
 
+/* Colors */
 .bg-page {@apply bg-gray-900;}
-
 .fg-normal {@apply text-gray-200;}
 .bg-normal {@apply bg-gray-800;}
 .fg-dim {@apply text-gray-500;}
 .fg-h1 {@apply text-green-200;}
 .fg-h2 {@apply text-green-400;}
 .fg-h3 {@apply text-gray-400;}
-
 .fg-reverse {@apply text-gray-800;}
 .bg-reverse {@apply bg-gray-300;}
 .highlight {@apply fg-reverse bg-reverse;}
 .highlight-1 {@apply fg-reverse bg-green-200;}
 .highlight-2 {@apply fg-reverse bg-green-400;}
-
 .bg-input {@apply bg-gray-700;}
 .bg-inputok {@apply bg-green-700;}
 .bg-inputdel {@apply fg-normal bg-red-900;}
-
 .fg-number-plus {@apply text-green-500;}
 .fg-number-minus {@apply text-red-500;}
-
 .fg-hoverhighlight {@apply text-yellow-300;}
 .fg-note {@apply text-gray-800;}
 .bg-note {@apply bg-yellow-50;}
-
 .border-normal {@apply border-gray-500;}
 .border-cell {@apply border-gray-700;}
 
-.dim {@apply opacity-50;}
-.focus {@apply opacity-100 border-2 border-normal;}
-
-.action {@apply border-b border-normal;}
-.pill {@apply fg-reverse bg-reverse rounded-md px-2;}
-
-.memo p:not(:last-child) {@apply mb-1;}
-
+/* tblrow: ledger-like table row */
 .tblrow {@apply flex flex-row items-center p-1 gap-1 border-b border-cell;}
 .tblrow.detail {@apply border-b-0;}
 .tblrow.sel {@apply highlight-1;}
-
 .tblrow .cell-date {flex: 0 0 10ch; @apply truncate fg-dim;}
 .tblrow .cell-refno {flex: 0 0 12ch; @apply truncate fg-dim;}
 .tblrow .cell-desc {flex: 1 1 0ch; @apply truncate;}
 .tblrow .cell-amt {flex: 0 0 12ch; @apply whitespace-nowrap text-right;}
+.tblrow .cell-detailicon {flex: 0 0 3ch; @apply self-center px-1 fg-dim;}
+.tblrow .cell-detailicon:hover {@apply fg-hoverhighlight;}
+.tblrow .sel .cell-detailicon:hover {@apply fg-reverse;}
 
-.cell-detailicon {flex: 0 0 3ch; @apply self-center px-1 fg-dim;}
-.cell-detailicon:hover {@apply fg-hoverhighlight;}
-.sel .cell-detailicon:hover {@apply fg-reverse;}
-
+/* memonote: an expanded text note */
 .memonote {max-height: 15rem; @apply border border-cell p-1 my-1 break-normal whitespace-normal fg-note bg-note overflow-auto;}
 
+/* rptrow: report row */ 
+.rptrow {@apply flex flex-row p-1 border-b border-cell;}
 .rptrow .cell-desc {flex: 1 1 0ch; @apply truncate;}
 .rptrow .cell-amt {flex: 0 0 14ch; @apply text-right;}
 .rptrow .cell-caption {flex: 0 0 14ch; @apply truncate;}
+
+/* Misc utils */
+select {@apply bg-normal;}
+.flexrow {@apply flex flex-row items-baseline}
+.input {@apply bg-input py-1 px-2;} 
+.btn {@apply border border-normal py-1 px-2;}
+.prompt {@apply uppercase italic text-xs;}
+.h2 {@apply fg-h1 text-sm font-bold;}
+.action {@apply border-b border-normal;}
+.pill {@apply fg-reverse bg-reverse rounded-md px-2;}
+
+.dim {@apply opacity-50;}
+.focus {@apply opacity-100 border-2 border-normal;}
+.memo p:not(:last-child) {@apply mb-1;}
+

@@ -2,18 +2,16 @@
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}
-    <div class="flex flex-row justify-between items-end mb-2">
-        <div class="">
-            <select class="text-sm font-bold fg-h1 bg-normal pr-2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
-            {#each root.books as b}
-                {#if b.bookid == bookid}
-                <option selected value={b.bookid}>{b.name}</option>
-                {:else}
-                <option value={b.bookid}>{b.name}</option>
-                {/if}
-            {/each}
-            </select>
-        </div>
+    <div class="flexrow justify-between mb-2">
+        <select class="h2" id="book" name="book" placeholder="Select Book" bind:value={bookid} on:change={onbookchange} on:blur="{e => {}}">
+        {#each root.books as b}
+            {#if b.bookid == bookid}
+            <option selected value={b.bookid}>{b.name}</option>
+            {:else}
+            <option value={b.bookid}>{b.name}</option>
+            {/if}
+        {/each}
+        </select>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>New</a>
     </div>
     {#if editid != 0}
@@ -127,7 +125,7 @@ $: [display_aa, ifirststock] = filterAccounts(selbook, frm_filter);
 
 document.addEventListener("dragstart", function(e) {
     let el = e.target;
-    if (!el.classList.contains("accountrow")) {
+    if (!el.classList.contains("tblrow")) {
         return;
     }
     e.dataTransfer.setData("text/plain", el.dataset.accountid);
@@ -135,7 +133,7 @@ document.addEventListener("dragstart", function(e) {
 document.addEventListener("dragover", function(e) {
     e.preventDefault();
 
-    let el = e.target.closest(".accountrow");
+    let el = e.target.closest(".tblrow");
     if (el == null) {
         e.dataTransfer.dropEffect = "none";
         return;
@@ -145,7 +143,7 @@ document.addEventListener("dragover", function(e) {
 document.addEventListener("drop", async function(e) {
     e.preventDefault();
 
-    let el = e.target.closest(".accountrow");
+    let el = e.target.closest(".tblrow");
     if (el == null) {
         return;
     }

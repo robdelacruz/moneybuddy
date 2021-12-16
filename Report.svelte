@@ -1,49 +1,47 @@
-<div class="report flex flex-row">
-    <div class="w-full bg-normal fg-normal mb-2 mr-2 py-2 px-4">
-    {#if rptdata == null || rptdata.bookrpts.length == 0}
-        <p class="fg-dim">No data</p>
-    {:else}
-        <div class="flex flex-row justify-between border-b border-cell mb-4">
-            <div>
-                <select class="text-xs fg-normal bg-normal pr-1 mr-4" id="rpttype" name="rpttype" placeholder="Select Report" bind:value={selrptid}>
-                    {#each menurpts as menurpt}
-                        {#if menurpt.id == selrptid}
-                        <option selected value={menurpt.id}>{menurpt.name}</option>
-                        {:else}
-                        <option value={menurpt.id}>{menurpt.name}</option>
-                        {/if}
-                    {/each}
-                </select>
-                <select class="text-xs fg-normal bg-normal pr-1" id="book" name="book" placeholder="Select Book" bind:value={selbookid}>
-                    {#each rptdata.bookrpts as bookrpt}
-                        {#if bookrpt.bookid == selbookid}
-                        <option selected value={bookrpt.bookid}>{bookrpt.bookname}</option>
-                        {:else}
-                        <option value={bookrpt.bookid}>{bookrpt.bookname}</option>
-                        {/if}
-                    {/each}
-                </select>
-            </div>
-            <div>
-                <select class="text-xs fg-normal bg-normal pr-1" id="currency" name="currency" placeholder="Select Currency" bind:value={selcurrencyid}>
-                    {#each currencies as c}
-                        {#if c.currencyid == selcurrencyid}
-                        <option selected value={c.currencyid}>{c.name}</option>
-                        {:else}
-                        <option value={c.currencyid}>{c.name}</option>
-                        {/if}
-                    {/each}
-                </select>
-            </div>
+<div class="report bg-normal fg-normal py-2 px-4">
+{#if rptdata == null || rptdata.bookrpts.length == 0}
+    <p class="fg-dim">No data</p>
+{:else}
+    <div class="flexrow justify-between border-b border-cell mb-4">
+        <div class="flexrow gap-4">
+            <select class="text-xs" id="rpttype" name="rpttype" placeholder="Select Report" bind:value={selrptid}>
+                {#each menurpts as menurpt}
+                    {#if menurpt.id == selrptid}
+                    <option selected value={menurpt.id}>{menurpt.name}</option>
+                    {:else}
+                    <option value={menurpt.id}>{menurpt.name}</option>
+                    {/if}
+                {/each}
+            </select>
+            <select class="text-xs" id="book" name="book" placeholder="Select Book" bind:value={selbookid}>
+                {#each rptdata.bookrpts as bookrpt}
+                    {#if bookrpt.bookid == selbookid}
+                    <option selected value={bookrpt.bookid}>{bookrpt.bookname}</option>
+                    {:else}
+                    <option value={bookrpt.bookid}>{bookrpt.bookname}</option>
+                    {/if}
+                {/each}
+            </select>
         </div>
-
-        {#if selrptid == "summaryrpt"}
-        <SummaryRpt bind:this={wsummaryrpt} rptdata={rptdata} bookid={selbookid} />
-        {:else if selrptid == "somethingelse"}
-            <p>something else</p>
-        {/if}
-    {/if}
+        <div>
+            <select class="text-xs" id="currency" name="currency" placeholder="Select Currency" bind:value={selcurrencyid}>
+                {#each currencies as c}
+                    {#if c.currencyid == selcurrencyid}
+                    <option selected value={c.currencyid}>{c.name}</option>
+                    {:else}
+                    <option value={c.currencyid}>{c.name}</option>
+                    {/if}
+                {/each}
+            </select>
+        </div>
     </div>
+
+    {#if selrptid == "summaryrpt"}
+    <SummaryRpt bind:this={wsummaryrpt} rptdata={rptdata} bookid={selbookid} />
+    {:else if selrptid == "somethingelse"}
+        <p>something else</p>
+    {/if}
+{/if}
 </div>
 
 <script>

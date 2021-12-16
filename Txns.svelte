@@ -2,9 +2,9 @@
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
-    <div class="flex flex-row justify-between items-end mb-2">
-        <div class="flex flex-row">
-            <select class="text-sm font-bold fg-h1 bg-normal mr-2 max-w-xs truncate" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
+    <div class="flexrow justify-between mb-2">
+        <div class="flexrow gap-2">
+            <select class="h2 max-w-xs truncate" id="selectaccount" name="selectaccount" placeholder="Select Account" bind:value={accountid} on:change={onaccountchange} on:blur="{e => {}}">
                 {#each bookaccounts as a}
                     {#if a.accountid == accountid}
                     <option selected value={a.accountid}>{a.name}</option>
@@ -14,9 +14,9 @@
                 {/each}
             </select>
             {#if displayaccount.balance >= 0}
-            <p class="text-sm self-end fg-number-plus">{displayaccount.fmtbalance}</p>
+            <p class="text-sm 1self-end fg-number-plus">{displayaccount.fmtbalance}</p>
             {:else}
-            <p class="text-sm self-end fg-number-minus">{displayaccount.fmtbalance}</p>
+            <p class="text-sm 1self-end fg-number-minus">{displayaccount.fmtbalance}</p>
             {/if}
         </div>
         <a class="text-xs pill" href="/" on:click|preventDefault={oncreate}>New</a>
