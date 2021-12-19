@@ -4,7 +4,11 @@
 
 @tailwind utilities;
 
-.maincontainer {@apply max-w-screen-xl;}
+body {@apply bg-page fg-normal text-xs max-w-screen-xl;}
+
+.section-container {@apply bg-normal py-2 px-4;}
+
+.user-container {width: 15rem;}
 
 /* Journal tab */
 .journal-container {

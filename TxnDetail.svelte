@@ -1,9 +1,9 @@
-<div class="txndetail bg-normal fg-normal py-2 px-4">
+<div class="txndetail section-container">
 {#if txn == null}
     <p class="fg-dim">No data</p>
 {:else}
-    <div class="flex flex-row justify-between mb-2">
-        <h1 class="text-sm font-bold fg-h2">Transaction Details</h1>
+    <div class="flexrow justify-between mb-2">
+        <h1 class="h2">Transaction Details</h1>
     </div>
 
     <p class="p-1 border-b border-cell">{txn.date.substring(0, 10)}</p>

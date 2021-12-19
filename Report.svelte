@@ -1,4 +1,4 @@
-<div class="report bg-normal fg-normal py-2 px-4">
+<div class="report section-container">
 {#if rptdata == null || rptdata.bookrpts.length == 0}
     <p class="fg-dim">No data</p>
 {:else}

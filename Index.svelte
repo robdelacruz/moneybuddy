@@ -1,5 +1,5 @@
-<div class="maincontainer p-2">
-    <div class="header flex flex-row justify-between border-b border-normal fg-normal pb-1 mb-2">
+<body class="maincontainer p-2">
+    <div class="header flex flex-row justify-between border-b border-normal pb-1 mb-2">
         <div class="flex flex-row items-center">
             <div class="">
                 <svg class="h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm1-5h1a3 3 0 0 0 0-6H7.99a1 1 0 0 1 0-2H14V5h-3V3H9v2H8a3 3 0 1 0 0 6h4a1 1 0 1 1 0 2H6v2h3v2h2v-2z"/></svg>
@@ -41,7 +41,7 @@
         <a class="mr-2" href="https://github.com/robdelacruz/moneybuddy" target="_blank">source</a>
         <a class="" href="https://github.com/robdelacruz/moneybuddy" target="_blank">donate</a>
     </div>
-</div>
+</body>
 
 <script>
 import {onMount, createEventDispatcher} from "svelte";

@@ -1,4 +1,4 @@
-<div class="txns bg-normal fg-normal py-2 px-4">
+<div class="txns section-container">
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}
@@ -25,7 +25,7 @@
     <!-- Don't show filter when Create form is visible. -->
         <div class="mb-2">
             <form autocomplete="off" on:submit|preventDefault="{e => {}}">
-                <input class="block bg-input fg-normal py-1 px-2 w-full" name="filter" id="txnfilter" type="text" placeholder="Filter" bind:value={frm_filter} bind:this={input_filter}>
+                <input class="input w-full" name="filter" id="txnfilter" type="text" placeholder="Filter" bind:value={frm_filter} bind:this={input_filter}>
             </form>
         </div>
     {/if}

@@ -90,10 +90,10 @@ func printHtmlOpen(P PrintFunc, title string, jsurls []string) {
 	P(".myfont {font-family: Helvetica Neue,Helvetica,Arial,sans-serif;}\n")
 	P("</style>\n")
 	P("</head>\n")
-	P("<body class=\"bg-page text-xs p-2\">\n")
+	//	P("<body class=\"bg-page text-xs p-2\">\n")
 }
 func printHtmlClose(P PrintFunc) {
-	P("</body>\n")
+	//	P("</body>\n")
 	P("</html>\n")
 }
 func printContainerOpen(P PrintFunc) {

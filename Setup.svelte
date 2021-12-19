@@ -1,4 +1,4 @@
-<div class="setup bg-normal fg-normal py-2 px-4">
+<div class="setup section-container">
 {#if root == null}
     <p class="fg-dim">No data</p>
 {:else}
