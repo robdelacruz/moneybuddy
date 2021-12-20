@@ -1,4 +1,4 @@
-<div class="journal-container">
+<div class="journal">
     <Accounts bind:this={waccounts} root={root} bookid={selbookid} selaccountid={selaccountid} on:selectbookid={accounts_selectbookid} on:select={accounts_select} />
     <Txns bind:this={wtxns} root={root} bookid={selbookid} accountid={selaccountid} on:selectaccount={txns_selectaccount} on:select={txns_select} />
 </div>

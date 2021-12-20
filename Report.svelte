@@ -1,4 +1,4 @@
-<div class="report section-container">
+<div class="report webpanel">
 {#if rptdata == null || rptdata.bookrpts.length == 0}
     <p class="fg-dim">No data</p>
 {:else}

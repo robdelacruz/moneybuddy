@@ -1,4 +1,4 @@
-<div class="txns section-container">
+<div class="txns webpanel">
 {#if root == null || selbook == null || displayaccount == null}
     <p class="fg-dim">Select Account</p>
 {:else}

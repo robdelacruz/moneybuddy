@@ -1,4 +1,4 @@
-<div class="txndetail section-container">
+<div class="txndetail webpanel">
 {#if txn == null}
     <p class="fg-dim">No data</p>
 {:else}

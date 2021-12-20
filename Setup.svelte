@@ -1,4 +1,4 @@
-<div class="setup section-container">
+<div class="setup webpanel">
 {#if root == null}
     <p class="fg-dim">No data</p>
 {:else}

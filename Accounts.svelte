@@ -1,4 +1,4 @@
-<div class="accounts section-container">
+<div class="accounts webpanel">
 {#if root == null || root.books.length == 0}
     <p class="fg-dim">No data</p>
 {:else}

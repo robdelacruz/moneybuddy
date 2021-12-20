@@ -1,4 +1,4 @@
-<div class="user-container section-container">
+<div class="userpanel webpanel">
     <h1 class="h2 mb-4">User Login</h1>
     <form class="" autocomplete="off" on:submit|preventDefault={onSubmit}>
         <div class="mb-2">
