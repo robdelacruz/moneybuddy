@@ -11,6 +11,9 @@
             <button class="btn bg-inputok mr-2">Login</button>
             <a href="/" class="hidden action self-center" on:click|preventDefault="{e => dispatch('cancel')}">Cancel</a>
         </div>
+        <div class="">
+            <p class="text-xs fg-dim">To try it out, log in as '<span class="italic">demo</span>' with blank password.</p>
+        </div>
         {#if status != ""}
         <div class="">
             <p class="prompt">{status}</p>

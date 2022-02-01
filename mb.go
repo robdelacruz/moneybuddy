@@ -194,10 +194,10 @@ func jsonstr(v interface{}) string {
 }
 
 func createTestData(db *sql.DB) {
-	fmt.Printf("Creating user1's test data...\n")
-	initTestData(db, "rob")
-	fmt.Printf("Creating user2's test data...\n")
-	initTestData(db, "user2")
+	fmt.Printf("Creating demo data...\n")
+	initTestData(db, "demo")
+	fmt.Printf("Creating demo2 data...\n")
+	initTestData(db, "demo2")
 	fmt.Printf("Done\n")
 }
 func initTestData(db *sql.DB, username string) {
