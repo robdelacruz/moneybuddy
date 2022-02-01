@@ -17,13 +17,12 @@ SRCS2 = db.go dbdata.go dbrptdata.go
 
 all: mb static/style.css static/bundle.js
 
-dep:
-	sudo apt install curl software-properties-common
+nodejs:
 	curl -fsSL https://deb.nodesource.com/setup_$(NODE_VER).x | sudo bash -
-	sudo apt install -y nodejs
-	sudo npm --force install -g npx
+	sudo apt install nodejs
+	sudo npm install -g npx
 
-depgo:
+dep:
 	go env -w GO111MODULE=auto
 	go get -u github.com/mattn/go-sqlite3
 	go get -u golang.org/x/crypto/bcrypt
@@ -31,6 +30,7 @@ depgo:
 
 webtools:
 	npm install --save-dev tailwindcss
+	npm install --save-dev postcss
 	npm install --save-dev postcss-cli
 	npm install --save-dev cssnano
 	npm install --save-dev svelte
@@ -38,7 +38,7 @@ webtools:
 	npm install --save-dev rollup-plugin-svelte
 	npm install --save-dev @rollup/plugin-node-resolve
 
-static/style.css: twsrc.css
+static/style.css: twsrc.css tailwind.config.js
 	#npx tailwind build twsrc.css -o twsrc.o 1>/dev/null
 	#npx postcss twsrc.o > static/style.css
 	npx tailwind -i twsrc.css -o static/style.css 1>/dev/null
